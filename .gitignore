@@ -1,0 +1,33 @@
+# Reference SDKs (local only, not tracked)
+rabbit-hmi-oss/
+
+# System junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE configs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Dependencies & builds
+node_modules/
+dist/
+build/
+out/
+bin/
+obj/
+
+# Logs and temp
+*.log
+*.tmp
+
+# Env/secrets
+.env
+.env.local
+.env.*

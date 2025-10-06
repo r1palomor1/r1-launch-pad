@@ -1,0 +1,5 @@
+# Exclude reference clones and docs from deployment uploads
+rabbit-hmi-oss/
+docs/
+*.pdf
+*.txt
