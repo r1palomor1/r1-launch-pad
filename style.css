@@ -1206,3 +1206,49 @@ body button.secondary {
     font-size: var(--font-size-small);
 }
 /* ===== End Patch v2 ===== */
+
+
+
+/* ===== Patch v3: Theme dialog button sizing and scrollbar visibility ===== */
+/* Smaller buttons in Theme dialog (Rabbit Me, Cancel, OK) */
+#themeDialogOverlay .custom-prompt-actions button {
+    min-height: 28px !important;
+    font-size: 0.8em !important;
+    padding: 2px 6px !important;
+}
+
+/* Slightly larger font for theme color list items */
+.theme-color-list .theme-color-item {
+    font-size: 0.95em; /* slightly larger than small */
+}
+
+/* Enhance scrollbar visibility in theme color list */
+.theme-color-list::-webkit-scrollbar {
+    width: 8px; /* larger than default 6px */
+}
+.theme-color-list::-webkit-scrollbar-thumb {
+    background-color: var(--icon-color);
+    border-radius: 4px;
+    border: 2px solid var(--bg-color);
+}
+/* ===== End Patch v3 ===== */
+
+
+
+/* ===== Patch v4: Consistent smaller buttons across all dialogs ===== */
+.custom-prompt-actions button,
+.dialog-icon-btn,
+body button.secondary {
+    min-height: 28px !important;
+    font-size: 0.8em !important;
+    padding: 2px 6px !important;
+}
+.dialog-icon-btn {
+    width: 28px !important;
+    height: 28px !important;
+}
+/* Keep proportional spacing inside action areas */
+.custom-prompt-actions {
+    gap: 6px;
+}
+/* ===== End Patch v4 ===== */
