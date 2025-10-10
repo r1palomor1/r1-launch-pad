@@ -364,8 +364,9 @@ button.rabbit-default:hover {
     justify-content: center;
 }
 
-.favorite-btn.is-favorite {
+.card .link-actions .favorite-btn.is-favorite {
     color: #FFD700;
+    filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.7)); /* Adds a yellow glow */
 }
 
 .favorite-indicator {
