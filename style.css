@@ -143,8 +143,8 @@ header {
     background: transparent;
     border: none;
     padding: 0;
-    width: max(26px, 44px);
-    height: max(26px, 44px);
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -699,8 +699,8 @@ button.rabbit-default:hover {
     border: none;
     padding: 2px;
     cursor: pointer;
-    width: max(26px, 44px);
-    height: max(26px, 44px);
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
