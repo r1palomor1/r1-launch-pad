@@ -14,6 +14,7 @@
     --checkbox-border-color: #555;
     --button-font-color: #FFFFFF;
     --checkbox-checked-bg: var(--primary-color);
+    --actions-icon-size: 16px; /* ADDED: For main action icons */
 
     /* Dynamic Sizing Variables */
     --font-size-base: clamp(14px, 4.2vw, 16px);
@@ -156,8 +157,8 @@ header {
 }
 
 #quickLaunchBtn svg, #deleteAllBtn svg {
-    width: 18px;
-    height: 18px;
+    width: var(--actions-icon-size);
+    height: var(--actions-icon-size);
     fill: var(--icon-color);
 }
 
@@ -168,8 +169,8 @@ header {
 }
 
 #themeBtn img {
-    width: 18px;
-    height: 18px;
+    width: var(--actions-icon-size);
+    height: var(--actions-icon-size);
     display: block;
 }
 
@@ -711,8 +712,8 @@ button.rabbit-default:hover {
 
 .view-btn svg {
     display: block;
-    width: 18px;
-    height: 18px;
+    width: var(--actions-icon-size);
+    height: var(--actions-icon-size);
     fill: var(--icon-color);
 }
 
