@@ -21,7 +21,7 @@
     --font-size-small: clamp(12px, 3.5vw, 14px);
     --font-size-large: clamp(16px, 4.8vw, 20px);
     --icon-size-small: clamp(16px, 4.5vw, 18px);
-    --icon-size-medium: clamp(18px, 5vw, 20px);
+    --icon-size-medium: clamp(16px, 4.5vw, 18px);
     --icon-size-large: clamp(20px, 5.5vw, 24px);
     --touch-target-size: clamp(34px, 9vw, 38px); /* REPLACED: Reduces min height */
     --card-padding-y: clamp(8px, 2.2vw, 12px);
