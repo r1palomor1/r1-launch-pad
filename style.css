@@ -427,7 +427,6 @@ button.rabbit-default:hover {
     gap: 8px;
     cursor: pointer;
     font-size: 0.9em;
-    min-height: 32px;
     touch-action: manipulation;
     padding: 2px 0;
 }
@@ -861,7 +860,7 @@ button.rabbit-default:hover {
 
 .custom-prompt-actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     flex: 0 0 auto;
     margin-top: 6px;
