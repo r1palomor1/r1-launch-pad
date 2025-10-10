@@ -1078,6 +1078,7 @@ function openThemeEditor() {
     studioActiveModifier = null;
     originalThemeState = { theme: currentThemeName, mode: currentLuminanceMode };
     themeLabToggle.style.display = 'none'; // Always hide on open
+    themeDialogTitle.parentElement.classList.remove('lab-toggle-active');
     labCheckbox.checked = false; // Ensure lab mode is off when opening
     renderThemeDialog();
     themeDialogTitle.style.color = getComputedStyle(document.documentElement).getPropertyValue('--primary-color');
@@ -1264,11 +1265,14 @@ function setupThemeDialogListeners() {
             const themeToPreview = li.dataset.isCustom ? { name: `custom:My Custom Theme` } : { name: `custom:${colorName}` };
             const applyResult = await applyTheme(themeToPreview);
             if (!applyResult.success) themeDialogError.textContent = applyResult.error;
+            const wrapper = themeDialogTitle.parentElement;
             // Show the Lab toggle only if a standard color is selected, not the custom theme.
             if (li.dataset.isCustom) {
                 themeLabToggle.style.display = 'none';
+                wrapper.classList.remove('lab-toggle-active'); // Remove class
             } else {
                 themeLabToggle.style.display = 'flex';
+                wrapper.classList.add('lab-toggle-active'); // Add class
             }
         }
         clearThemeInputBtn.style.display = themeDialogInput.value.length > 0 ? 'flex' : 'none';

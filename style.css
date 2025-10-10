@@ -796,7 +796,11 @@ button.rabbit-default:hover {
     align-items: center;
     gap: 8px;
     position: relative;
-    padding-right: 60px;
+    /* padding-right has been moved below */
+}
+
+.custom-prompt-title-wrapper.lab-toggle-active {
+    padding-right: 60px; /* Only apply padding when the toggle is active */
 }
 
 .custom-prompt-dialog .custom-prompt-title {
