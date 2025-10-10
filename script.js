@@ -438,15 +438,17 @@ cardContainer.addEventListener('click', async (e) => {
         const index = links.findIndex(l => l.id === id);
         if (index !== -1) editLink(li, index);
     } else if (target.closest('.favorite-btn')) {
-        if (favoriteLinkIds.has(id)) {
-            favoriteLinkIds.delete(id);
-        } else {
-            favoriteLinkIds.add(id);
-        }
-        triggerHaptic();
-        saveLinks();
-        searchHandler(searchInput.value);
-    } else if (target.closest('.link-description') || target.closest('.link-favicon')) {
+    const favoriteBtn = target.closest('.favorite-btn'); // Get the button that was clicked
+    if (favoriteLinkIds.has(id)) {
+        favoriteLinkIds.delete(id);
+    } else {
+        favoriteLinkIds.add(id);
+    }
+    favoriteBtn.classList.toggle('is-favorite'); // ADDED: This directly toggles the color!
+    triggerHaptic();
+    saveLinks();
+    searchHandler(searchInput.value); // This still runs to update the category star
+} else if (target.closest('.link-description') || target.closest('.link-favicon')) {
         if (li.querySelector('.edit-description')) return;
         const link = links.find(l => l.id === id);
         if (!link) return;
