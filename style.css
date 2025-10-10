@@ -232,6 +232,9 @@ body button.secondary {
     background-color: transparent;
     border: 1px solid var(--secondary-color);
     color: var(--secondary-color);
+    min-height: 28px !important;
+    font-size: 0.8em !important;
+    padding: 2px 6px !important;
 }
 
 body button.secondary:hover {
@@ -306,17 +309,22 @@ button.rabbit-default:hover {
 .card .link-description {
     flex: 1 1 auto;
     font-weight: bold;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
     cursor: pointer;
     font-size: var(--font-size-base);
+    white-space: normal;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow-wrap: anywhere;
 }
 
 .card .link-actions {
     display: flex;
-    gap: clamp(4px, 1.5vw, 8px);
+    gap: 4px;
     align-items: center;
     flex-shrink: 0;
 }
@@ -325,8 +333,8 @@ button.rabbit-default:hover {
     display: inline-flex;
     cursor: pointer;
     color: var(--icon-color);
-    width: var(--touch-target-size);
-    height: var(--touch-target-size);
+    width: 28px;
+    height: 28px;
     align-items: center;
     justify-content: center;
     touch-action: manipulation;
@@ -409,7 +417,7 @@ button.rabbit-default:hover {
 .delete-options {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 4px;
 }
 
 .delete-options label {
@@ -417,9 +425,10 @@ button.rabbit-default:hover {
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    font-size: 1em;
-    min-height: 44px;
+    font-size: 0.9em;
+    min-height: 32px;
     touch-action: manipulation;
+    padding: 2px 0;
 }
 
 .delete-options input[type="radio"] {
@@ -434,8 +443,9 @@ button.rabbit-default:hover {
     cursor: pointer;
     border-bottom: 1px solid var(--border-color);
     user-select: none;
-    min-height: 44px;
+    min-height: 36px;
     touch-action: manipulation;
+    font-size: var(--font-size-small);
 }
 
 .delete-link-item:last-child {
@@ -491,20 +501,10 @@ button.rabbit-default:hover {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background-color: var(--bg-color);
-    flex-grow: 1; /* Allow lists to take available space */
-    min-height: 100px; /* Ensure a minimum height */
-}
-
-.favorites-list {
-    max-height: 65vh;
-}
-
-.delete-links-list {
-    max-height: 45vh;
-}
-
-.theme-color-list {
-    max-height: 46vh;
+    flex-grow: 1;
+    min-height: 100px;
+    flex: 1 1 auto;
+    max-height: none;
 }
 
 .favorite-list-item {
@@ -515,8 +515,9 @@ button.rabbit-default:hover {
     cursor: pointer;
     border-bottom: 1px solid var(--border-color);
     user-select: none;
-    min-height: 44px;
+    min-height: 36px;
     touch-action: manipulation;
+    font-size: var(--font-size-small);
 }
 
 .favorite-list-item:last-child {
@@ -580,10 +581,11 @@ button.rabbit-default:hover {
     border-bottom: 1px solid var(--border-color);
     user-select: none;
     font-weight: bold;
-    min-height: 44px;
+    min-height: 32px;
     display: flex;
     align-items: center;
     touch-action: manipulation;
+    font-size: 1em;
 }
 
 .theme-color-item:last-child {
@@ -630,7 +632,7 @@ button.rabbit-default:hover {
 .favorites-list::-webkit-scrollbar,
 .delete-links-list::-webkit-scrollbar,
 .theme-color-list::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 
 .favorites-list::-webkit-scrollbar-track,
@@ -643,7 +645,7 @@ button.rabbit-default:hover {
 .delete-links-list::-webkit-scrollbar-thumb,
 .theme-color-list::-webkit-scrollbar-thumb {
     background-color: var(--icon-color);
-    border-radius: 3px;
+    border-radius: 4px;
     border: 2px solid var(--bg-color);
 }
 
@@ -656,13 +658,15 @@ button.rabbit-default:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
 .list-actions {
     display: flex;
     align-items: center;
-    gap: 8px; 
+    gap: 4px; 
 }
 
 #toggleAllLink {
@@ -673,6 +677,7 @@ button.rabbit-default:hover {
     display: flex;
     align-items: center;
     touch-action: manipulation;
+    margin: 0 2px;
 }
 
 #toggleAllLink:hover {
@@ -681,18 +686,18 @@ button.rabbit-default:hover {
 
 .app-actions {
     display: flex;
-    gap: 8px;
+    gap: 4px;
 }
 
 .view-controls {
     display: flex;
-    gap: 10px;
+    gap: 4px;
 }
 
 .view-btn {
     background: transparent;
     border: none;
-    padding: 0;
+    padding: 2px;
     cursor: pointer;
     width: max(26px, 44px);
     height: max(26px, 44px);
@@ -700,6 +705,8 @@ button.rabbit-default:hover {
     align-items: center;
     justify-content: center;
     touch-action: manipulation;
+    min-height: 28px !important;
+    min-width: 28px !important;
 }
 
 .view-btn svg {
@@ -780,6 +787,7 @@ button.rabbit-default:hover {
     flex-direction: column; 
     gap: 4px;
     transition: padding 0.2s ease-in-out, gap 0.2s ease-in-out;
+    max-height: 85vh;
 }
 
 .custom-prompt-title-wrapper {
@@ -795,6 +803,8 @@ button.rabbit-default:hover {
     margin: 0;
     font-weight: bold;
     text-align: center;
+    width: 100%;
+    display: block;
 }
 
 .lab-toggle-wrapper {
@@ -810,7 +820,7 @@ button.rabbit-default:hover {
     border-radius: 6px;
     background-color: var(--item-bg);
     border: 1px solid var(--border-color);
-    min-height: 44px;
+    min-height: 32px;
     touch-action: manipulation;
 }
 
@@ -848,20 +858,25 @@ button.rabbit-default:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex: 0 0 auto;
+    margin-top: 6px;
+    gap: 6px;
 }
 
 .dialog-icon-btn {
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 0;
-    width: max(28px, 44px);
-    height: max(28px, 44px);
+    padding: 2px 6px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     touch-action: manipulation;
+    min-height: 28px !important;
+    font-size: 0.8em !important;
 }
 
 .dialog-icon-btn svg {
@@ -875,9 +890,17 @@ button.rabbit-default:hover {
 }
 
 .custom-prompt-actions button {
-    padding: 5px 8px;
-    font-size: max(16px, 0.85em);
+    padding: 2px 6px;
+    font-size: 0.8em;
+    min-height: 28px !important;
 }
+
+#themeDialogOverlay .custom-prompt-actions button {
+    min-height: 28px !important;
+    font-size: 0.8em !important;
+    padding: 2px 6px !important;
+}
+
 
 .custom-prompt-actions button:not(.secondary) {
     padding: 6px 9px;
@@ -1018,14 +1041,20 @@ button.rabbit-default:hover {
     gap: 8px;
 }
 
+.player-navigation .dialog-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+}
+
 .player-navigation .dialog-icon-btn svg {
     width: 24px;
     height: 24px;
 }
 
 .player-navigation button {
-    padding: 4px 6px;
-    font-size: max(16px, 0.9em);
+    padding: 4px 8px;
+    font-size: var(--font-size-small);
+    min-height: 32px !important;
 }
 
 .youtube-search-view {
@@ -1096,217 +1125,3 @@ button.rabbit-default:hover {
         gap: 8px;
     }
 }
-
-
-/* ===== Patch: UI fixes for descriptions, icon spacing, and dialog sizing (applied 2025-10-10 00:29:40) ===== */
-.card .link-description {
-    /* allow multi-line titles instead of 1-line cutoff */
-    white-space: normal;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.3;
-    /* multi-line clamp (best-effort on WebKit/Blink) */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow-wrap: anywhere;
-}
-
-.card .link-actions {
-    gap: 4px; /* tighter spacing between the 3 action icons */
-}
-.card .link-actions span {
-    /* shrink the hit area to free space for the description */
-    width: 28px;
-    height: 28px;
-}
-
-.favorites-list,
-.delete-links-list,
-.theme-color-list {
-    max-height: 70vh; /* show more entries in all list dialogs */
-}
-.theme-color-list {
-    font-size: var(--font-size-small); /* smaller font for dense theme list */
-}
-.theme-color-item {
-    min-height: 36px; /* slightly smaller row height */
-}
-
-/* smaller buttons & icon buttons inside dialogs (bottom button rows) */
-.custom-prompt-actions button,
-.dialog-icon-btn,
-body button.secondary {
-    min-height: 32px !important;
-    font-size: var(--font-size-small);
-    padding: 4px 8px;
-}
-.dialog-icon-btn {
-    width: 32px !important;
-    height: 32px !important;
-}
-
-/* also reduce the Lab toggle and other tall chips in dialogs */
-.lab-toggle-wrapper {
-    min-height: 32px;
-    padding: 2px 6px;
-}
-
-/* Player controls (bottom) smaller too */
-.player-navigation .dialog-icon-btn {
-    width: 32px !important;
-    height: 32px !important;
-}
-.player-navigation button {
-    min-height: 32px !important;
-    font-size: var(--font-size-small);
-    padding: 4px 8px;
-}
-/* ===== End Patch ===== */
-
-
-
-/* ===== Patch v2: Adjust dialog container proportions for lists and buttons ===== */
-.custom-prompt-dialog {
-    max-height: 85vh; /* cap dialog height to viewport */
-    display: flex;
-    flex-direction: column;
-}
-.favorites-list,
-.delete-links-list,
-.theme-color-list {
-    flex: 1 1 auto; /* let list grow but leave space for buttons */
-    max-height: none; /* override fixed vh so flex handles sizing */
-    overflow-y: auto;
-}
-.custom-prompt-actions {
-    flex: 0 0 auto; /* buttons fixed at bottom */
-    margin-top: 6px;
-}
-.custom-prompt-actions button,
-.dialog-icon-btn,
-body button.secondary {
-    min-height: 32px !important;
-    font-size: var(--font-size-small);
-    padding: 4px 8px;
-}
-.dialog-icon-btn {
-    width: 32px !important;
-    height: 32px !important;
-}
-/* Ensure theme list items are compact */
-.theme-color-item {
-    min-height: 32px;
-    font-size: var(--font-size-small);
-}
-/* Ensure other lists (favorites, delete) consistent */
-.favorite-list-item,
-.delete-link-item {
-    min-height: 36px;
-    font-size: var(--font-size-small);
-}
-/* ===== End Patch v2 ===== */
-
-
-
-/* ===== Patch v3: Theme dialog button sizing and scrollbar visibility ===== */
-/* Smaller buttons in Theme dialog (Rabbit Me, Cancel, OK) */
-#themeDialogOverlay .custom-prompt-actions button {
-    min-height: 28px !important;
-    font-size: 0.8em !important;
-    padding: 2px 6px !important;
-}
-
-/* Slightly larger font for theme color list items */
-.theme-color-list .theme-color-item {
-    font-size: 0.95em; /* slightly larger than small */
-}
-
-/* Enhance scrollbar visibility in theme color list */
-.theme-color-list::-webkit-scrollbar {
-    width: 8px; /* larger than default 6px */
-}
-.theme-color-list::-webkit-scrollbar-thumb {
-    background-color: var(--icon-color);
-    border-radius: 4px;
-    border: 2px solid var(--bg-color);
-}
-/* ===== End Patch v3 ===== */
-
-
-
-/* ===== Patch v4: Consistent smaller buttons across all dialogs ===== */
-.custom-prompt-actions button,
-.dialog-icon-btn,
-body button.secondary {
-    min-height: 28px !important;
-    font-size: 0.8em !important;
-    padding: 2px 6px !important;
-}
-.dialog-icon-btn {
-    width: 28px !important;
-    height: 28px !important;
-}
-/* Keep proportional spacing inside action areas */
-.custom-prompt-actions {
-    gap: 6px;
-}
-/* ===== End Patch v4 ===== */
-
-
-
-/* ===== Patch v5: Theme header centering, theme list font size, delete options spacing ===== */
-/* Center the Change Theme header */
-#themeDialogOverlay .custom-prompt-title {
-    text-align: center !important;
-    width: 100%;
-    display: block;
-}
-
-/* Larger font specifically for theme color list items */
-.theme-color-list .theme-color-item {
-    font-size: 1em !important; /* larger than before for readability */
-}
-
-/* Compact spacing for delete options */
-.delete-options {
-    gap: 4px !important; /* reduce vertical spacing between options */
-}
-.delete-options label {
-    min-height: 32px !important; /* smaller row height */
-    font-size: 0.9em !important;
-    padding: 2px 0;
-}
-/* ===== End Patch v5 ===== */
-
-
-
-/* ===== Patch v6: Reduce spacing between main icons below search bar ===== */
-.list-actions,
-.app-actions,
-.view-controls {
-    gap: 4px !important; /* tighter spacing while leaving slight gap */
-}
-
-#toggleAllLink {
-    margin: 0 2px; /* ensure "Collapse All" text still fits without pushing icons too far */
-}
-/* ===== End Patch v6 ===== */
-
-
-
-/* ===== Patch v7: Fine-tune vertical spacing of the actions bar ===== */
-.actions-bar {
-    margin-bottom: 4px !important; /* reduce bottom margin */
-    padding-top: 2px !important;
-    padding-bottom: 2px !important; /* more compact row */
-}
-
-.list-actions button,
-.app-actions button,
-.view-controls button {
-    padding: 2px !important; /* reduce button padding in this row */
-    min-height: 28px !important;
-    min-width: 28px !important;
-}
-/* ===== End Patch v7 ===== */
