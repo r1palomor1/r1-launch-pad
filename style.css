@@ -666,7 +666,7 @@ button.rabbit-default:hover {
 .list-actions {
     display: flex;
     align-items: center;
-    gap: 4px; 
+    gap: 2px; 
 }
 
 #toggleAllLink {
@@ -677,7 +677,7 @@ button.rabbit-default:hover {
     display: flex;
     align-items: center;
     touch-action: manipulation;
-    margin: 0 2px;
+    margin: 0;
 }
 
 #toggleAllLink:hover {
@@ -686,7 +686,7 @@ button.rabbit-default:hover {
 
 .app-actions {
     display: flex;
-    gap: 4px;
+    gap: 2px;
 }
 
 .view-controls {
