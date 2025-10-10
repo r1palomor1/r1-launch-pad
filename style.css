@@ -1252,3 +1252,43 @@ body button.secondary {
     gap: 6px;
 }
 /* ===== End Patch v4 ===== */
+
+
+
+/* ===== Patch v5: Theme header centering, theme list font size, delete options spacing ===== */
+/* Center the Change Theme header */
+#themeDialogOverlay .custom-prompt-title {
+    text-align: center !important;
+    width: 100%;
+    display: block;
+}
+
+/* Larger font specifically for theme color list items */
+.theme-color-list .theme-color-item {
+    font-size: 1em !important; /* larger than before for readability */
+}
+
+/* Compact spacing for delete options */
+.delete-options {
+    gap: 4px !important; /* reduce vertical spacing between options */
+}
+.delete-options label {
+    min-height: 32px !important; /* smaller row height */
+    font-size: 0.9em !important;
+    padding: 2px 0;
+}
+/* ===== End Patch v5 ===== */
+
+
+
+/* ===== Patch v6: Reduce spacing between main icons below search bar ===== */
+.list-actions,
+.app-actions,
+.view-controls {
+    gap: 4px !important; /* tighter spacing while leaving slight gap */
+}
+
+#toggleAllLink {
+    margin: 0 2px; /* ensure "Collapse All" text still fits without pushing icons too far */
+}
+/* ===== End Patch v6 ===== */
