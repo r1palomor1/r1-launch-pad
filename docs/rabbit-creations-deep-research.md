@@ -1,9 +1,4 @@
 # Rabbit Creations — Deep Research (PDF Extract)
-
-(no subject)
-1 message
-Leticia Loreto <leticialoreto1991@gmail.com> Mon, Sep 29, 2025 at 8:44 PM
-To: Joe <palomo32@gmail.com>
 Comprehensive Developer's Guide to the Rabbit R1 Creations SDK
 Platform Architecture and Development Environment
 An effective approach to developing applications, or "Creations," for the Rabbit R1 device necessitates a

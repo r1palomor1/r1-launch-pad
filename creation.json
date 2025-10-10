@@ -1,0 +1,12 @@
+{
+  "name": "Launch Pad R1",
+  "id": "com.yourname.launchpadr1",
+  "entry_file": "index.html",
+  "permissions": [
+    "core:launch-url",
+    "core:say",
+    "core:haptics",
+    "storage:plain",
+    "storage:secure"
+  ]
+}
