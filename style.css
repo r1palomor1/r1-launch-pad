@@ -1096,3 +1096,70 @@ button.rabbit-default:hover {
         gap: 8px;
     }
 }
+
+
+/* ===== Patch: UI fixes for descriptions, icon spacing, and dialog sizing (applied 2025-10-10 00:29:40) ===== */
+.card .link-description {
+    /* allow multi-line titles instead of 1-line cutoff */
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    /* multi-line clamp (best-effort on WebKit/Blink) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow-wrap: anywhere;
+}
+
+.card .link-actions {
+    gap: 4px; /* tighter spacing between the 3 action icons */
+}
+.card .link-actions span {
+    /* shrink the hit area to free space for the description */
+    width: 28px;
+    height: 28px;
+}
+
+.favorites-list,
+.delete-links-list,
+.theme-color-list {
+    max-height: 70vh; /* show more entries in all list dialogs */
+}
+.theme-color-list {
+    font-size: var(--font-size-small); /* smaller font for dense theme list */
+}
+.theme-color-item {
+    min-height: 36px; /* slightly smaller row height */
+}
+
+/* smaller buttons & icon buttons inside dialogs (bottom button rows) */
+.custom-prompt-actions button,
+.dialog-icon-btn,
+body button.secondary {
+    min-height: 32px !important;
+    font-size: var(--font-size-small);
+    padding: 4px 8px;
+}
+.dialog-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+}
+
+/* also reduce the Lab toggle and other tall chips in dialogs */
+.lab-toggle-wrapper {
+    min-height: 32px;
+    padding: 2px 6px;
+}
+
+/* Player controls (bottom) smaller too */
+.player-navigation .dialog-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+}
+.player-navigation button {
+    min-height: 32px !important;
+    font-size: var(--font-size-small);
+    padding: 4px 8px;
+}
+/* ===== End Patch ===== */
