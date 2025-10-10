@@ -1292,3 +1292,21 @@ body button.secondary {
     margin: 0 2px; /* ensure "Collapse All" text still fits without pushing icons too far */
 }
 /* ===== End Patch v6 ===== */
+
+
+
+/* ===== Patch v7: Fine-tune vertical spacing of the actions bar ===== */
+.actions-bar {
+    margin-bottom: 4px !important; /* reduce bottom margin */
+    padding-top: 2px !important;
+    padding-bottom: 2px !important; /* more compact row */
+}
+
+.list-actions button,
+.app-actions button,
+.view-controls button {
+    padding: 2px !important; /* reduce button padding in this row */
+    min-height: 28px !important;
+    min-width: 28px !important;
+}
+/* ===== End Patch v7 ===== */
