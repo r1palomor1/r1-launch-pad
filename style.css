@@ -14,6 +14,17 @@
     --checkbox-border-color: #555;
     --button-font-color: #FFFFFF;
     --checkbox-checked-bg: var(--primary-color);
+
+    /* Dynamic Sizing Variables */
+    --font-size-base: clamp(14px, 4.2vw, 16px);
+    --font-size-small: clamp(12px, 3.5vw, 14px);
+    --font-size-large: clamp(16px, 4.8vw, 20px);
+    --icon-size-small: clamp(16px, 4.5vw, 18px);
+    --icon-size-medium: clamp(18px, 5vw, 20px);
+    --icon-size-large: clamp(20px, 5.5vw, 24px);
+    --touch-target-size: clamp(40px, 11vw, 44px);
+    --card-padding-y: clamp(8px, 2.2vw, 12px);
+    --card-padding-x: clamp(10px, 2.8vw, 12px);
 }
 
 *, *::before, *::after {
@@ -24,7 +35,7 @@ body {
     font-family: var(--font-family);
     background-color: var(--bg-color);
     color: var(--font-color);
-    font-size: 14px;
+    font-size: var(--font-size-base);
     margin: 0;
     padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
 }
@@ -191,9 +202,9 @@ button {
     color: var(--button-font-color);
     border-radius: 8px;
     cursor: pointer;
-    font-size: max(16px, 1em);
+    font-size: var(--font-size-base);
     flex-shrink: 0;
-    min-height: 44px;
+    min-height: var(--touch-target-size);
     touch-action: manipulation;
 }
 
@@ -267,15 +278,14 @@ button.rabbit-default:hover {
     background-color: var(--item-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 0.75rem 0.625rem;
+    padding: var(--card-padding-y) var(--card-padding-x);
     display: flex;
-    flex-direction: row;
     align-items: center;
-    gap: 12px;
+    gap: clamp(8px, 2.2vw, 12px);
     min-width: 0;
     transition: border-color 0.2s ease, background-color 0.2s ease;
     margin-bottom: 8px;
-    min-height: 44px;
+    min-height: var(--touch-target-size);
     touch-action: manipulation;
 }
 
@@ -285,8 +295,8 @@ button.rabbit-default:hover {
 }
 
 .card .link-favicon {
-    width: 24px;
-    height: 24px;
+    width: var(--icon-size-large);
+    height: var(--icon-size-large);
     flex-shrink: 0;
     display: block;
     object-fit: cover;
@@ -301,12 +311,12 @@ button.rabbit-default:hover {
     text-overflow: ellipsis;
     min-width: 0;
     cursor: pointer;
+    font-size: var(--font-size-base);
 }
 
 .card .link-actions {
     display: flex;
-    gap: 10px;
-    flex-direction: row;
+    gap: clamp(4px, 1.5vw, 8px);
     align-items: center;
     flex-shrink: 0;
 }
@@ -314,10 +324,9 @@ button.rabbit-default:hover {
 .card .link-actions span {
     display: inline-flex;
     cursor: pointer;
-    font-size: 1.1em;
     color: var(--icon-color);
-    min-width: 44px;
-    min-height: 44px;
+    width: var(--touch-target-size);
+    height: var(--touch-target-size);
     align-items: center;
     justify-content: center;
     touch-action: manipulation;
@@ -328,8 +337,8 @@ button.rabbit-default:hover {
 }
 
 .card .link-actions svg {
-    width: 16px;
-    height: 16px;
+    width: var(--icon-size-medium);
+    height: var(--icon-size-medium);
     display: block;
 }
 
@@ -482,6 +491,8 @@ button.rabbit-default:hover {
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background-color: var(--bg-color);
+    flex-grow: 1; /* Allow lists to take available space */
+    min-height: 100px; /* Ensure a minimum height */
 }
 
 .favorites-list {
