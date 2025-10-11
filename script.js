@@ -1481,7 +1481,10 @@ logo.addEventListener('click', goHome);
     deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
     favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
     genericPromptOverlay.addEventListener('click', e => e.stopPropagation());
-    playerBackBtn.addEventListener('click', closePlayerView);
+    playerBackBtn.addEventListener('click', () => {
+    internalPlayerOverlay.style.display = 'none'; // Hide player
+    youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
+});
 
     // Use a more specific listener on the container for result clicks
     youtubeSearchResultsContainer.addEventListener('click', (e) => {
@@ -1512,15 +1515,15 @@ logo.addEventListener('click', goHome);
         }
     });
 
-    playerSearchBtn.addEventListener('click', async () => {
-        await showAlert('Coming Soon!');
-    });
+    playerSearchBtn.addEventListener('click', () => {
+    internalPlayerOverlay.style.display = 'none'; // Hide player
+    youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
+    youtubeSearchInput.focus(); // Set focus on the search bar
+});
 
     playerPlayPauseBtn.addEventListener('click', togglePlayback);
 
-    playerStopBtn.addEventListener('click', closePlayerView);
-
-    playerAudioOnlyBtn.addEventListener('click', () => {
+        playerAudioOnlyBtn.addEventListener('click', () => {
         isAudioOnly = !isAudioOnly;
         playerContainer.classList.toggle('audio-only', isAudioOnly);
         playerAudioOnlyBtn.classList.toggle('active', isAudioOnly);
