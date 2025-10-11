@@ -161,6 +161,7 @@ header {
     width: var(--actions-icon-size);
     height: var(--actions-icon-size);
     fill: var(--icon-color);
+    transition: fill 0.2s ease;
 }
 
 #searchBtn svg {
@@ -208,6 +209,7 @@ button {
     flex-shrink: 0;
     min-height: var(--touch-target-size);
     touch-action: manipulation;
+    transition: filter 0.2s ease;
 }
 
 button:hover {
@@ -340,6 +342,7 @@ button.rabbit-default:hover {
     align-items: center;
     justify-content: center;
     touch-action: manipulation;
+    transition: color 0.2s ease;
 }
 
 .card .link-actions span:hover { 
@@ -565,6 +568,7 @@ button.rabbit-default:hover {
     align-items: center;
     justify-content: center;
     touch-action: manipulation;
+    transition: color 0.2s ease;
 }
 
 .remove-favorite-btn:hover {
@@ -716,6 +720,7 @@ button.rabbit-default:hover {
     width: var(--actions-icon-size);
     height: var(--actions-icon-size);
     fill: var(--icon-color);
+    transition: fill 0.2s ease;
 }
 
 .view-btn.active svg {
