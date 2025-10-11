@@ -13,7 +13,8 @@ const defaultTheme = {
         '--border-color': '#2a2a2a',
         '--font-color': '#e0e0e0',
         '--icon-color': '#7a7a7a',
-        '--button-font-color': '#FFFFFF'
+        '--button-font-color': '#FFFFFF',
+        '--favorite-color': '#FFD700' // ADD THIS LINE
     },
     light: {
         '--primary-color': '#ff7043',
@@ -25,7 +26,8 @@ const defaultTheme = {
         '--border-color': '#e0e0e0',
         '--font-color': '#1c1c1c',
         '--icon-color': '#5c5c5c',
-        '--button-font-color': '#FFFFFF'
+        '--button-font-color': '#FFFFFF',
+        '--favorite-color': '#FFD700' // AND ADD THIS LINE
     }
 };
 
@@ -156,7 +158,11 @@ function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null) {
         }
 
         const buttonTextColor = getContrast(primaryRgb, [255, 255, 255]) > getContrast(primaryRgb, [0, 0, 0]) ? '#FFFFFF' : '#000000';
-        
+        // Generate a distinct but harmonious favorite color (gold/yellow hue)
+        const favHue = 50 / 360; // A nice gold hue
+        const favSat = Math.min(1, s + 0.3);
+        const favLight = Math.max(0, l - 0.05);
+        const favoriteColor = hslToRgb(favHue, favSat, favLight);        
         return {
             '--primary-color': primaryColor,
             '--secondary-color': primaryColor, // Use primary for strong accent
@@ -167,7 +173,8 @@ function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null) {
             '--border-color': hslToRgb(h, s * 0.1, 0.88),
             '--font-color': hslToRgb(...fontHsl),
             '--icon-color': hslToRgb(h, s * 0.3, 0.45),
-            '--button-font-color': buttonTextColor
+            '--button-font-color': buttonTextColor,
+            '--favorite-color': favoriteColor,
         };
     }
 
@@ -195,7 +202,11 @@ function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null) {
     }
 
     const buttonTextColor = getContrast(primaryRgb, [255, 255, 255]) > getContrast(primaryRgb, [0, 0, 0]) ? '#FFFFFF' : '#000000';
-
+    // Generate a distinct but harmonious favorite color (gold/yellow hue)
+    const favHue = 50 / 360; // A nice gold hue
+    const favSat = Math.min(1, s + 0.2);
+    const favLight = Math.min(1, l + 0.15);
+    const favoriteColor = hslToRgb(favHue, favSat, favLight);
     return {
         '--primary-color': primaryColor,
         '--secondary-color': primaryColor, // Use primary for strong accent
@@ -206,7 +217,8 @@ function generatePaletteFromRgb(rgb, mode = 'dark', modifier = null) {
         '--border-color': hslToRgb(h, s * 0.6, 0.18),
         '--font-color': hslToRgb(...fontHsl),
         '--icon-color': hslToRgb(h, s * 0.3, 0.5),
-        '--button-font-color': buttonTextColor
+        '--button-font-color': buttonTextColor,
+        '--favorite-color': favoriteColor,
     };
 }
 
