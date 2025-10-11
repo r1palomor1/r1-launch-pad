@@ -619,16 +619,10 @@ function handleYouTubeSearch(query) {
 
     // Set a specific listener for this YouTube search
     window.onPluginMessage = (e) => {
-        try {
-            const data = e.data ? (typeof e.data == "string" ? JSON.parse(e.data) : e.data) : null;
-            if (data && data.video_results) {
-                renderYouTubeResults(data.video_results);
-            }
-        } catch (err) {
-            console.error("Error parsing YouTube plugin message:", err);
-            youtubeSearchResultsContainer.innerHTML = '<p>Error loading results.</p>';
-        }
-    };
+    // This will convert the entire response object to a string so we can see it
+    const rawDataString = typeof e.data === 'string' ? e.data : JSON.stringify(e.data);
+    showAlert(`Full raw response from device: ${rawDataString}`);
+};
 }
 
 youtubeSearchInput.addEventListener('focus', () => youtubeSearchViewOverlay.classList.add('input-focused'));
