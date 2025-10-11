@@ -1367,20 +1367,27 @@ function openDeleteDialog() {
     const FAVORITE_SVG = `<svg class="icon-favorite" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>`;
     let selectedIds = new Set();
     function renderDeleteList() {
-        deleteLinksList.innerHTML = '';
-        const fragment = document.createDocumentFragment();
-        [...links].sort((a, b) => a.description.localeCompare(b.description)).forEach(link => {
-            const li = document.createElement('li');
-            li.className = 'delete-link-item';
-            li.dataset.id = link.id;
-            const isFav = favoriteLinkIds.has(link.id);
-            const isSelected = selectedIds.has(link.id);
-            let icon = isSelected ? CHECKBOX_CHECKED_SVG : (isFav ? FAVORITE_SVG : CHECKBOX_UNCHECKED_SVG);
-            li.innerHTML = `<span class="delete-checkbox">${icon}</span><span class="delete-link-item-description">${link.description}</span>`;
-            fragment.appendChild(li);
-        });
-        deleteLinksList.appendChild(fragment);
+    deleteLinksList.innerHTML = ''; // Clear the list first
+
+    if (links.length === 0) { // ADDED: Check if there are any links
+        // ADDED: Display a helpful message
+        deleteLinksList.innerHTML = `<p class="no-favorites-message">No links available to delete.</p>`;
+        return; // ADDED: Stop the function here
     }
+
+    const fragment = document.createDocumentFragment();
+    [...links].sort((a, b) => a.description.localeCompare(b.description)).forEach(link => {
+        const li = document.createElement('li');
+        li.className = 'delete-link-item';
+        li.dataset.id = link.id;
+        const isFav = favoriteLinkIds.has(link.id);
+        const isSelected = selectedIds.has(link.id);
+        let icon = isSelected ? CHECKBOX_CHECKED_SVG : (isFav ? FAVORITE_SVG : CHECKBOX_UNCHECKED_SVG);
+        li.innerHTML = `<span class="delete-checkbox">${icon}</span><span class="delete-link-item-description">${link.description}</span>`;
+        fragment.appendChild(li);
+    });
+    deleteLinksList.appendChild(fragment);
+}
     function updateSelectionFromMode() {
         const mode = document.querySelector('input[name="delete-mode"]:checked').value;
         selectedIds.clear();
