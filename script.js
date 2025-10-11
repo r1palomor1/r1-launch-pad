@@ -1481,24 +1481,21 @@ logo.addEventListener('click', goHome);
 
     // Use a more specific listener on the container for result clicks
     youtubeSearchResultsContainer.addEventListener('click', (e) => {
-        const card = e.target.closest('.youtube-result-card');
-        if (card) {
+    const card = e.target.closest('.youtube-result-card');
     if (card) {
-    if (card.dataset.videoId && card.dataset.title) {
-        closeYouTubeSearchView();
-        const rawVideoData = card.dataset.videoId; // Get the raw data from the result
-        const videoId = getYoutubeVideoId(rawVideoData); // Try to parse it
+        if (card.dataset.videoId && card.dataset.title) {
+            closeYouTubeSearchView();
+            const rawVideoData = card.dataset.videoId;
+            const videoId = getYoutubeVideoId(rawVideoData);
 
-        if (videoId) {
-            // If parsing is successful, play the video
-            openPlayerView(videoId, card.dataset.title);
-        } else {
-            // If parsing fails, show an error that includes the problematic data
-            showAlert(`Could not find a valid video ID to play. Raw data received: ${rawVideoData}`);
+            if (videoId) {
+                openPlayerView(videoId, card.dataset.title);
+            } else {
+                showAlert(`Could not find a valid video ID to play. Raw data received: ${rawVideoData}`);
+            }
         }
     }
-}
-    });
+});
 
     const triggerYoutubeSearch = () => handleYouTubeSearch(youtubeSearchInput.value);
     youtubeSearchCancelBtn.addEventListener('click', closeYouTubeSearchView);
