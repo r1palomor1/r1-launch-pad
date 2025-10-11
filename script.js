@@ -572,14 +572,17 @@ function renderYouTubeResults(results) {
         return;
     }
 
+    // --- TEMPORARY DEBUGGING CODE ---
+    const firstVideo = results[0];
+    showAlert(`Full data for first video: ${JSON.stringify(firstVideo)}`);
+    // --- END OF DEBUGGING CODE ---
+
     const fragment = document.createDocumentFragment();
     results.forEach(video => {
-        // We can't get a favicon, so we use the video thumbnail.
         const videoCard = document.createElement('div');
-        videoCard.className = 'card youtube-result-card'; // Use card styles
-        videoCard.dataset.videoId = video.video_id;
+        videoCard.className = 'card youtube-result-card';
+        videoCard.dataset.videoId = video.video_id; 
         videoCard.dataset.title = video.title;
-
         videoCard.innerHTML = `
             <img src="${video.thumbnail}" class="link-favicon" alt="Video thumbnail">
             <div class="link-description">${video.title}</div>
