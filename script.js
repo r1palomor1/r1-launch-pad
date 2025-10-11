@@ -572,19 +572,20 @@ function renderYouTubeResults(results) {
         return;
     }
 
-    // --- TEMPORARY DEBUGGING CODE ---
-    const firstVideo = results[0];
-    showAlert(`Full data for first video: ${JSON.stringify(firstVideo)}`);
-    // --- END OF DEBUGGING CODE ---
-
     const fragment = document.createDocumentFragment();
     results.forEach(video => {
         const videoCard = document.createElement('div');
         videoCard.className = 'card youtube-result-card';
-        videoCard.dataset.videoId = video.video_id; 
+
+        // CORRECTED: Use the 'link' property, which contains the full video URL
+        videoCard.dataset.videoLink = video.link; 
         videoCard.dataset.title = video.title;
+
+        // CORRECTED: Use the 'thumbnail.static' property for the image URL
+        const thumbnailUrl = video.thumbnail?.static || GENERIC_FAVICON_SRC;
+
         videoCard.innerHTML = `
-            <img src="${video.thumbnail}" class="link-favicon" alt="Video thumbnail">
+            <img src="${thumbnailUrl}" class="link-favicon" alt="Video thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
             <div class="link-description">${video.title}</div>
         `;
         fragment.appendChild(videoCard);
@@ -619,9 +620,15 @@ function handleYouTubeSearch(query) {
 
     // Set a specific listener for this YouTube search
     window.onPluginMessage = (e) => {
-    const rawDataString = typeof e.data === 'string' ? e.data : JSON.stringify(e.data);
-    closeYouTubeSearchView(); // ADD THIS LINE to close the search window
-    showAlert(`Full raw response from device: ${rawDataString}`);
+    try {
+        const data = e.data ? (typeof e.data == "string" ? JSON.parse(e.data) : e.data) : null;
+        if (data && data.video_results) {
+            renderYouTubeResults(data.video_results);
+        }
+    } catch (err) {
+        console.error("Error parsing YouTube plugin message:", err);
+        youtubeSearchResultsContainer.innerHTML = '<p>Error loading results.</p>';
+    }
 };
 }
 
@@ -1480,15 +1487,15 @@ logo.addEventListener('click', goHome);
     youtubeSearchResultsContainer.addEventListener('click', (e) => {
     const card = e.target.closest('.youtube-result-card');
     if (card) {
-        if (card.dataset.videoId && card.dataset.title) {
+        if (card.dataset.videoLink && card.dataset.title) {
             closeYouTubeSearchView();
-            const rawVideoData = card.dataset.videoId;
-            const videoId = getYoutubeVideoId(rawVideoData);
+            const videoUrl = card.dataset.videoLink; // Get the full URL
+            const videoId = getYoutubeVideoId(videoUrl); // Parse it to get the clean ID
 
             if (videoId) {
                 openPlayerView(videoId, card.dataset.title);
             } else {
-                showAlert(`Could not find a valid video ID to play. Raw data received: ${rawVideoData}`);
+                showAlert(`Could not find a valid video ID in the link: ${videoUrl}`);
             }
         }
     }
