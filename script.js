@@ -1483,14 +1483,18 @@ logo.addEventListener('click', goHome);
     youtubeSearchResultsContainer.addEventListener('click', (e) => {
         const card = e.target.closest('.youtube-result-card');
         if (card) {
+    if (card) {
     if (card.dataset.videoId && card.dataset.title) {
         closeYouTubeSearchView();
-        // ADDED: Process the link to get a clean video ID first
-        const videoId = getYoutubeVideoId(card.dataset.videoId);
+        const rawVideoData = card.dataset.videoId; // Get the raw data from the result
+        const videoId = getYoutubeVideoId(rawVideoData); // Try to parse it
+
         if (videoId) {
+            // If parsing is successful, play the video
             openPlayerView(videoId, card.dataset.title);
         } else {
-            showAlert('Could not find a valid video ID to play.');
+            // If parsing fails, show an error that includes the problematic data
+            showAlert(`Could not find a valid video ID to play. Raw data received: ${rawVideoData}`);
         }
     }
 }
