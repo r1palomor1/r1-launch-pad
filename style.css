@@ -1122,6 +1122,16 @@ button.rabbit-default:hover {
     font-weight: normal;
 }
 
+/* Temporary style for reading long debug messages */
+#genericPromptMessage {
+    font-size: 0.75em;      /* Smaller font */
+    text-align: left;       /* Align left for code readability */
+    word-break: break-all;  /* Force long strings to wrap */
+    white-space: pre-wrap;  /* Preserve formatting from the data */
+    max-height: 60vh;       /* Make the message area scrollable */
+    overflow-y: auto;       /* Add a scrollbar if needed */
+}
+
 @media (max-width: 320px) {
     .logo-text {
         font-size: 1.2em;

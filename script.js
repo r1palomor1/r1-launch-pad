@@ -619,8 +619,8 @@ function handleYouTubeSearch(query) {
 
     // Set a specific listener for this YouTube search
     window.onPluginMessage = (e) => {
-    // This will convert the entire response object to a string so we can see it
     const rawDataString = typeof e.data === 'string' ? e.data : JSON.stringify(e.data);
+    closeYouTubeSearchView(); // ADD THIS LINE to close the search window
     showAlert(`Full raw response from device: ${rawDataString}`);
 };
 }
