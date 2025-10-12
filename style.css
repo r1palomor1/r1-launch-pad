@@ -847,10 +847,12 @@ button.rabbit-default:hover {
 }
 
 #genericPromptMessage {
-    text-align: center;
-    line-height: 1.5;
-    font-weight: normal;
-    margin: 4px 0 0;
+    font-size: 0.75em;
+    text-align: left;
+    word-break: break-all;
+    white-space: pre-wrap;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .lab-toggle-wrapper:hover {
