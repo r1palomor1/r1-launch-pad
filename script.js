@@ -55,6 +55,8 @@ const PAUSE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 
 const STOP_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>`;
 const AUDIO_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1a7 7 0 0 1 14 0v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 0 0-9-9z"/></svg>`;
 let isAudioOnly = false;
+let youtubeNextPageUrl = null;
+let isFetchingYoutubeResults = false;
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 const GENERIC_FAVICON_SRC = 'data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23888\'%3e%3cpath d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\'/%3e%3c/svg%3e';
@@ -570,7 +572,7 @@ function hideYouTubeSearchView() {
 }
 
 function renderYouTubeResults(results) {
-    youtubeSearchResultsContainer.innerHTML = '';
+    // This function now appends results instead of clearing the container
     if (!results || results.length === 0) {
         youtubeSearchResultsContainer.innerHTML = '<p>No results found.</p>';
         return;
@@ -580,12 +582,8 @@ function renderYouTubeResults(results) {
     results.forEach(video => {
         const videoCard = document.createElement('div');
         videoCard.className = 'card youtube-result-card';
-
-        // CORRECTED: Use the 'link' property, which contains the full video URL
         videoCard.dataset.videoLink = video.link; 
         videoCard.dataset.title = video.title;
-
-        // CORRECTED: Use the 'thumbnail.static' property for the image URL
         const thumbnailUrl = video.thumbnail?.static || GENERIC_FAVICON_SRC;
 
         videoCard.innerHTML = `
@@ -597,38 +595,83 @@ function renderYouTubeResults(results) {
     youtubeSearchResultsContainer.appendChild(fragment);
 }
 
-function handleYouTubeSearch(query) {
-    query = query.trim();
-    if (!query) {
-        youtubeSearchResultsContainer.innerHTML = '';
-        return;
+function handleYouTubeSearch(query, nextPageUrl = null) {
+    if (isFetchingYoutubeResults) return; // Prevent multiple requests
+    isFetchingYoutubeResults = true;
+
+    if (!nextPageUrl) { // This is a new search
+        youtubeSearchResultsContainer.innerHTML = '<p>Searching...</p>';
+        youtubeNextPageUrl = null; // Reset pagination
     }
-    youtubeSearchResultsContainer.innerHTML = '<p>Searching...</p>';
 
     if (typeof PluginMessageHandler !== "undefined") {
-        // This is a simplified message for the YouTube plugin
+        let params;
+        if (nextPageUrl) {
+            // For the next page, we need to extract the 'sp' token
+            const url = new URL(nextPageUrl);
+            const spToken = url.searchParams.get('sp');
+            params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
+        } else {
+            // For the first page
+            params = { engine: "youtube", search_query: query, num: 50 };
+        }
+
         PluginMessageHandler.postMessage(JSON.stringify({
-            message: JSON.stringify({ query_params: { engine: "youtube", search_query: query, num: 50 } }),
+            message: JSON.stringify({ query_params: params }),
             useSerpAPI: true
         }));
-        // The results will be handled by the global onPluginMessage handler
     } else {
-        // Mock data for browser testing
+        // Mock data for browser testing remains unchanged
         console.log(`[Browser Mode] Searching YouTube for: ${query}`);
         const mockResults = [
-            { video_id: 'dQw4w9WgXcQ', title: `Mock Result 1 for ${query}`, thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' },
-            { video_id: 'o-YBDTqX_ZU', title: `Mock Result 2 for ${query}`, thumbnail: 'https://i.ytimg.com/vi/o-YBDTqX_ZU/hqdefault.jpg' }
+            { link: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: `Mock Result 1 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' } },
+            { link: 'https://www.youtube.com/watch?v=o-YBDTqX_ZU', title: `Mock Result 2 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/o-YBDTqX_ZU/hqdefault.jpg' } }
         ];
-        setTimeout(() => renderYouTubeResults(mockResults), 500);
+        if (youtubeSearchResultsContainer.innerHTML.includes('Searching...')) {
+            youtubeSearchResultsContainer.innerHTML = '';
+        }
+        renderYouTubeResults(mockResults);
+        isFetchingYoutubeResults = false;
     }
-
-    // Set a specific listener for this YouTube search
-    window.onPluginMessage = (e) => {
-    // This will convert the entire response object to a string so we can see it
-    const rawDataString = typeof e.data === 'string' ? e.data : JSON.stringify(e.data);
-    showAlert(`Full raw response from device: ${rawDataString}`);
-};
 }
+
+window.onPluginMessage = (e) => {
+    try {
+        const data = e.data ? (typeof e.data == "string" ? JSON.parse(e.data) : e.data) : null;
+
+        if (youtubeSearchResultsContainer.innerHTML.includes('Searching...')) {
+            youtubeSearchResultsContainer.innerHTML = '';
+        }
+
+        if (data && data.video_results) {
+            const regularVideos = data.video_results.filter(video => video.length);
+            renderYouTubeResults(regularVideos);
+        }
+
+        if (data && data.serpapi_pagination && data.serpapi_pagination.next) {
+            youtubeNextPageUrl = data.serpapi_pagination.next;
+        } else {
+            youtubeNextPageUrl = null;
+        }
+
+    } catch (err) {
+        console.error("Error parsing YouTube plugin message:", err);
+        youtubeSearchResultsContainer.innerHTML = '<p>Error loading results.</p>';
+    } finally {
+        isFetchingYoutubeResults = false;
+    }
+};
+
+youtubeSearchResultsContainer.addEventListener('scroll', () => {
+    if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = youtubeSearchResultsContainer;
+
+    if (scrollTop + clientHeight >= scrollHeight - 200) {
+        const query = youtubeSearchInput.value.trim();
+        handleYouTubeSearch(query, youtubeNextPageUrl);
+    }
+});
 
 youtubeSearchInput.addEventListener('focus', () => youtubeSearchViewOverlay.classList.add('input-focused'));
 youtubeSearchInput.addEventListener('blur', () => youtubeSearchViewOverlay.classList.remove('input-focused'));
