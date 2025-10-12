@@ -141,23 +141,23 @@
 
     <!-- YouTube Internal Search View -->
     <div id="youtubeSearchViewOverlay" class="custom-prompt-overlay" style="display: none;">
-        <div class="youtube-search-view">
-            <div class="search-input-wrapper">
-                <input type="text" id="youtubeSearchInput" placeholder="Search YouTube..." autocomplete="off" inputmode="search">
-                <button id="clearYoutubeSearchBtn" title="Clear search" style="display: none;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"></path></svg>
-                </button>
-            </div>
-            <div class="custom-prompt-actions">
-                <button id="youtubeSearchCancelBtn" class="secondary">Cancel</button>
-                <button id="youtubeSearchGoBtn">Search</button>
-            </div>
-            
-            <div id="debugPanel" style="background-color: #333; color: white; font-size: 10px; padding: 5px; white-space: pre-wrap; word-break: break-all;"></div>
-
-            <div id="youtubeSearchResultsContainer" class="scrollable-list-dialog"></div>
+    <div class="youtube-search-view">
+        <div class="search-input-wrapper">
+            <input type="text" id="youtubeSearchInput" placeholder="Search YouTube..." autocomplete="off" inputmode="search">
+            <button id="clearYoutubeSearchBtn" title="Clear search" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"></path></svg>
+            </button>
         </div>
+        <div class="custom-prompt-actions">
+            <button id="youtubeSearchCancelBtn" class="secondary">Cancel</button>
+            <button id="youtubeSearchGoBtn">Search</button>
+        </div>
+
+        <div id="youtubeSearchResultsContainer" class="scrollable-list-dialog"></div>
     </div>
+
+    <div id="debugPanel"></div>
+</div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="theme-engine.js"></script>
