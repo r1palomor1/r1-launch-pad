@@ -659,15 +659,24 @@ window.onPluginMessage = (e) => {
         youtubeSearchResultsContainer.innerHTML = '<p>Error loading results.</p>';
     } finally {
         isFetchingYoutubeResults = false;
+        document.getElementById('debugPanel').textContent = `Next Page URL Found: ${!!youtubeNextPageUrl}`; // ADD THIS LINE
     }
 };
 
 youtubeSearchResultsContainer.addEventListener('scroll', () => {
-    if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
-
+    const debugPanel = document.getElementById('debugPanel');
     const { scrollTop, scrollHeight, clientHeight } = youtubeSearchResultsContainer;
 
-    if (scrollTop + clientHeight >= scrollHeight - 50) {
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50;
+
+    debugPanel.innerHTML = `Next Page URL Found: ${!!youtubeNextPageUrl}<br>` +
+                         `Is Fetching: ${isFetchingYoutubeResults}<br>` +
+                         `Is At Bottom: ${isAtBottom}<br>` +
+                         `Scroll Top: ${Math.round(scrollTop)}<br>` +
+                         `Client Height: ${clientHeight}<br>` +
+                         `Scroll Height: ${scrollHeight}`;
+
+    if (!isFetchingYoutubeResults && youtubeNextPageUrl && isAtBottom) {
         const query = youtubeSearchInput.value.trim();
         handleYouTubeSearch(query, youtubeNextPageUrl);
     }
