@@ -1081,6 +1081,7 @@ button.rabbit-default:hover {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    max-height: 85vh; /* ADD THIS LINE */
 }
 
 .youtube-search-view .search-section {

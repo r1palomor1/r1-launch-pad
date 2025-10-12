@@ -563,6 +563,10 @@ function closeYouTubeSearchView() {
     youtubeSearchResultsContainer.innerHTML = '';
 }
 
+function hideYouTubeSearchView() {
+    youtubeSearchViewOverlay.style.display = 'none';
+}
+
 function renderYouTubeResults(results) {
     youtubeSearchResultsContainer.innerHTML = '';
     if (!results || results.length === 0) {
@@ -1489,7 +1493,7 @@ logo.addEventListener('click', goHome);
     const card = e.target.closest('.youtube-result-card');
     if (card) {
         if (card.dataset.videoLink && card.dataset.title) {
-            closeYouTubeSearchView();
+            hideYouTubeSearchView();
             const videoUrl = card.dataset.videoLink; // Get the full URL
             const videoId = getYoutubeVideoId(videoUrl); // Parse it to get the clean ID
 
