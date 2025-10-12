@@ -1082,7 +1082,7 @@ button.rabbit-default:hover {
     flex-direction: column;
     gap: 8px;
      max-height: 85vh; /* This is the crucial line */
-     overflow-y: auto; /* ADD THIS LINE */ 
+     /* overflow-y: auto; */ /* If necessary, activate for full-dialog scrolling */
 }
 
 .youtube-search-view .search-section {
@@ -1096,7 +1096,7 @@ button.rabbit-default:hover {
 #youtubeSearchResultsContainer {
     flex-grow: 1;
     min-height: 0;
-    max-height: 75vh;
+    /* max-height: 75vh; */ /* This was conflicting with the parent's height */
     color: var(--icon-color);
     text-align: center;
 }
