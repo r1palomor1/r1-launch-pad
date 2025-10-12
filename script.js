@@ -667,7 +667,7 @@ youtubeSearchResultsContainer.addEventListener('scroll', () => {
 
     const { scrollTop, scrollHeight, clientHeight } = youtubeSearchResultsContainer;
 
-    if (scrollTop + clientHeight >= scrollHeight - 200) {
+    if (scrollTop + clientHeight >= scrollHeight - 50) {
         const query = youtubeSearchInput.value.trim();
         handleYouTubeSearch(query, youtubeNextPageUrl);
     }
