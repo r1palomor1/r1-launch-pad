@@ -38,7 +38,6 @@ const youtubePlayerContainer = document.getElementById('youtubePlayer');
 const playerBackBtn = document.getElementById('playerBackBtn');
 const playerSearchBtn = document.getElementById('playerSearchBtn');
 const playerPlayPauseBtn = document.getElementById('playerPlayPauseBtn');
-const playerStopBtn = document.getElementById('playerStopBtn');
 const playerAudioOnlyBtn = document.getElementById('playerAudioOnlyBtn');
 const playerContainer = document.querySelector('.player-container');
 const youtubeSearchViewOverlay = document.getElementById('youtubeSearchViewOverlay');
@@ -497,7 +496,6 @@ function openPlayerView(videoId, title) {
 
     // Force the initial UI state to be visible immediately.
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
-    playerStopBtn.innerHTML = STOP_ICON_SVG;
     playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
 
     

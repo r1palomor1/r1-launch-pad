@@ -638,21 +638,21 @@ button.rabbit-default:hover {
 .favorites-list::-webkit-scrollbar,
 .delete-links-list::-webkit-scrollbar,
 .theme-color-list::-webkit-scrollbar,
-#youtubeSearchResultsContainer::-webkit-scrollbar { /* ADD THIS */
+#youtubeSearchResultsContainer::-webkit-scrollbar {
     width: 8px;
 }
 
 .favorites-list::-webkit-scrollbar-track,
 .delete-links-list::-webkit-scrollbar-track,
 .theme-color-list::-webkit-scrollbar-track,
-#youtubeSearchResultsContainer::-webkit-scrollbar-track { /* ADD THIS */
+#youtubeSearchResultsContainer::-webkit-scrollbar-track {
     background: transparent;
 }
 
 .favorites-list::-webkit-scrollbar-thumb,
 .delete-links-list::-webkit-scrollbar-thumb,
 .theme-color-list::-webkit-scrollbar-thumb,
-#youtubeSearchResultsContainer::-webkit-scrollbar-thumb { /* ADD THIS */
+#youtubeSearchResultsContainer::-webkit-scrollbar-thumb {
     background-color: var(--icon-color);
     border-radius: 4px;
     border: 2px solid var(--bg-color);
