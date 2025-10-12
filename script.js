@@ -511,9 +511,10 @@ function openPlayerView(videoId, title) {
                 width: '100%',
                 videoId: videoId,
                 playerVars: {
-                    'playsinline': 1,
-                    'controls': 0, // Disable native YouTube controls
-                    'rel': 0,
+                    'playsinline': 0,
+                    'controls': 1, // Enable native YouTube controls
+                    'autoplay': 1, // ADD THIS LINE to automatically play the video
+                    'rel': 1,
                     'showinfo': 0,
                     'modestbranding': 1
                 },
