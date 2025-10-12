@@ -1081,7 +1081,8 @@ button.rabbit-default:hover {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 85vh; /* ADD THIS LINE */
+     max-height: 85vh; /* This is the crucial line */
+     overflow-y: auto; /* ADD THIS LINE */ 
 }
 
 .youtube-search-view .search-section {
@@ -1124,6 +1125,33 @@ button.rabbit-default:hover {
     font-size: var(--font-size-small);
     white-space: normal;
     font-weight: normal;
+}
+
+#clearYoutubeSearchBtn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--icon-color);
+}
+
+#clearYoutubeSearchBtn:hover {
+    color: var(--font-color);
+    filter: none;
+}
+
+#clearYoutubeSearchBtn svg {
+    width: 20px;
+    height: 20px;
 }
 
 @media (max-width: 320px) {
