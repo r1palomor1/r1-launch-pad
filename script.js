@@ -514,7 +514,7 @@ function openPlayerView(videoId, title) {
                     'playsinline': 0,
                     'controls': 1, // Enable native YouTube controls
                     'autoplay': 1, // ADD THIS LINE to automatically play the video
-                    'rel': 1,
+                    'rel': 0,
                     'showinfo': 0,
                     'modestbranding': 1
                 },
@@ -608,7 +608,7 @@ function handleYouTubeSearch(query) {
     if (typeof PluginMessageHandler !== "undefined") {
         // This is a simplified message for the YouTube plugin
         PluginMessageHandler.postMessage(JSON.stringify({
-            message: JSON.stringify({ query_params: { engine: "youtube", search_query: query } }),
+            message: JSON.stringify({ query_params: { engine: "youtube", search_query: query, num: 50 } }),
             useSerpAPI: true
         }));
         // The results will be handled by the global onPluginMessage handler
