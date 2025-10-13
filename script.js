@@ -46,6 +46,7 @@ const youtubeSearchCancelBtn = document.getElementById('youtubeSearchCancelBtn')
 const youtubeSearchGoBtn = document.getElementById('youtubeSearchGoBtn');
 const youtubeSearchResultsContainer = document.getElementById('youtubeSearchResultsContainer');
 const youtubeSearchView = document.getElementById('youtubeSearchView');
+const youtubeSearchLoader = document.getElementById('youtubeSearchLoader');
 const clearYoutubeSearchBtn = document.getElementById('clearYoutubeSearchBtn');
 const SUN_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.55 4.95l1.414-1.414L7.05 5.636 5.636 7.05 3.55 4.95zm12.728 12.728l1.414-1.414L19.778 18.364l-1.414 1.414-2.086-2.086zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.95 20.45l-1.414-1.414L5.636 17l1.414 1.414-2.086 2.036zM18.364 7.05l1.414-1.414L21.864 7.05l-1.414 1.414-2.086-2.086z"/></svg>`;
 const MOON_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 8 8 .5.5 0 0 1 .5.5v.5a10 10 0 1 1 0-20 .5.5 0 0 1 .5.5V4a8 8 0 0 0-8 8z"/></svg>`;
@@ -605,6 +606,16 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         youtubeNextPageUrl = null; // Reset pagination
     }
 
+    // --- THIS IS THE CORRECTED PLACEMENT ---
+    if (nextPageUrl) { // This is an infinite scroll fetch
+        const loader = document.createElement('div');
+        loader.id = 'youtubeSearchLoader';
+        loader.textContent = 'Loading...';
+        loader.className = 'youtube-search-loader'; 
+        youtubeSearchResultsContainer.appendChild(loader);
+    }
+    // --- END OF CORRECTION ---
+
     if (typeof PluginMessageHandler !== "undefined") {
         let params;
         if (nextPageUrl) {
@@ -613,6 +624,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             const spToken = url.searchParams.get('sp');
             params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
         } else {
+            // The if (nextPageUrl) block was moved from here
             // For the first page
             params = { engine: "youtube", search_query: query, num: 50 };
         }
@@ -660,6 +672,8 @@ window.onPluginMessage = (e) => {
         youtubeSearchResultsContainer.innerHTML = '<p>Error loading results.</p>';
     } finally {
         isFetchingYoutubeResults = false;
+        youtubeSearchLoader.style.display = 'none'; // ADD THIS LINE
+        document.getElementById('debugPanel').textContent = `Next Page URL Found: ${!!youtubeNextPageUrl}`;
         
     }
 };

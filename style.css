@@ -1186,3 +1186,10 @@ button.rabbit-default:hover {
     white-space: pre-wrap;
     word-break: break-all;
 }
+#youtubeSearchLoader {
+    padding: 15px;
+    text-align: center;
+    color: var(--icon-color);
+    font-style: italic;
+    font-size: 0.9em;
+}
