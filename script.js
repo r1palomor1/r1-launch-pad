@@ -33,6 +33,8 @@ const genericPromptOverlay = document.getElementById('genericPromptOverlay');
 const genericPromptMessage = document.getElementById('genericPromptMessage');
 const genericPromptActions = document.getElementById('genericPromptActions');
 const internalPlayerOverlay = document.getElementById('internalPlayerOverlay');
+const nowPlayingBar = document.getElementById('nowPlayingBar');
+const nowPlayingTitle = document.getElementById('nowPlayingTitle');
 const playerVideoTitle = document.getElementById('playerVideoTitle');
 const youtubePlayerContainer = document.getElementById('youtubePlayer');
 const playerBackBtn = document.getElementById('playerBackBtn');
@@ -1547,6 +1549,8 @@ logo.addEventListener('click', goHome);
     playerBackBtn.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none'; // Hide player
     youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
+    nowPlayingTitle.textContent = playerVideoTitle.textContent; // ADD THIS
+    nowPlayingBar.style.display = 'flex'; // ADD THIS
 });
 
     // Use a more specific listener on the container for result clicks
@@ -1596,11 +1600,19 @@ playerSearchBtn.addEventListener('click', () => {
     youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
     youtubeSearchInput.value = ''; // ADDED: Clear previous search term
     youtubeSearchInput.focus(); // Set focus on the search bar
+    nowPlayingTitle.textContent = playerVideoTitle.textContent; // ADD THIS
+    nowPlayingBar.style.display = 'flex'; // ADD THIS
 });
 
     playerPlayPauseBtn.addEventListener('click', togglePlayback);
 
         playerAudioOnlyBtn.addEventListener('click', () => {
+        nowPlayingBar.addEventListener('click', () => {
+            youtubeSearchViewOverlay.style.display = 'none';
+            mainView.classList.remove('input-mode-active');
+            internalPlayerOverlay.style.display = 'flex'; // Show the player again
+            nowPlayingBar.style.display = 'none'; // Hide the bar
+});        
         isAudioOnly = !isAudioOnly;
         playerContainer.classList.toggle('audio-only', isAudioOnly);
         playerAudioOnlyBtn.classList.toggle('active', isAudioOnly);
@@ -1683,9 +1695,10 @@ function onPlayerStateChange(event) {
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
     } else if (event.data === YT.PlayerState.ENDED ) {
-        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
+    playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
+    nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
     } else if (event.data === YT.PlayerState.BUFFERING) {
     } else if (event.data === YT.PlayerState.UNSTARTED) {
-        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
-    }
+    playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+}
 }
