@@ -579,26 +579,40 @@ function hideYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'none';
 }
 
-function renderYouTubeResults(results) {
-    // This function now appends results instead of clearing the container
+function renderYouTubeResults(results, mode) {
     if (!results || results.length === 0) {
-        youtubeSearchResultsContainer.innerHTML = '<p>No results found.</p>';
+        if (youtubeSearchResultsContainer.innerHTML.includes('Searching...')) {
+            youtubeSearchResultsContainer.innerHTML = '<p>No results found.</p>';
+        }
         return;
     }
 
     const fragment = document.createDocumentFragment();
-    results.forEach(video => {
-        const videoCard = document.createElement('div');
-        videoCard.className = 'card youtube-result-card';
-        videoCard.dataset.videoLink = video.link; 
-        videoCard.dataset.title = video.title;
-        const thumbnailUrl = video.thumbnail?.static || GENERIC_FAVICON_SRC;
+    results.forEach(item => {
+        const itemCard = document.createElement('div');
+        itemCard.className = 'card youtube-result-card';
 
-        videoCard.innerHTML = `
-            <img src="${thumbnailUrl}" class="link-favicon" alt="Video thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
-            <div class="link-description">${video.title}</div>
-        `;
-        fragment.appendChild(videoCard);
+        if (mode === 'videos') {
+            itemCard.dataset.videoLink = item.link; 
+            itemCard.dataset.title = item.title;
+            const thumbnailUrl = item.thumbnail?.static || GENERIC_FAVICON_SRC;
+            itemCard.innerHTML = `
+                <img src="${thumbnailUrl}" class="link-favicon" alt="Video thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
+                <div class="link-description">${item.title}</div>`;
+        } else if (mode === 'playlists') {
+            itemCard.dataset.playlistId = item.playlist_id;
+            itemCard.dataset.title = item.title;
+            const thumbnailUrl = item.thumbnail || GENERIC_FAVICON_SRC;
+            // Add a playlist icon to distinguish it
+            itemCard.innerHTML = `
+                <img src="${thumbnailUrl}" class="link-favicon" alt="Playlist thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
+                <div class="link-description">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width:1em; height:1em; vertical-align:-0.15em; margin-right:4px; opacity:0.7;"><path d="M3 10h11v2H3zm0-4h11v2H3zm0 8h7v2H3zm13-1v8l6-4z"></path></svg>
+                    ${item.title}
+                    <div style="font-size:0.8em; color:var(--icon-color); font-weight:normal;">${item.video_count} videos</div>
+                </div>`;
+        }
+        fragment.appendChild(itemCard);
     });
     youtubeSearchResultsContainer.appendChild(fragment);
 }
@@ -629,15 +643,18 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
 
     if (typeof PluginMessageHandler !== "undefined") {
         let params;
-        if (nextPageUrl) {
-            // For the next page, we need to extract the 'sp' token
-            const url = new URL(nextPageUrl);
-            const spToken = url.searchParams.get('sp');
-            params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
-        } else {
-            // For the first page
-            params = { engine: "youtube", search_query: query, num: 50 };
-        }
+    if (nextPageUrl) {
+        // Logic for next pages remains the same
+        const url = new URL(nextPageUrl);
+        const spToken = url.searchParams.get('sp');
+        params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
+    } else {
+        // Logic for the first page now checks the search mode
+        params = { engine: "youtube", search_query: query, num: 50 };
+        if (currentSearchMode === 'playlists') {
+        params.sp = "EgIQAw%253D%253D"; // The special token for playlists
+    }
+}
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify({ query_params: params }),
@@ -667,8 +684,10 @@ window.onPluginMessage = (e) => {
 
         if (data && data.video_results) {
             const regularVideos = data.video_results.filter(video => video.length);
-            renderYouTubeResults(regularVideos);
-        }
+            renderYouTubeResults(regularVideos, 'videos'); // Pass the mode
+        } else if (data && data.playlist_results) {
+            renderYouTubeResults(data.playlist_results, 'playlists'); // Pass the mode
+    }
 
         if (data && data.serpapi_pagination && data.serpapi_pagination.next) {
             youtubeNextPageUrl = data.serpapi_pagination.next;
