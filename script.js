@@ -647,35 +647,16 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
 
     if (typeof PluginMessageHandler !== "undefined") {
         let params;
-        if (nextPageUrl) {
-            // For the next page, we need to extract the 'sp' token
-            const url = new URL(nextPageUrl);
-            const spToken = url.searchParams.get('sp');
-            params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
-        } else {
-            // Logic for the first page now checks the search mode
-            params = { engine: "youtube", search_query: query, num: 50 };
-            if (currentSearchMode === 'playlists') {
-                params.sp = "EgIQAw%253D%253D"; // The special token for playlists
-            }
-        }
-
-        PluginMessageHandler.postMessage(JSON.stringify({
-            message: JSON.stringify({ query_params: params }),
-            useSerpAPI: true
-        }));
+    if (nextPageUrl) {
+        // Logic for next pages remains the same
+        const url = new URL(nextPageUrl);
+        const spToken = url.searchParams.get('sp');
+        params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
     } else {
-        // Mock data for browser testing remains unchanged
-        console.log(`[Browser Mode] Searching YouTube for: ${query}`);
-        const mockResults = [
-            { link: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: `Mock Result 1 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' } },
-            { link: 'https://www.youtube.com/watch?v=o-YBDTqX_ZU', title: `Mock Result 2 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/o-YBDTqX_ZU/hqdefault.jpg' } }
-        ];
-        if (youtubeSearchResultsContainer.innerHTML.includes('Searching...')) {
-            youtubeSearchResultsContainer.innerHTML = '';
-        }
-        renderYouTubeResults(mockResults, 'videos');
-        isFetchingYoutubeResults = false;
+        // Logic for the first page now checks the search mode
+        params = { engine: "youtube", search_query: query, num: 50 };
+        if (currentSearchMode === 'playlists') {
+        params.sp = "EgIQAw%253D%253D"; // The special token for playlists
     }
 }
 
