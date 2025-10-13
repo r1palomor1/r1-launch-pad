@@ -498,6 +498,7 @@ function getYoutubeVideoId(url) {
 }
 
 function openPlayerView(videoId, title) {
+    nowPlayingBar.style.display = 'none';
     playerVideoTitle.textContent = title;
     internalPlayerOverlay.style.display = 'flex';
 
