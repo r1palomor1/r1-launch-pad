@@ -641,7 +641,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         const loader = document.createElement('div');
         loader.id = 'youtubeSearchLoader';
         loader.textContent = 'Loading...';
-        loader.className = 'youtube-search-loader';
+        loader.className = 'youtube-search-loader'; 
         youtubeSearchResultsContainer.appendChild(loader);
     }
 
@@ -678,7 +678,6 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         isFetchingYoutubeResults = false;
     }
 }
-
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify({ query_params: params }),
