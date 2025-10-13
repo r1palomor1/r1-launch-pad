@@ -598,6 +598,13 @@ function renderYouTubeResults(results) {
 }
 
 function handleYouTubeSearch(query, nextPageUrl = null) {
+    // --- ADDED: Guard clause to handle empty searches ---
+    if (!query && !nextPageUrl) {
+        youtubeSearchResultsContainer.innerHTML = ''; // Clear any "Searching..." message
+        return; // Stop the function immediately
+    }
+    // --- END OF ADDED CODE ---
+
     if (isFetchingYoutubeResults) return; // Prevent multiple requests
     isFetchingYoutubeResults = true;
 
@@ -606,7 +613,6 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         youtubeNextPageUrl = null; // Reset pagination
     }
 
-    // --- THIS IS THE CORRECTED PLACEMENT ---
     if (nextPageUrl) { // This is an infinite scroll fetch
         const loader = document.createElement('div');
         loader.id = 'youtubeSearchLoader';
@@ -614,7 +620,6 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         loader.className = 'youtube-search-loader'; 
         youtubeSearchResultsContainer.appendChild(loader);
     }
-    // --- END OF CORRECTION ---
 
     if (typeof PluginMessageHandler !== "undefined") {
         let params;
@@ -624,7 +629,6 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             const spToken = url.searchParams.get('sp');
             params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
         } else {
-            // The if (nextPageUrl) block was moved from here
             // For the first page
             params = { engine: "youtube", search_query: query, num: 50 };
         }
@@ -647,7 +651,6 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         isFetchingYoutubeResults = false;
     }
 }
-
 window.onPluginMessage = (e) => {
     try {
         const data = e.data ? (typeof e.data == "string" ? JSON.parse(e.data) : e.data) : null;
