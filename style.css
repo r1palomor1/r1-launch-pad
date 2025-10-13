@@ -1201,7 +1201,7 @@ button.rabbit-default:hover {
     right: 0;
     background-color: var(--primary-color);
     color: var(--button-font-color);
-    padding: 8px 12px;
+    padding: 5px 12px;
     display: flex;
     align-items: center;
     gap: 8px;

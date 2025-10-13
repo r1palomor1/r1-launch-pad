@@ -1606,19 +1606,22 @@ playerSearchBtn.addEventListener('click', () => {
 
     playerPlayPauseBtn.addEventListener('click', togglePlayback);
 
-        playerAudioOnlyBtn.addEventListener('click', () => {
-        nowPlayingBar.addEventListener('click', () => {
-            youtubeSearchViewOverlay.style.display = 'none';
-            mainView.classList.remove('input-mode-active');
-            internalPlayerOverlay.style.display = 'flex'; // Show the player again
-            nowPlayingBar.style.display = 'none'; // Hide the bar
-});        
-        isAudioOnly = !isAudioOnly;
-        playerContainer.classList.toggle('audio-only', isAudioOnly);
-        playerAudioOnlyBtn.classList.toggle('active', isAudioOnly);
-        triggerHaptic();
-        sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
-    });
+        // This is the corrected listener for the Audio Only button
+playerAudioOnlyBtn.addEventListener('click', () => {
+    isAudioOnly = !isAudioOnly;
+    playerContainer.classList.toggle('audio-only', isAudioOnly);
+    playerAudioOnlyBtn.classList.toggle('active', isAudioOnly);
+    triggerHaptic();
+    sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
+});
+
+// This is the listener for the Now Playing bar, now in the correct place
+nowPlayingBar.addEventListener('click', () => {
+    youtubeSearchViewOverlay.style.display = 'none';
+    mainView.classList.remove('input-mode-active');
+    internalPlayerOverlay.style.display = 'flex'; // Show the player again
+    nowPlayingBar.style.display = 'none'; // Hide the bar
+});
 
     // Use the correct 'sideClick' event based on the SDK demo.
     window.addEventListener('sideClick', (event) => {
