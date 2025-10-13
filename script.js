@@ -671,11 +671,14 @@ window.onPluginMessage = (e) => {
         console.error("Error parsing YouTube plugin message:", err);
         youtubeSearchResultsContainer.innerHTML = '<p>Error loading results.</p>';
     } finally {
-        isFetchingYoutubeResults = false;
-        youtubeSearchLoader.style.display = 'none'; // ADD THIS LINE
-        document.getElementById('debugPanel').textContent = `Next Page URL Found: ${!!youtubeNextPageUrl}`;
-        
+    isFetchingYoutubeResults = false; // Allow the next fetch
+
+    // Find the loader by its ID and remove it from the list
+    const loader = document.getElementById('youtubeSearchLoader');
+    if (loader) {
+        loader.remove();
     }
+}
 };
 
 youtubeSearchView.addEventListener('scroll', () => {
