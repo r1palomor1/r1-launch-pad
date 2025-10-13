@@ -500,30 +500,27 @@ function getYoutubeVideoId(url) {
     return (match && match[2].length === 11) ? match[2] : null;
 }
 
-function openPlayerView(videoId, title) {
+function openPlayerView(options) {
     nowPlayingBar.style.display = 'none';
-    playerVideoTitle.textContent = title;
+    playerVideoTitle.textContent = options.title;
     internalPlayerOverlay.style.display = 'flex';
-
-    // Force the initial UI state to be visible immediately.
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
     playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
 
-    
-    // This function creates the player. It will be called by the YouTube API callback.
     const createPlayer = () => {
         if (player) {
             player.destroy();
         }
         try {
-            player = new YT.Player('youtubePlayer', {
+            // This is the core change: It now creates the player differently
+            // based on whether it receives a videoId or a playlistId.
+            let playerConfig = {
                 height: '100%',
                 width: '100%',
-                videoId: videoId,
                 playerVars: {
-                    'playsinline': 0,
-                    'controls': 1, // Enable native YouTube controls
-                    'autoplay': 1, // ADD THIS LINE to automatically play the video
+                    'playsinline': 1,
+                    'controls': 1,
+                    'autoplay': 1,
                     'rel': 0,
                     'showinfo': 0,
                     'modestbranding': 1
@@ -532,16 +529,23 @@ function openPlayerView(videoId, title) {
                     'onReady': onPlayerReady,
                     'onStateChange': onPlayerStateChange
                 }
-            });
+            };
+
+            if (options.videoId) {
+                playerConfig.videoId = options.videoId;
+            } else if (options.playlistId) {
+                playerConfig.playerVars.listType = 'playlist';
+                playerConfig.playerVars.list = options.playlistId;
+            }
+
+            player = new YT.Player('youtubePlayer', playerConfig);
+
         } catch (e) {
             console.error("Error creating YouTube player:", e);
         }
     };
 
-    // The API will call this global function when it's ready.
     window.onYouTubeIframeAPIReady = createPlayer;
-
-    // If the API is already loaded, call the function immediately.
     if (window.YT && window.YT.Player) {
         createPlayer();
     }
@@ -1580,16 +1584,21 @@ logo.addEventListener('click', goHome);
     youtubeSearchResultsContainer.addEventListener('click', (e) => {
     const card = e.target.closest('.youtube-result-card');
     if (card) {
-        if (card.dataset.videoLink && card.dataset.title) {
-            hideYouTubeSearchView();
-            const videoUrl = card.dataset.videoLink; // Get the full URL
-            const videoId = getYoutubeVideoId(videoUrl); // Parse it to get the clean ID
+        hideYouTubeSearchView();
+        const title = card.dataset.title;
 
+        if (card.dataset.videoLink) {
+            // This is for a single video
+            const videoId = getYoutubeVideoId(card.dataset.videoLink);
             if (videoId) {
-                openPlayerView(videoId, card.dataset.title);
+                openPlayerView({ videoId: videoId, title: title });
             } else {
-                showAlert(`Could not find a valid video ID in the link: ${videoUrl}`);
+                showAlert(`Could not find a valid video ID in the link: ${card.dataset.videoLink}`);
             }
+        } else if (card.dataset.playlistId) {
+            // This is our new logic for a playlist
+            const playlistId = card.dataset.playlistId;
+            openPlayerView({ playlistId: playlistId, title: title });
         }
     }
 });
