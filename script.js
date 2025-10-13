@@ -42,6 +42,8 @@ const playerSearchBtn = document.getElementById('playerSearchBtn');
 const playerPlayPauseBtn = document.getElementById('playerPlayPauseBtn');
 const playerAudioOnlyBtn = document.getElementById('playerAudioOnlyBtn');
 const playerContainer = document.querySelector('.player-container');
+const searchModeVideosBtn = document.getElementById('searchModeVideos');
+const searchModePlaylistsBtn = document.getElementById('searchModePlaylists');
 const youtubeSearchViewOverlay = document.getElementById('youtubeSearchViewOverlay');
 const youtubeSearchInput = document.getElementById('youtubeSearchInput');
 const youtubeSearchCancelBtn = document.getElementById('youtubeSearchCancelBtn');
@@ -63,6 +65,7 @@ let youtubeNextPageUrl = null;
 let isFetchingYoutubeResults = false;
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
+let currentSearchMode = 'videos';
 const GENERIC_FAVICON_SRC = 'data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23888\'%3e%3cpath d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\'/%3e%3c/svg%3e';
 
 async function launchUrlOnRabbit(url, name) {
@@ -1583,18 +1586,24 @@ logo.addEventListener('click', goHome);
         }
     });
 
-    youtubeSearchInput.addEventListener('input', () => {
+youtubeSearchInput.addEventListener('input', () => {
         clearYoutubeSearchBtn.style.display = youtubeSearchInput.value.length > 0 ? 'flex' : 'none';
 });
 
-    clearYoutubeSearchBtn.addEventListener('click', () => {
+clearYoutubeSearchBtn.addEventListener('click', () => {
         youtubeSearchInput.value = '';
         clearYoutubeSearchBtn.style.display = 'none';
         youtubeSearchInput.focus();
         youtubeSearchResultsContainer.innerHTML = ''; // Optional: Clear results when clearing text
 });
 
+searchModeVideosBtn.addEventListener('click', () => {
+    currentSearchMode = 'videos';
+});
 
+searchModePlaylistsBtn.addEventListener('click', () => {
+    currentSearchMode = 'playlists';
+});
 
 playerSearchBtn.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none'; // Hide player
