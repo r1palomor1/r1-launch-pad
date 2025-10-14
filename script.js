@@ -742,6 +742,34 @@ window.onPluginMessage = async (e) => {
 
         // 🎧 Generate Playlist mode
         if (currentSearchMode === "playlists") {
+
+            // 🧩 DEBUG: inspect raw YouTube data
+console.log("🧩 RAW playlist_results:", data.playlist_results);
+console.log("🧩 RAW video_results:", data.video_results);
+
+const debugBox = document.createElement("pre");
+debugBox.style.cssText =
+  "max-height:200px; overflow:auto; font-size:11px; background:#111; color:#0f0; padding:6px; margin:6px 0;";
+
+debugBox.textContent = JSON.stringify(
+  {
+    playlist_results: Array.isArray(data.playlist_results)
+      ? data.playlist_results.slice(0, 2)
+      : data.playlist_results,
+    video_results: Array.isArray(data.video_results)
+      ? data.video_results.slice(0, 2)
+      : data.video_results,
+  },
+  null,
+  2
+);
+
+// Clear the current results area and show debug output
+youtubeSearchResultsContainer.innerHTML = "";
+youtubeSearchResultsContainer.appendChild(debugBox);
+console.log("✅ Debug box added — showing first 2 playlist/video entries");
+
+
     let foundPlaylists = [];
 
     // 🔹 1. Pull any direct playlist results
