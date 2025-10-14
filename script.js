@@ -678,77 +678,84 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         isFetchingYoutubeResults = false;
     }
 }
-window.onPluginMessage = (e) => {
+
+// Helper: fetch up to 3 more pages looking for playlist_results
+async function fetchNextPlaylistPages(query, firstData) {
+    let playlists = firstData.playlist_results || [];
+    let nextUrl = firstData.serpapi_pagination?.next || null;
+    let attempts = 0;
+
+    while (playlists.length === 0 && nextUrl && attempts < 3) {
+        attempts++;
+        youtubeSearchResultsContainer.innerHTML =
+            `<p>Searching playlists… (page ${attempts + 1})</p>`;
+        if (typeof PluginMessageHandler !== "undefined") {
+            PluginMessageHandler.postMessage(JSON.stringify({
+                message: JSON.stringify({
+                    query_params: { next_page_token: nextUrl },
+                    useSerpAPI: true
+                }),
+                useSerpAPI: true
+            }));
+            await new Promise(r => setTimeout(r, 2500));
+        } else break;
+    }
+    return playlists;
+}
+
+// ✅  Option B: Auto-scan for Playlists
+window.onPluginMessage = async (e) => {
     try {
-        const data = e.data ? (typeof e.data == "string" ? JSON.parse(e.data) : e.data) : null;
+        const data = e.data
+            ? (typeof e.data === "string" ? JSON.parse(e.data) : e.data)
+            : null;
 
-                // 🧠 TEMP DEBUG SECTION — Shows SerpAPI JSON results visually
-// This will print out the raw API data directly in the app (for both Songs and Playlists)
-try {
-    const debugBox = document.createElement("div");
-    debugBox.id = "debugBox";
-    debugBox.style.cssText =
-        "font-size:10px; color:#ff7043; background:#222; padding:6px; margin:6px; border-radius:6px; white-space:pre-wrap; word-break:break-word; max-height:200px; overflow-y:auto;";
-    if (e.data) {
-        if (data) {
-    debugBox.textContent = "Raw SerpAPI response:\n" + JSON.stringify(data, null, 2);
-}
-
-    } else {
-        debugBox.textContent = "⚠️ No data object received from plugin.";
-    }
-    youtubeSearchResultsContainer.appendChild(debugBox);
-} catch (dbgErr) {
-    console.error("Debug box error:", dbgErr);
-}
-// 🧠 END DEBUG SECTION
-
-        if (youtubeSearchResultsContainer.innerHTML.includes('Searching...')) {
-            youtubeSearchResultsContainer.innerHTML = '';
+        if (youtubeSearchResultsContainer.innerHTML.includes("Searching...")) {
+            youtubeSearchResultsContainer.innerHTML = "";
         }
 
-        // 🎵 Handle depending on selected mode
-if (currentSearchMode === "videos") {
-    // SONGS mode → parse only video_results
-    if (data && Array.isArray(data.video_results) && data.video_results.length > 0) {
-        renderYouTubeResults(data.video_results, "videos");
-    } else {
-        youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
-    }
-} else if (currentSearchMode === "playlists") {
-    // PLAYLISTS mode → parse only playlist_results
-    if (data && Array.isArray(data.playlist_results) && data.playlist_results.length > 0) {
-        renderYouTubeResults(data.playlist_results, "playlists");
-    } else {
-        youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
-    }
-}
-
-        if (data && data.serpapi_pagination && data.serpapi_pagination.next) {
-            youtubeNextPageUrl = data.serpapi_pagination.next;
-        } else {
-            youtubeNextPageUrl = null;
+        if (!data) {
+            youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
+            return;
         }
 
+        if (currentSearchMode === "videos") {
+            // SONGS mode
+            if (Array.isArray(data.video_results) && data.video_results.length > 0) {
+                renderYouTubeResults(data.video_results, "videos");
+            } else {
+                youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
+            }
+        } else if (currentSearchMode === "playlists") {
+            // PLAYLISTS mode
+            let playlists = Array.isArray(data.playlist_results)
+                ? data.playlist_results
+                : [];
+            if (playlists.length === 0) {
+                playlists = await fetchNextPlaylistPages(
+                    youtubeSearchInput.value.trim(),
+                    data
+                );
+            }
+            if (playlists && playlists.length > 0) {
+                renderYouTubeResults(playlists, "playlists");
+            } else {
+                youtubeSearchResultsContainer.innerHTML =
+                    "<p>No playlists found.</p>";
+            }
+        }
+
+        youtubeNextPageUrl = data.serpapi_pagination?.next || null;
     } catch (err) {
         console.error("Error parsing YouTube plugin message:", err);
-        youtubeSearchResultsContainer.innerHTML = '<p>Error loading results.</p>';
+        youtubeSearchResultsContainer.innerHTML = "<p>Error loading results.</p>";
     } finally {
-    isFetchingYoutubeResults = false; // Allow the next fetch
-
-    // ✅ Add this right below
-    if (youtubeSearchResultsContainer.innerHTML.trim() === '') {
-        youtubeSearchResultsContainer.innerHTML = '<p>No results found.</p>';
+        isFetchingYoutubeResults = false;
+        const loader = document.getElementById("youtubeSearchLoader");
+        if (loader) loader.remove();
     }
-
-    // Find the loader by its ID and remove it from the list
-    const loader = document.getElementById('youtubeSearchLoader');
-    if (loader) {
-        loader.remove();
-    }
-}
-
 };
+
 
 youtubeSearchView.addEventListener('scroll', () => {
     if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
