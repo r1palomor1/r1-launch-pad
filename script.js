@@ -750,46 +750,10 @@ if (data) {
 
         // 🎧 Generate Playlist mode
         if (currentSearchMode === "playlists") {
-
-// 🧩 Show combined results from all fetched pages
-const debugBox = document.createElement("pre");
-debugBox.style.cssText =
-  "max-height:250px; overflow:auto; font-size:11px; background:#111; color:#0f0; padding:6px; margin:6px 0;";
-
-// Merge all playlist_results and video_results arrays across pages
-const combined = {
-  totalPages: allFetchedPages.length,
-  playlist_results: [],
-  video_results: []
-};
-
-allFetchedPages.forEach(page => {
-  if (Array.isArray(page.playlist_results))
-    combined.playlist_results.push(...page.playlist_results);
-  if (Array.isArray(page.video_results))
-    combined.video_results.push(...page.video_results);
-});
-
-debugBox.textContent = JSON.stringify(
-  {
-    totalPages: combined.totalPages,
-    firstVideoObject: combined.video_results[0] || "no video_results found",
-    firstTwoVideosTitles: combined.video_results.slice(0, 2).map(v => v.title)
-  },
-  null,
-  2
-);
-
-
-youtubeSearchResultsContainer.innerHTML = "";
-youtubeSearchResultsContainer.appendChild(debugBox);
-console.log("✅ Combined pages:", combined);
-
-
     let foundPlaylists = [];
 
-    // 🔹 1. Pull any direct playlist results
-    if (Array.isArray(data.playlist_results)) {
+    // 1️⃣ Collect true playlists from playlist_results
+    if (Array.isArray(data.playlist_results) && data.playlist_results.length > 0) {
         foundPlaylists.push(
             ...data.playlist_results
                 .filter(p => p.playlist_id)
@@ -802,8 +766,8 @@ console.log("✅ Combined pages:", combined);
         );
     }
 
-    // 🔹 2. Extract playlist_id from video_results entries (look for list=)
-    if (Array.isArray(data.video_results)) {
+    // 2️⃣ Collect embedded playlists from video_results (those with list= parameter)
+    if (Array.isArray(data.video_results) && data.video_results.length > 0) {
         const embeddedPlaylists = data.video_results
             .filter(v => v.link && v.link.includes("list="))
             .map(v => {
@@ -827,7 +791,7 @@ console.log("✅ Combined pages:", combined);
         foundPlaylists.push(...embeddedPlaylists);
     }
 
-    // 🔹 3. Fallback — make pseudo-playlists only if no real playlists found
+    // 3️⃣ If still no playlists, build pseudo-playlists of 10 videos each
     if (foundPlaylists.length === 0 && Array.isArray(data.video_results)) {
         const allVideos = [...data.video_results];
         const groupSize = 10;
@@ -836,19 +800,20 @@ console.log("✅ Combined pages:", combined);
 
         for (let i = 0; i < allVideos.length; i += groupSize) {
             const group = allVideos.slice(i, i + groupSize);
-            if (group.length) {
+            if (group.length > 0) {
                 pseudoPlaylists.push({
                     title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
                     videos: group,
-                    thumbnail: group[0]?.thumbnail?.static || "",
+                    thumbnail: group[0]?.thumbnail?.static || group[0]?.thumbnail || "",
                     link: "#pseudo"
                 });
             }
         }
+
         foundPlaylists = pseudoPlaylists;
     }
 
-    // 🔹 4. Render whatever we’ve gathered
+    // 4️⃣ Render playlists (real or pseudo)
     if (foundPlaylists.length > 0) {
         renderYouTubeResults(foundPlaylists, "playlists");
     } else {
@@ -857,6 +822,7 @@ console.log("✅ Combined pages:", combined);
 
     youtubeNextPageUrl = data.serpapi_pagination?.next || null;
 }
+
 
     } catch (err) {
         console.error("Error parsing YouTube plugin message:", err);
