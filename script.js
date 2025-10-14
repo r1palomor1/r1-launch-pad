@@ -686,6 +686,13 @@ window.onPluginMessage = (e) => {
             youtubeSearchResultsContainer.innerHTML = '';
         }
 
+        // 🧠 TEMP DEBUG: Show what SerpAPI actually returned
+        const debugBox = document.createElement("div");
+        debugBox.style.cssText = "font-size:10px; color:#ff7043; background:#222; padding:6px; margin:6px; border-radius:6px; white-space:pre-wrap; word-break:break-word;";
+        debugBox.textContent = "Raw SerpAPI response:\n" + JSON.stringify(data, null, 2);
+        youtubeSearchResultsContainer.appendChild(debugBox);
+
+
         // 🎵 Handle depending on selected mode
 if (currentSearchMode === "videos") {
     // SONGS mode → parse only video_results
