@@ -682,11 +682,7 @@ window.onPluginMessage = (e) => {
     try {
         const data = e.data ? (typeof e.data == "string" ? JSON.parse(e.data) : e.data) : null;
 
-        if (youtubeSearchResultsContainer.innerHTML.includes('Searching...')) {
-            youtubeSearchResultsContainer.innerHTML = '';
-        }
-
-        // 🧠 TEMP DEBUG SECTION — Shows SerpAPI JSON results visually
+                // 🧠 TEMP DEBUG SECTION — Shows SerpAPI JSON results visually
 // This will print out the raw API data directly in the app (for both Songs and Playlists)
 try {
     const debugBox = document.createElement("div");
@@ -694,7 +690,10 @@ try {
     debugBox.style.cssText =
         "font-size:10px; color:#ff7043; background:#222; padding:6px; margin:6px; border-radius:6px; white-space:pre-wrap; word-break:break-word; max-height:200px; overflow-y:auto;";
     if (e.data) {
-        debugBox.textContent = "Raw SerpAPI response:\n" + e.data;
+        if (data) {
+    debugBox.textContent = "Raw SerpAPI response:\n" + JSON.stringify(data, null, 2);
+}
+
     } else {
         debugBox.textContent = "⚠️ No data object received from plugin.";
     }
@@ -704,7 +703,9 @@ try {
 }
 // 🧠 END DEBUG SECTION
 
-
+        if (youtubeSearchResultsContainer.innerHTML.includes('Searching...')) {
+            youtubeSearchResultsContainer.innerHTML = '';
+        }
 
         // 🎵 Handle depending on selected mode
 if (currentSearchMode === "videos") {
