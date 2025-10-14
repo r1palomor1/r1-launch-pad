@@ -742,51 +742,77 @@ window.onPluginMessage = async (e) => {
 
         // 🎧 Generate Playlist mode
         if (currentSearchMode === "playlists") {
-            let foundPlaylists = [];
+    let foundPlaylists = [];
 
-            // 🔹 Step 1: Check playlist_results directly
-            if (Array.isArray(data.playlist_results)) {
-                foundPlaylists.push(...data.playlist_results.filter(p => p.playlist_id));
-            }
+    // 🔹 1. Pull any direct playlist results
+    if (Array.isArray(data.playlist_results)) {
+        foundPlaylists.push(
+            ...data.playlist_results
+                .filter(p => p.playlist_id)
+                .map(p => ({
+                    title: p.title,
+                    playlist_id: p.playlist_id,
+                    thumbnail: p.thumbnail?.static || p.thumbnail || "",
+                    link: p.link
+                }))
+        );
+    }
 
-            // 🔹 Step 2: Scan video_results for playlist links or IDs
-            if (Array.isArray(data.video_results)) {
-                const embeddedPlaylists = data.video_results.filter(v =>
-                    v.playlist_id || (v.link && v.link.includes("list="))
-                );
-                foundPlaylists.push(...embeddedPlaylists);
-            }
-
-            // 🔹 Step 3: If we still have no true playlists, create pseudo playlists
-            if (foundPlaylists.length === 0 && Array.isArray(data.video_results)) {
-                const allVideos = [...data.video_results];
-                const groupSize = 10;
-                const searchTerm = youtubeSearchInput.value.trim() || "Mix";
-                const pseudoPlaylists = [];
-
-                for (let i = 0; i < allVideos.length; i += groupSize) {
-                    const group = allVideos.slice(i, i + groupSize);
-                    if (group.length) {
-                        pseudoPlaylists.push({
-                            title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
-                            videos: group,
-                            thumbnail: group[0]?.thumbnail?.static || "",
-                            link: "#pseudo"
-                        });
-                    }
+    // 🔹 2. Extract playlist_id from video_results entries (look for list=)
+    if (Array.isArray(data.video_results)) {
+        const embeddedPlaylists = data.video_results
+            .filter(v => v.link && v.link.includes("list="))
+            .map(v => {
+                try {
+                    const u = new URL(v.link);
+                    const listParam = u.searchParams.get("list");
+                    return listParam
+                        ? {
+                              title: v.title || v.channel || "YouTube Playlist",
+                              playlist_id: listParam,
+                              thumbnail: v.thumbnail?.static || v.thumbnail || "",
+                              link: v.link
+                          }
+                        : null;
+                } catch {
+                    return null;
                 }
-                foundPlaylists = pseudoPlaylists;
-            }
+            })
+            .filter(Boolean);
 
-            // 🔹 Step 4: Render results
-            if (foundPlaylists.length > 0) {
-                renderYouTubeResults(foundPlaylists, "playlists");
-            } else {
-                youtubeSearchResultsContainer.innerHTML = "<p>No playlists found.</p>";
-            }
+        foundPlaylists.push(...embeddedPlaylists);
+    }
 
-            youtubeNextPageUrl = data.serpapi_pagination?.next || null;
+    // 🔹 3. Fallback — make pseudo-playlists only if no real playlists found
+    if (foundPlaylists.length === 0 && Array.isArray(data.video_results)) {
+        const allVideos = [...data.video_results];
+        const groupSize = 10;
+        const searchTerm = youtubeSearchInput.value.trim() || "Mix";
+        const pseudoPlaylists = [];
+
+        for (let i = 0; i < allVideos.length; i += groupSize) {
+            const group = allVideos.slice(i, i + groupSize);
+            if (group.length) {
+                pseudoPlaylists.push({
+                    title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
+                    videos: group,
+                    thumbnail: group[0]?.thumbnail?.static || "",
+                    link: "#pseudo"
+                });
+            }
         }
+        foundPlaylists = pseudoPlaylists;
+    }
+
+    // 🔹 4. Render whatever we’ve gathered
+    if (foundPlaylists.length > 0) {
+        renderYouTubeResults(foundPlaylists, "playlists");
+    } else {
+        youtubeSearchResultsContainer.innerHTML = "<p>No playlists found.</p>";
+    }
+
+    youtubeNextPageUrl = data.serpapi_pagination?.next || null;
+}
 
     } catch (err) {
         console.error("Error parsing YouTube plugin message:", err);
