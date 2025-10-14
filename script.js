@@ -773,12 +773,13 @@ allFetchedPages.forEach(page => {
 debugBox.textContent = JSON.stringify(
   {
     totalPages: combined.totalPages,
-    firstTwoPlaylists: combined.playlist_results.slice(0, 2),
-    firstTwoVideos: combined.video_results.slice(0, 2)
+    firstVideoObject: combined.video_results[0] || "no video_results found",
+    firstTwoVideosTitles: combined.video_results.slice(0, 2).map(v => v.title)
   },
   null,
   2
 );
+
 
 youtubeSearchResultsContainer.innerHTML = "";
 youtubeSearchResultsContainer.appendChild(debugBox);
