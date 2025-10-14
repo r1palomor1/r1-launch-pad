@@ -715,11 +715,19 @@ async function fetchNextPlaylistPages(query, firstData) {
 // ✅  Option B: Auto-scan for Playlists
 // ✅ Simplified single-page pseudo-playlist generator
 // ✅ Unified playlist detection and pseudo-playlist fallback
+// 🧩 DEBUG: store all YouTube fetch pages
+let allFetchedPages = [];
+
 window.onPluginMessage = async (e) => {
     try {
         const data = e.data
             ? (typeof e.data === "string" ? JSON.parse(e.data) : e.data)
             : null;
+            // 🧩 Append current page to combined collector
+if (data) {
+    allFetchedPages.push(data);
+    console.log(`🧩 Page #${allFetchedPages.length} appended`, data);
+}
 
         if (youtubeSearchResultsContainer.innerHTML.includes("Searching...")) {
             youtubeSearchResultsContainer.innerHTML = "";
@@ -743,31 +751,38 @@ window.onPluginMessage = async (e) => {
         // 🎧 Generate Playlist mode
         if (currentSearchMode === "playlists") {
 
-            // 🧩 DEBUG: inspect raw YouTube data
-console.log("🧩 RAW playlist_results:", data.playlist_results);
-console.log("🧩 RAW video_results:", data.video_results);
-
+// 🧩 Show combined results from all fetched pages
 const debugBox = document.createElement("pre");
 debugBox.style.cssText =
-  "max-height:200px; overflow:auto; font-size:11px; background:#111; color:#0f0; padding:6px; margin:6px 0;";
+  "max-height:250px; overflow:auto; font-size:11px; background:#111; color:#0f0; padding:6px; margin:6px 0;";
+
+// Merge all playlist_results and video_results arrays across pages
+const combined = {
+  totalPages: allFetchedPages.length,
+  playlist_results: [],
+  video_results: []
+};
+
+allFetchedPages.forEach(page => {
+  if (Array.isArray(page.playlist_results))
+    combined.playlist_results.push(...page.playlist_results);
+  if (Array.isArray(page.video_results))
+    combined.video_results.push(...page.video_results);
+});
 
 debugBox.textContent = JSON.stringify(
   {
-    playlist_results: Array.isArray(data.playlist_results)
-      ? data.playlist_results.slice(0, 2)
-      : data.playlist_results,
-    video_results: Array.isArray(data.video_results)
-      ? data.video_results.slice(0, 2)
-      : data.video_results,
+    totalPages: combined.totalPages,
+    firstTwoPlaylists: combined.playlist_results.slice(0, 2),
+    firstTwoVideos: combined.video_results.slice(0, 2)
   },
   null,
   2
 );
 
-// Clear the current results area and show debug output
 youtubeSearchResultsContainer.innerHTML = "";
 youtubeSearchResultsContainer.appendChild(debugBox);
-console.log("✅ Debug box added — showing first 2 playlist/video entries");
+console.log("✅ Combined pages:", combined);
 
 
     let foundPlaylists = [];
