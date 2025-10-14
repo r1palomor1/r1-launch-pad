@@ -656,7 +656,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         // Logic for the first page now checks the search mode
         params = { engine: "youtube", search_query: query, num: 50 };
         if (currentSearchMode === 'playlists') {
-        params.sp = "EgIQAw%253D%253D"; // The special token for playlists
+        params.sp = "EgIQAw=="; // The special token for playlists
     }
 }
 
@@ -687,11 +687,17 @@ window.onPluginMessage = (e) => {
         }
 
         if (data && data.video_results) {
-            const regularVideos = data.video_results.filter(video => video.length);
-            renderYouTubeResults(regularVideos, 'videos'); // Pass the mode
-        } else if (data && data.playlist_results) {
-            renderYouTubeResults(data.playlist_results, 'playlists'); // Pass the mode
+    const hasPlaylistItems = data.video_results.some(v => v.playlist_id);
+    if (hasPlaylistItems) {
+        const playlists = data.video_results.filter(v => v.playlist_id);
+        renderYouTubeResults(playlists, 'playlists');
+    } else {
+        const regularVideos = data.video_results.filter(v => v.link);
+        renderYouTubeResults(regularVideos, 'videos');
     }
+} else if (data && data.playlist_results) {
+    renderYouTubeResults(data.playlist_results, 'playlists');
+}
 
         if (data && data.serpapi_pagination && data.serpapi_pagination.next) {
             youtubeNextPageUrl = data.serpapi_pagination.next;
@@ -705,12 +711,18 @@ window.onPluginMessage = (e) => {
     } finally {
     isFetchingYoutubeResults = false; // Allow the next fetch
 
+    // ✅ Add this right below
+    if (youtubeSearchResultsContainer.innerHTML.trim() === '') {
+        youtubeSearchResultsContainer.innerHTML = '<p>No results found.</p>';
+    }
+
     // Find the loader by its ID and remove it from the list
     const loader = document.getElementById('youtubeSearchLoader');
     if (loader) {
         loader.remove();
     }
 }
+
 };
 
 youtubeSearchView.addEventListener('scroll', () => {
