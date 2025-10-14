@@ -686,17 +686,21 @@ window.onPluginMessage = (e) => {
             youtubeSearchResultsContainer.innerHTML = '';
         }
 
-        if (data && data.video_results) {
-    const hasPlaylistItems = data.video_results.some(v => v.playlist_id);
-    if (hasPlaylistItems) {
-        const playlists = data.video_results.filter(v => v.playlist_id);
-        renderYouTubeResults(playlists, 'playlists');
+        // 🎵 Handle depending on selected mode
+if (currentSearchMode === "videos") {
+    // SONGS mode → parse only video_results
+    if (data && Array.isArray(data.video_results) && data.video_results.length > 0) {
+        renderYouTubeResults(data.video_results, "videos");
     } else {
-        const regularVideos = data.video_results.filter(v => v.link);
-        renderYouTubeResults(regularVideos, 'videos');
+        youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
     }
-} else if (data && data.playlist_results) {
-    renderYouTubeResults(data.playlist_results, 'playlists');
+} else if (currentSearchMode === "playlists") {
+    // PLAYLISTS mode → parse only playlist_results
+    if (data && Array.isArray(data.playlist_results) && data.playlist_results.length > 0) {
+        renderYouTubeResults(data.playlist_results, "playlists");
+    } else {
+        youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
+    }
 }
 
         if (data && data.serpapi_pagination && data.serpapi_pagination.next) {
