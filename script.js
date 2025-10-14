@@ -739,7 +739,7 @@ window.onPluginMessage = async (e) => {
             } else {
                 youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
             }
-        else if (currentSearchMode === "playlists") {
+         } else if (currentSearchMode === "playlists") {
     // --- Generate Playlist (Hybrid Stage 2 + 3) ---
     let playlists = [];
 
