@@ -679,9 +679,20 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     }
 }
 
-// Helper: fetch up to 3 more pages looking for playlist_results
+// Helper: fetch up to 3 more pages looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
-    let playlists = firstData.playlist_results || [];
+    let playlists = [];
+
+    // check first page for playlist_results OR playlist-like video_results
+    if (Array.isArray(firstData.playlist_results)) {
+        playlists = firstData.playlist_results;
+    }
+    if (playlists.length === 0 && Array.isArray(firstData.video_results)) {
+        playlists = firstData.video_results.filter(
+            v => v.playlist_id || (v.link && v.link.includes("list="))
+        );
+    }
+
     let nextUrl = firstData.serpapi_pagination?.next || null;
     let attempts = 0;
 
@@ -700,8 +711,10 @@ async function fetchNextPlaylistPages(query, firstData) {
             await new Promise(r => setTimeout(r, 2500));
         } else break;
     }
+
     return playlists;
 }
+
 
 // ✅  Option B: Auto-scan for Playlists
 window.onPluginMessage = async (e) => {
