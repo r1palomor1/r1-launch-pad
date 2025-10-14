@@ -647,18 +647,14 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
 
     if (typeof PluginMessageHandler !== "undefined") {
         let params;
-    if (nextPageUrl) {
-        // Logic for next pages remains the same
-        const url = new URL(nextPageUrl);
-        const spToken = url.searchParams.get('sp');
-        params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
-    } else {
-        // Logic for the first page now checks the search mode
-        params = { engine: "youtube", search_query: query, num: 50 };
-        if (currentSearchMode === 'playlists') {
-        params.sp = "EgIQAw=="; // The special token for playlists
-    }
+if (nextPageUrl) {
+    // Unified next-page request (no sp)
+    params = { engine: "youtube", search_query: query, num: 50 };
+} else {
+    // Unified first-page request (no sp)
+    params = { engine: "youtube", search_query: query, num: 50 };
 }
+
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify({ query_params: params }),
