@@ -717,6 +717,7 @@ async function fetchNextPlaylistPages(query, firstData) {
 
 
 // ✅  Option B: Auto-scan for Playlists
+// ✅ Simplified single-page pseudo-playlist generator
 window.onPluginMessage = async (e) => {
     try {
         const data = e.data
@@ -733,81 +734,58 @@ window.onPluginMessage = async (e) => {
         }
 
         if (currentSearchMode === "videos") {
-            // SONGS mode
+            // 🎵 Songs mode — standard individual video cards
             if (Array.isArray(data.video_results) && data.video_results.length > 0) {
                 renderYouTubeResults(data.video_results, "videos");
             } else {
                 youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
             }
-         } else if (currentSearchMode === "playlists") {
-    // --- Generate Playlist (Hybrid Stage 2 + 3) ---
-    let playlists = [];
+        } 
+        else if (currentSearchMode === "playlists") {
+            // 🎧 Generate Pseudo Playlists (Single-page fallback)
+            let playlists = [];
 
-    // ✅ Step 1: Check for true playlist_results first
-    if (Array.isArray(data.playlist_results) && data.playlist_results.length > 0) {
-        playlists = data.playlist_results;
-    } else if (Array.isArray(data.video_results) && data.video_results.length > 0) {
-        // ✅ Step 2: Detect any video_results that are actual playlists
-        playlists = data.video_results.filter(v =>
-            v.playlist_id || (v.link && v.link.includes("list="))
-        );
+            // 1️⃣ Check for real playlist results
+            if (Array.isArray(data.playlist_results) && data.playlist_results.length > 0) {
+                playlists = data.playlist_results;
+            } else if (Array.isArray(data.video_results) && data.video_results.length > 0) {
+                // 2️⃣ Fallback: detect any playlist-like entries
+                playlists = data.video_results.filter(v =>
+                    v.playlist_id || (v.link && v.link.includes("list="))
+                );
 
-        // ✅ Step 3: If still none, prefetch up to 3 pages and create pseudo-playlists
-        if (playlists.length === 0 && youtubeNextPageUrl) {
-            let allVideos = [...data.video_results];
-            let nextUrl = data.serpapi_pagination?.next || youtubeNextPageUrl;
-            let attempts = 0;
+                // 3️⃣ If none found, build pseudo-playlists from page 1 videos
+                if (playlists.length === 0) {
+                    const allVideos = [...data.video_results];
+                    const groupSize = 10;
+                    const searchTerm = youtubeSearchInput.value.trim() || "Mix";
+                    const pseudoPlaylists = [];
 
-            while (nextUrl && attempts < 3) {
-                attempts++;
-                youtubeSearchResultsContainer.innerHTML =
-                    `<p>Generating playlists... (page ${attempts + 1})</p>`;
-
-                if (typeof PluginMessageHandler !== "undefined") {
-                    PluginMessageHandler.postMessage(JSON.stringify({
-                        message: JSON.stringify({
-                            query_params: { next_page_token: nextUrl },
-                            useSerpAPI: true
-                        }),
-                        useSerpAPI: true
-                    }));
-                    await new Promise(r => setTimeout(r, 2000));
-                } else break;
-
-                nextUrl = null; // stop loop for Rabbit fallback
-            }
-
-            // ✅ Step 4: Build pseudo-playlists from collected videos
-            const groupSize = 10;
-            const searchTerm = youtubeSearchInput.value.trim() || "Mix";
-            const pseudoPlaylists = [];
-
-            for (let i = 0; i < allVideos.length; i += groupSize) {
-                const group = allVideos.slice(i, i + groupSize);
-                if (group.length) {
-                    pseudoPlaylists.push({
-                        title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
-                        videos: group,
-                        thumbnail: group[0]?.thumbnail?.static || "",
-                        link: "#pseudo"
-                    });
+                    for (let i = 0; i < allVideos.length; i += groupSize) {
+                        const group = allVideos.slice(i, i + groupSize);
+                        if (group.length) {
+                            pseudoPlaylists.push({
+                                title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
+                                videos: group,
+                                thumbnail: group[0]?.thumbnail?.static || "",
+                                link: "#pseudo"
+                            });
+                        }
+                    }
+                    playlists = pseudoPlaylists;
                 }
             }
 
-            playlists = pseudoPlaylists;
+            // 4️⃣ Render final playlists
+            if (playlists.length > 0) {
+                renderYouTubeResults(playlists, "playlists");
+            } else {
+                youtubeSearchResultsContainer.innerHTML = "<p>No playlists found.</p>";
+            }
         }
-    }
-
-    // ✅ Step 5: Render playlists or show message
-    if (playlists.length > 0) {
-        renderYouTubeResults(playlists, "playlists");
-    } else {
-        youtubeSearchResultsContainer.innerHTML = "<p>No playlists found.</p>";
-    }
-}
-
 
         youtubeNextPageUrl = data.serpapi_pagination?.next || null;
+
     } catch (err) {
         console.error("Error parsing YouTube plugin message:", err);
         youtubeSearchResultsContainer.innerHTML = "<p>Error loading results.</p>";
