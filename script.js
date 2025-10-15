@@ -776,7 +776,8 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             log(`   video_results count: ${data.video_results.length}`);
 
         // 🎵 Added snippet — detect embedded playlist links within video_results
-                if (Array.isArray(data.video_results)) {
+                        // 🎵 Added snippet — detect embedded playlist links within video_results
+        if (Array.isArray(data.video_results)) {
             const playlistLinks = data.video_results.filter(v => v.link && v.link.includes('list='));
             log(`🎵 Embedded playlist links found: ${playlistLinks.length}`);
             if (playlistLinks.length > 0) {
@@ -785,20 +786,43 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
                 );
             }
 
-            // 🧩 Deep diagnostic — check for any hidden playlist/list IDs in nested fields
+            // 🧠 NEW 1️⃣: Deep diagnostic — check for any hidden playlist/list IDs in nested fields
             const jsonText = JSON.stringify(data.video_results, null, 2);
+            log(`🔍 Scanned JSON length: ${jsonText.length} characters`);
             const matchIndex = jsonText.search(/"list"|"playlist"/);
             if (matchIndex !== -1) {
                 log("⚠️ Potential hidden playlist field found!");
-                // 🔍 Show a short JSON snippet around the match for review
                 const snippet = jsonText.substring(
                     Math.max(0, matchIndex - 150),
                     Math.min(jsonText.length, matchIndex + 350)
                 );
                 log("⬇️ Context snippet around match:");
                 log(snippet);
+            } else {
+                log("✅ No hidden playlist identifiers found in video_results.");
+            }
+
+            // 🧠 NEW 2️⃣: Schema sampler — view structure of first video_result
+            const firstVideo = data.video_results[0];
+            if (firstVideo) {
+                const keys = Object.keys(firstVideo);
+                log(`🧩 Sample video_result keys: ${keys.join(', ')}`);
+            } else {
+                log("🧩 No video_results data available for schema inspection.");
+            }
+
+            // 🧠 NEW 3️⃣: Nested playlist-like detector
+            const nestedCandidates = data.video_results.filter(v =>
+                typeof v === "object" &&
+                (v.playlist_id || (v.thumbnails && Array.isArray(v.thumbnails)))
+            );
+            if (nestedCandidates.length > 0) {
+                log(`🧩 Found ${nestedCandidates.length} nested playlist-like objects.`);
+            } else {
+                log("🧩 No playlist-like nested objects detected.");
             }
         }
+
 
     }
 }
