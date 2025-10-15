@@ -745,7 +745,7 @@ async function fetchNextPlaylistPages(query, firstData) {
 // 🧩 DEBUG: store all YouTube fetch pages
 let allFetchedPages = [];
 
-window.onPluginMessage = async (e) => {
+const youtubeOnPluginMessage = async (e) => {
     try {
         const data = e.data
             ? (typeof e.data === "string" ? JSON.parse(e.data) : e.data)
