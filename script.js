@@ -726,18 +726,26 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         let messagePayload;
 
         if (nextPageUrl) {
-            messagePayload = { url: nextPageUrl };
-            log(`➡️ Next page: ${nextPageUrl}`);
-        } else {
-            messagePayload = {
-                query_params: {
-                    engine: "youtube",
-                    search_query: query,
-                    num: 50
-                }
-            };
-            log('🚀 Sending initial search query to Rabbit...');
+    messagePayload = { url: nextPageUrl };
+    log(`➡️ Next page: ${nextPageUrl}`);
+} else {
+    // 🧠 Conditional Mode Switch — bias playlist searches toward actual playlists
+    let finalQuery = query.trim();
+    if (currentSearchMode === "playlists" && !/\bplaylist\b/i.test(finalQuery)) {
+        finalQuery += " playlist";
+    }
+
+    messagePayload = {
+        query_params: {
+            engine: "youtube",
+            search_query: finalQuery,
+            num: 50
         }
+    };
+
+    log(`🚀 Sending initial search query to Rabbit... [${finalQuery}]`);
+}
+
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify(messagePayload),
