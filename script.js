@@ -672,7 +672,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             // FOR THE FIRST PAGE: Send the search query parameters.
             messagePayload = {
                 query_params: {
-                    engine: "youtube_playlists",
+                    engine: "youtube",
                     search_query: query,
                     num: 50
                 }
@@ -723,7 +723,7 @@ async function fetchNextPlaylistPages(query, firstData) {
         if (typeof PluginMessageHandler !== "undefined") {
             PluginMessageHandler.postMessage(JSON.stringify({
                 message: JSON.stringify({
-                    query_params: { engine: "youtube_playlists", next_page_token: nextUrl },
+                    query_params: { next_page_token: nextUrl },
                     useSerpAPI: true
                 }),
                 useSerpAPI: true
