@@ -767,15 +767,26 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
                 : null;
 
             if (currentSearchMode === 'playlists') {
-                log('📦 Received Rabbit response (Playlists mode)');
-                if (data) {
-                    log(`   Keys: ${Object.keys(data).join(', ')}`);
-                    if (Array.isArray(data.playlist_results))
-                        log(`   playlist_results count: ${data.playlist_results.length}`);
-                    if (Array.isArray(data.video_results))
-                        log(`   video_results count: ${data.video_results.length}`);
-                }
+    log('📦 Received Rabbit response (Playlists mode)');
+    if (data) {
+        log(`   Keys: ${Object.keys(data).join(', ')}`);
+        if (Array.isArray(data.playlist_results))
+            log(`   playlist_results count: ${data.playlist_results.length}`);
+        if (Array.isArray(data.video_results))
+            log(`   video_results count: ${data.video_results.length}`);
+
+        // 🎵 Added snippet — detect embedded playlist links within video_results
+        if (Array.isArray(data.video_results)) {
+            const playlistLinks = data.video_results.filter(v => v.link && v.link.includes('list='));
+            log(`🎵 Embedded playlist links found: ${playlistLinks.length}`);
+            if (playlistLinks.length > 0) {
+                playlistLinks.slice(0, 3).forEach((v, i) =>
+                    log(`   ${i + 1}. ${v.link}`)
+                );
             }
+        }
+    }
+}
 
             if (originalHandler) originalHandler(e);
         } catch (err) {
