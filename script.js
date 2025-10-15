@@ -672,15 +672,24 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     }
 
     if (typeof PluginMessageHandler !== "undefined") {
-        let params;
-if (nextPageUrl) {
-    // Unified next-page request (no sp)
-    params = { engine: "youtube", search_query: query, num: 50 };
-} else {
-    // Unified first-page request (no sp)
-    params = { engine: "youtube", search_query: query, num: 50 };
-}
+        // Create the base search parameters
+        let params = { engine: "youtube", search_query: query, num: 50 };
 
+        if (nextPageUrl) {
+            try {
+                // The next page URL contains a special token we need to extract.
+                const url = new URL(nextPageUrl);
+                const nextPageToken = url.searchParams.get("next_page_token");
+                if (nextPageToken) {
+                    // Add the token to our request. This tells the API to give us the next page.
+                    params.next_page_token = nextPageToken;
+                } else {
+                    console.warn("Could not find 'next_page_token' in the URL:", nextPageUrl);
+                }
+            } catch (e) {
+                console.error("Could not parse next page URL:", e);
+            }
+        }
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify({ query_params: params }),
