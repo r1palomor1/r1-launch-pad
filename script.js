@@ -653,7 +653,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     if (isFetchingYoutubeResults) return;
     isFetchingYoutubeResults = true;
 
-    if (!nextPageUrl) { // This is a new, first-page search
+    if (!nextPageUrl) {
         youtubeSearchResultsContainer.innerHTML = '<p>Searching...</p>';
         youtubeNextPageUrl = null;
         if (currentSearchMode === 'playlists') {
@@ -661,15 +661,74 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         }
     }
 
+    // 🪟 Full-screen scrollable alert window for Rabbit R1
+    let alertOverlay = document.getElementById('r1AlertOverlay');
+    let alertContent;
+    if (!alertOverlay) {
+        alertOverlay = document.createElement('div');
+        alertOverlay.id = 'r1AlertOverlay';
+        Object.assign(alertOverlay.style, {
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            background: 'rgba(0,0,0,0.92)',
+            color: '#00ff00',
+            fontSize: '11px',
+            zIndex: '9999',
+            padding: '8px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column'
+        });
+
+        const closeBtn = document.createElement('div');
+        closeBtn.textContent = '✕';
+        Object.assign(closeBtn.style, {
+            alignSelf: 'flex-end',
+            color: '#ff5555',
+            fontSize: '18px',
+            cursor: 'pointer',
+            marginBottom: '4px'
+        });
+        closeBtn.onclick = () => { alertOverlay.style.display = 'none'; };
+
+        alertContent = document.createElement('div');
+        alertContent.id = 'r1AlertContent';
+        Object.assign(alertContent.style, {
+            flex: '1',
+            overflowY: 'auto',
+            whiteSpace: 'pre-line',
+            border: '1px solid #444',
+            padding: '4px'
+        });
+
+        alertOverlay.appendChild(closeBtn);
+        alertOverlay.appendChild(alertContent);
+        document.body.appendChild(alertOverlay);
+    } else {
+        alertOverlay.style.display = 'flex';
+        alertContent = document.getElementById('r1AlertContent');
+    }
+
+    const log = (msg) => {
+        alertContent.innerText += msg + '\n';
+        alertContent.scrollTop = alertContent.scrollHeight;
+    };
+
+    log('\n──────────────────────────────────────');
+    log(`🔍 Query: ${query}`);
+    log(`🎛 Mode: ${currentSearchMode}`);
+
+    // ✅ Uses exact Rabbit SDK message flow
     if (typeof PluginMessageHandler !== "undefined") {
         let messagePayload;
 
         if (nextPageUrl) {
-            // FOR SUBSEQUENT PAGES: Send the full, unmodified URL.
-            // This is the correct way to handle pagination with the R1 environment.
             messagePayload = { url: nextPageUrl };
+            log(`➡️ Next page: ${nextPageUrl}`);
         } else {
-            // FOR THE FIRST PAGE: Send the search query parameters.
             messagePayload = {
                 query_params: {
                     engine: "youtube",
@@ -677,16 +736,16 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
                     num: 50
                 }
             };
+            log('🚀 Sending initial search query to Rabbit...');
         }
 
-        // Send the correctly formatted message to the R1 environment.
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify(messagePayload),
             useSerpAPI: true
         }));
+        log('✅ Message sent to Rabbit SerpAPI.');
     } else {
-        // Mock data for browser testing remains unchanged
-        console.log(`[Browser Mode] Searching YouTube for: ${query}`);
+        log(`[Browser Mode] Simulating results for: ${query}`);
         const mockResults = [
             { link: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: `Mock Result 1 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' } },
             { link: 'https://www.youtube.com/watch?v=o-YBDTqX_ZU', title: `Mock Result 2 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/o-YBDTqX_ZU/hqdefault.jpg' } }
@@ -696,8 +755,35 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         }
         renderYouTubeResults(mockResults);
         isFetchingYoutubeResults = false;
+        log('🧪 Mock results rendered.');
     }
+
+    // 🔄 Capture Rabbit responses only when in playlist mode
+    const originalHandler = window.onPluginMessage;
+    window.onPluginMessage = (e) => {
+        try {
+            const data = e.data
+                ? (typeof e.data === 'string' ? JSON.parse(e.data) : e.data)
+                : null;
+
+            if (currentSearchMode === 'playlists') {
+                log('📦 Received Rabbit response (Playlists mode)');
+                if (data) {
+                    log(`   Keys: ${Object.keys(data).join(', ')}`);
+                    if (Array.isArray(data.playlist_results))
+                        log(`   playlist_results count: ${data.playlist_results.length}`);
+                    if (Array.isArray(data.video_results))
+                        log(`   video_results count: ${data.video_results.length}`);
+                }
+            }
+
+            if (originalHandler) originalHandler(e);
+        } catch (err) {
+            log('⚠️ Error parsing Rabbit response: ' + err);
+        }
+    };
 }
+
 
 // Helper: fetch up to 3 more pages looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
