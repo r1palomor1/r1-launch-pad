@@ -776,7 +776,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             log(`   video_results count: ${data.video_results.length}`);
 
         // 🎵 Added snippet — detect embedded playlist links within video_results
-        if (Array.isArray(data.video_results)) {
+                if (Array.isArray(data.video_results)) {
             const playlistLinks = data.video_results.filter(v => v.link && v.link.includes('list='));
             log(`🎵 Embedded playlist links found: ${playlistLinks.length}`);
             if (playlistLinks.length > 0) {
@@ -784,7 +784,22 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
                     log(`   ${i + 1}. ${v.link}`)
                 );
             }
+
+            // 🧩 Deep diagnostic — check for any hidden playlist/list IDs in nested fields
+            const jsonText = JSON.stringify(data.video_results, null, 2);
+            const matchIndex = jsonText.search(/"list"|"playlist"/);
+            if (matchIndex !== -1) {
+                log("⚠️ Potential hidden playlist field found!");
+                // 🔍 Show a short JSON snippet around the match for review
+                const snippet = jsonText.substring(
+                    Math.max(0, matchIndex - 150),
+                    Math.min(jsonText.length, matchIndex + 350)
+                );
+                log("⬇️ Context snippet around match:");
+                log(snippet);
+            }
         }
+
     }
 }
 
