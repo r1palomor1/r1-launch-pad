@@ -723,7 +723,7 @@ async function fetchNextPlaylistPages(query, firstData) {
         if (typeof PluginMessageHandler !== "undefined") {
             PluginMessageHandler.postMessage(JSON.stringify({
                 message: JSON.stringify({
-                    query_params: { next_page_token: nextUrl },
+                    query_params: { engine: "youtube_playlists", next_page_token: nextUrl },
                     useSerpAPI: true
                 }),
                 useSerpAPI: true
