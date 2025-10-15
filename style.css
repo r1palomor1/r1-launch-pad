@@ -1265,3 +1265,14 @@ button.rabbit-default:hover {
 #nowPlayingBar .now-playing-text {
     opacity: 0.8;
 }
+.player-main-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#playerPlayPauseBtn svg {
+    width: 32px; /* Make the central play button slightly larger */
+    height: 32px;
+}
