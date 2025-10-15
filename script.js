@@ -677,12 +677,13 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
 
         if (nextPageUrl) {
             try {
-                // The next page URL contains a special token we need to extract.
+                // The next page URL contains the token we need to extract.
                 const url = new URL(nextPageUrl);
+                // According to SerpApi docs, the token is in 'next_page_token'.
                 const nextPageToken = url.searchParams.get("next_page_token");
                 if (nextPageToken) {
-                    // Add the token to our request. This tells the API to give us the next page.
-                    params.next_page_token = nextPageToken;
+                    // And the parameter to SEND it back is 'sp'.
+                    params.sp = nextPageToken;
                 } else {
                     console.warn("Could not find 'next_page_token' in the URL:", nextPageUrl);
                 }
