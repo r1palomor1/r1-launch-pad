@@ -1274,7 +1274,20 @@ button.rabbit-default:hover {
     gap: 8px;
 }
 
+/* === Player Icon Sizing & Proportions === */
+
+/* Set a consistent, larger size for all icons in the central control group */
+.player-main-controls .dialog-icon-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Override: Keep the main Play/Pause button and its icon the largest for emphasis */
+#playerPlayPauseBtn {
+    width: 44px;
+    height: 44px;
+}
 #playerPlayPauseBtn svg {
-    width: 32px; /* Make the central play button slightly larger */
-    height: 32px;
+    width: 30px;
+    height: 30px;
 }
