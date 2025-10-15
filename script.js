@@ -509,6 +509,18 @@ function openPlayerView(options) {
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
     playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
 
+    // --- ADD THIS BLOCK ---
+    // Check if we're playing a playlist (real or pseudo)
+    const isPlaylist = options.playlistId || options.videoIds;
+
+    // Show or hide playlist-specific controls
+    playerShuffleBtn.style.display = isPlaylist ? 'flex' : 'none';
+    playerNextBtn.style.display = isPlaylist ? 'flex' : 'none';
+
+    // Also, reset the shuffle button's visual state each time
+    playerShuffleBtn.classList.remove('active');
+    // --- END OF NEW BLOCK ---
+
     const createPlayer = () => {
         if (player) {
             player.destroy();
