@@ -730,20 +730,23 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     log(`➡️ Next page: ${nextPageUrl}`);
 } else {
     // 🧠 Conditional Mode Switch — bias playlist searches toward actual playlists
-    let finalQuery = query.trim();
-    if (currentSearchMode === "playlists" && !/\bplaylist\b/i.test(finalQuery)) {
-        finalQuery += " playlist";
+let finalQuery = query.trim();
+
+// Only append "playlist" if neither "playlist" nor "playlists" (any case) are already present
+if (currentSearchMode === "playlists" && !/\bplaylists?\b/i.test(finalQuery)) {
+    finalQuery += " playlist";
+}
+
+messagePayload = {
+    query_params: {
+        engine: "youtube",
+        search_query: finalQuery,
+        num: 50
     }
+};
 
-    messagePayload = {
-        query_params: {
-            engine: "youtube",
-            search_query: finalQuery,
-            num: 50
-        }
-    };
+log(`🚀 Sending initial search query to Rabbit... [${finalQuery}]`);
 
-    log(`🚀 Sending initial search query to Rabbit... [${finalQuery}]`);
 }
 
 
