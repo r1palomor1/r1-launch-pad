@@ -41,6 +41,8 @@ const playerBackBtn = document.getElementById('playerBackBtn');
 const playerSearchBtn = document.getElementById('playerSearchBtn');
 const playerPlayPauseBtn = document.getElementById('playerPlayPauseBtn');
 const playerAudioOnlyBtn = document.getElementById('playerAudioOnlyBtn');
+const playerShuffleBtn = document.getElementById('playerShuffleBtn');
+const playerNextBtn = document.getElementById('playerNextBtn');
 const playerContainer = document.querySelector('.player-container');
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
 const searchModePlaylistsBtn = document.getElementById('searchModePlaylists');
@@ -507,6 +509,18 @@ function openPlayerView(options) {
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
     playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
 
+    // --- ADD THIS BLOCK ---
+    // Check if we're playing a playlist (real or pseudo)
+    const isPlaylist = options.playlistId || options.videoIds;
+
+    // Show or hide playlist-specific controls
+    playerShuffleBtn.style.display = isPlaylist ? 'flex' : 'none';
+    playerNextBtn.style.display = isPlaylist ? 'flex' : 'none';
+
+    // Also, reset the shuffle button's visual state each time
+    playerShuffleBtn.classList.remove('active');
+    // --- END OF NEW BLOCK ---
+
     const createPlayer = () => {
         if (player) {
             player.destroy();
@@ -520,7 +534,8 @@ function openPlayerView(options) {
                 playerVars: {
                     'playsinline': 1,
                     'controls': 1,
-                    'autoplay': 1,
+                    // Autoplay is ON (1) for single videos, OFF (0) for playlists
+                    'autoplay': (options.playlistId || options.videoIds) ? 0 : 1,
                     'rel': 0,
                     'showinfo': 0,
                     'modestbranding': 1
@@ -536,6 +551,9 @@ function openPlayerView(options) {
             } else if (options.playlistId) {
                 playerConfig.playerVars.listType = 'playlist';
                 playerConfig.playerVars.list = options.playlistId;
+            } else if (options.videoIds && options.videoIds.length > 0) {
+                // For pseudo-playlists, we provide a comma-separated list of video IDs.
+                playerConfig.playerVars.playlist = options.videoIds.join(',');
             }
 
             player = new YT.Player('youtubePlayer', playerConfig);
@@ -604,9 +622,14 @@ function renderYouTubeResults(results, mode) {
                 <img src="${thumbnailUrl}" class="link-favicon" alt="Video thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
                 <div class="link-description">${item.title}</div>`;
         } else if (mode === 'playlists') {
-            itemCard.dataset.playlistId = item.playlist_id;
-            itemCard.dataset.title = item.title;
-            const thumbnailUrl = item.thumbnail || GENERIC_FAVICON_SRC;
+            if (item.playlist_id) {
+                // It's a real playlist with an ID
+                itemCard.dataset.playlistId = item.playlist_id;
+            } else if (item.videos) {
+                // It's our pseudo-playlist, so we store the actual video IDs
+                const videoIds = item.videos.map(v => getYoutubeVideoId(v.link)).filter(Boolean);
+                itemCard.dataset.videoIds = JSON.stringify(videoIds);
+            }
             // Add a playlist icon to distinguish it
             itemCard.innerHTML = `
                 <img src="${thumbnailUrl}" class="link-favicon" alt="Playlist thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
@@ -635,6 +658,9 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     if (!nextPageUrl) { // This is a new search
         youtubeSearchResultsContainer.innerHTML = '<p>Searching...</p>';
         youtubeNextPageUrl = null; // Reset pagination
+        if (currentSearchMode === 'playlists') {
+            allFetchedPages = []; // Clear previous aggregated pages for a new search
+        }
     }
 
     if (nextPageUrl) { // This is an infinite scroll fetch
@@ -647,18 +673,14 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
 
     if (typeof PluginMessageHandler !== "undefined") {
         let params;
-    if (nextPageUrl) {
-        // Logic for next pages remains the same
-        const url = new URL(nextPageUrl);
-        const spToken = url.searchParams.get('sp');
-        params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
-    } else {
-        // Logic for the first page now checks the search mode
-        params = { engine: "youtube", search_query: query, num: 50 };
-        if (currentSearchMode === 'playlists') {
-        params.sp = "EgIQAw=="; // The special token for playlists
-    }
+if (nextPageUrl) {
+    // Unified next-page request (no sp)
+    params = { engine: "youtube", search_query: query, num: 50 };
+} else {
+    // Unified first-page request (no sp)
+    params = { engine: "youtube", search_query: query, num: 50 };
 }
+
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify({ query_params: params }),
@@ -717,11 +739,21 @@ async function fetchNextPlaylistPages(query, firstData) {
 
 
 // ✅  Option B: Auto-scan for Playlists
+// ✅ Simplified single-page pseudo-playlist generator
+// ✅ Unified playlist detection and pseudo-playlist fallback
+// 🧩 DEBUG: store all YouTube fetch pages
+let allFetchedPages = [];
+
 window.onPluginMessage = async (e) => {
     try {
         const data = e.data
             ? (typeof e.data === "string" ? JSON.parse(e.data) : e.data)
             : null;
+            // 🧩 Append current page to combined collector
+if (data) {
+    allFetchedPages.push(data);
+    console.log(`🧩 Page #${allFetchedPages.length} appended`, data);
+}
 
         if (youtubeSearchResultsContainer.innerHTML.includes("Searching...")) {
             youtubeSearchResultsContainer.innerHTML = "";
@@ -733,32 +765,96 @@ window.onPluginMessage = async (e) => {
         }
 
         if (currentSearchMode === "videos") {
-            // SONGS mode
+            // 🎵 Songs mode — normal logic
             if (Array.isArray(data.video_results) && data.video_results.length > 0) {
                 renderYouTubeResults(data.video_results, "videos");
             } else {
                 youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
             }
-        } else if (currentSearchMode === "playlists") {
-            // PLAYLISTS mode
-            let playlists = Array.isArray(data.playlist_results)
-                ? data.playlist_results
-                : [];
-            if (playlists.length === 0) {
-                playlists = await fetchNextPlaylistPages(
-                    youtubeSearchInput.value.trim(),
-                    data
-                );
+            return;
+        }
+
+        // 🎧 Generate Playlist mode
+        // 🎧 Generate Playlist mode
+        if (currentSearchMode === "playlists") {
+            youtubeNextPageUrl = data.serpapi_pagination?.next || null;
+
+            // If there are more pages and we haven't hit our limit, fetch them before processing.
+            if (youtubeNextPageUrl && allFetchedPages.length < 3) {
+                youtubeSearchResultsContainer.innerHTML = `<p>Searching for playlists... (page ${allFetchedPages.length + 1})</p>`;
+                // This re-triggers the search for the next page automatically
+                handleYouTubeSearch(youtubeSearchInput.value.trim(), youtubeNextPageUrl);
+                return; // Exit and wait for the next page of results to arrive
             }
-            if (playlists && playlists.length > 0) {
-                renderYouTubeResults(playlists, "playlists");
+        
+            // --- Processing starts here, after all pages are fetched ---
+            youtubeSearchResultsContainer.innerHTML = ''; // Clear "Searching..." message
+            let realPlaylists = [];
+            let allVideos = [];
+        
+            // 1️⃣ Aggregate all real playlists and videos from all fetched pages
+            allFetchedPages.forEach(pageData => {
+                // Collect real playlists from `playlist_results`
+                if (Array.isArray(pageData.playlist_results)) {
+                    realPlaylists.push(...pageData.playlist_results
+                        .filter(p => p.playlist_id)
+                        .map(p => ({ ...p, thumbnail: p.thumbnail?.static || p.thumbnail })) // Normalize thumbnail
+                    );
+                }
+                // Collect real playlists from `video_results` with a `list=` param
+                if (Array.isArray(pageData.video_results)) {
+                    const embeddedPlaylists = pageData.video_results
+                        .filter(v => v.link && v.link.includes("list="))
+                        .map(v => {
+                            try {
+                                const u = new URL(v.link);
+                                const listParam = u.searchParams.get("list");
+                                return listParam ? {
+                                    title: v.title || "YouTube Playlist",
+                                    playlist_id: listParam,
+                                    thumbnail: v.thumbnail?.static || v.thumbnail || "",
+                                    link: v.link,
+                                    video_count: '?'
+                                } : null;
+                            } catch { return null; }
+                        }).filter(Boolean);
+                    realPlaylists.push(...embeddedPlaylists);
+                }
+                // Aggregate all individual videos for the fallback
+                if (Array.isArray(pageData.video_results)) {
+                    allVideos.push(...pageData.video_results);
+                }
+            });
+        
+            // 2️⃣ Decide whether to show real playlists or create pseudo-playlists
+            if (realPlaylists.length > 0) {
+                // If we found any real playlists, render them
+                renderYouTubeResults(realPlaylists, "playlists");
+            } else if (allVideos.length > 0) {
+                // 3️⃣ Fallback: Create pseudo-playlists from aggregated videos
+                const pseudoPlaylists = [];
+                const groupSize = 10;
+                const searchTerm = youtubeSearchInput.value.trim() || "Mix";
+        
+                for (let i = 0; i < allVideos.length; i += groupSize) {
+                    const group = allVideos.slice(i, i + groupSize);
+                    if (group.length > 0) {
+                        pseudoPlaylists.push({
+                            title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
+                            videos: group, // Store the video objects for the next step
+                            thumbnail: group[0]?.thumbnail?.static || group[0]?.thumbnail || "",
+                            video_count: group.length
+                        });
+                    }
+                }
+                renderYouTubeResults(pseudoPlaylists, "playlists");
             } else {
-                youtubeSearchResultsContainer.innerHTML =
-                    "<p>No playlists found.</p>";
+                // 4️⃣ Handle no results at all
+                youtubeSearchResultsContainer.innerHTML = "<p>No playlists or videos found.</p>";
             }
         }
 
-        youtubeNextPageUrl = data.serpapi_pagination?.next || null;
+
     } catch (err) {
         console.error("Error parsing YouTube plugin message:", err);
         youtubeSearchResultsContainer.innerHTML = "<p>Error loading results.</p>";
@@ -1653,9 +1749,17 @@ logo.addEventListener('click', goHome);
                 showAlert(`Could not find a valid video ID in the link: ${card.dataset.videoLink}`);
             }
         } else if (card.dataset.playlistId) {
-            // This is our new logic for a playlist
+            // This is a REAL playlist
             const playlistId = card.dataset.playlistId;
             openPlayerView({ playlistId: playlistId, title: title });
+        } else if (card.dataset.videoIds) {
+            // This is our generated PSEUDO-playlist
+            const videoIds = JSON.parse(card.dataset.videoIds);
+            if (videoIds.length > 0) {
+                openPlayerView({ videoIds: videoIds, title: title });
+            } else {
+                showAlert('This playlist mix contains no valid videos.');
+            }
         }
     }
 });
@@ -1691,24 +1795,42 @@ searchModePlaylistsBtn.addEventListener('click', () => {
 });
 
 playerSearchBtn.addEventListener('click', () => {
-    internalPlayerOverlay.style.display = 'none'; // Hide player
-    youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
-    youtubeSearchInput.value = ''; // ADDED: Clear previous search term
-    youtubeSearchInput.focus(); // Set focus on the search bar
-    nowPlayingTitle.textContent = playerVideoTitle.textContent; // ADD THIS
-    nowPlayingBar.style.display = 'flex'; // ADD THIS
-});
+        internalPlayerOverlay.style.display = 'none'; // Hide player
+        youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
+        youtubeSearchInput.value = ''; // ADDED: Clear previous search term
+        youtubeSearchInput.focus(); // Set focus on the search bar
+        nowPlayingTitle.textContent = playerVideoTitle.textContent; // ADD THIS
+        nowPlayingBar.style.display = 'flex'; // ADD THIS
+    });
 
     playerPlayPauseBtn.addEventListener('click', togglePlayback);
 
-        // This is the corrected listener for the Audio Only button
-playerAudioOnlyBtn.addEventListener('click', () => {
-    isAudioOnly = !isAudioOnly;
-    playerContainer.classList.toggle('audio-only', isAudioOnly);
-    playerAudioOnlyBtn.classList.toggle('active', isAudioOnly);
-    triggerHaptic();
-    sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
-});
+    // --- ADD THIS NEW BLOCK HERE ---
+    playerShuffleBtn.addEventListener('click', () => {
+        if (!player) return;
+        // This uses the YouTube IFrame API to toggle shuffle mode
+        const isShuffled = player.getShuffle();
+        player.setShuffle(!isShuffled); 
+        sayOnRabbit(`Shuffle ${!isShuffled ? 'on' : 'off'}`);
+        // Optional: Add a visual indicator like a class toggle
+        playerShuffleBtn.classList.toggle('active', !isShuffled);
+    });
+
+    playerNextBtn.addEventListener('click', () => {
+        if (!player) return;
+        // This uses the YouTube IFrame API to play the next video in the list
+        player.nextVideo();
+    });
+    // --- END OF NEW BLOCK ---
+
+    // This is the corrected listener for the Audio Only button
+    playerAudioOnlyBtn.addEventListener('click', () => {
+        isAudioOnly = !isAudioOnly;
+        playerContainer.classList.toggle('audio-only', isAudioOnly);
+        playerAudioOnlyBtn.classList.toggle('active', isAudioOnly);
+        triggerHaptic();
+        sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
+    });
 
 // This is the listener for the Now Playing bar, now in the correct place
 nowPlayingBar.addEventListener('click', () => {
