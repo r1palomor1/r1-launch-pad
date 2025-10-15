@@ -673,16 +673,11 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         let messagePayload;
 
         if (nextPageUrl) {
-            messagePayload = { url: nextPageUrl };
-        } else {
-            messagePayload = {
-                query_params: {
-                    engine: "youtube",
-                    search_query: finalQuery,
-                    num: 50
-                }
-            };
-        }
+    messagePayload = { query_params: { next_page_token: nextPageUrl } };
+} else {
+    messagePayload = { query_params: { engine: "youtube", search_query: finalQuery, num: 50 } };
+}
+
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify(messagePayload),
@@ -699,29 +694,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         renderYouTubeResults(mockResults);
         isFetchingYoutubeResults = false;
     }
-
-    // 🔄 Capture Rabbit responses only when in playlist mode
-    const originalHandler = window.onPluginMessage;
-    window.onPluginMessage = (e) => {
-        try {
-            const data = e.data
-                ? (typeof e.data === 'string' ? JSON.parse(e.data) : e.data)
-                : null;
-
-            if (currentSearchMode === 'playlists' && data) {
-                if (Array.isArray(data.playlist_results))
-                    console.log(`playlist_results count: ${data.playlist_results.length}`);
-                if (Array.isArray(data.video_results))
-                    console.log(`video_results count: ${data.video_results.length}`);
-            }
-
-            if (originalHandler) originalHandler(e);
-        } catch (err) {
-            console.error('Error parsing Rabbit response:', err);
-        }
-    };
-}
-
+    }
 
 // Helper: fetch up to 3 more pages looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
@@ -803,13 +776,15 @@ if (data) {
 
             // If there are more pages and we haven't hit our limit, fetch them before processing.
             if (youtubeNextPageUrl && allFetchedPages.length < 3) {
-                youtubeSearchResultsContainer.innerHTML = `<p>Searching for playlists... (page ${allFetchedPages.length + 1})</p>`;
-                // This re-triggers the search for the next page automatically
-                handleYouTubeSearch(youtubeSearchInput.value.trim(), youtubeNextPageUrl);
-                return; // Exit and wait for the next page of results to arrive
-            }
-        
-            // --- Processing starts here, after all pages are fetched ---
+    youtubeSearchResultsContainer.innerHTML = `<p>Searching for playlists... (page ${allFetchedPages.length + 1})</p>`;
+    // ✅ Release the fetch lock so handleYouTubeSearch can fire again
+    const q = youtubeSearchInput.value.trim();
+    isFetchingYoutubeResults = false;
+    setTimeout(() => handleYouTubeSearch(q, youtubeNextPageUrl), 0);
+    return; // Exit and wait for next page of results
+}
+
+                    // --- Processing starts here, after all pages are fetched ---
             youtubeSearchResultsContainer.innerHTML = ''; // Clear "Searching..." message
             let realPlaylists = [];
             let allVideos = [];
@@ -853,23 +828,31 @@ if (data) {
                 // If we found any real playlists, render them
                 renderYouTubeResults(realPlaylists, "playlists");
             } else if (allVideos.length > 0) {
-                // 3️⃣ Fallback: Create pseudo-playlists from aggregated videos
-                const pseudoPlaylists = [];
-                const groupSize = 10;
-                const searchTerm = youtubeSearchInput.value.trim() || "Mix";
-        
-                for (let i = 0; i < allVideos.length; i += groupSize) {
-                    const group = allVideos.slice(i, i + groupSize);
-                    if (group.length > 0) {
-                        pseudoPlaylists.push({
-                            title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
-                            videos: group, // Store the video objects for the next step
-                            thumbnail: group[0]?.thumbnail?.static || group[0]?.thumbnail || "",
-                            video_count: group.length
-                        });
-                    }
-                }
-                renderYouTubeResults(pseudoPlaylists, "playlists");
+                // 3️⃣ Fallback: Create pseudo-playlists only if pages have finished loading
+if (!isFetchingYoutubeResults && allVideos.length > 0) {
+    const pseudoPlaylists = [];
+    const groupSize = 10;
+    const searchTerm = youtubeSearchInput.value.trim() || "Mix";
+
+    // Group every 10–15 videos depending on total count
+    const dynamicGroupSize = allVideos.length > 30 ? 15 : 10;
+
+    for (let i = 0; i < allVideos.length; i += dynamicGroupSize) {
+        const group = allVideos.slice(i, i + dynamicGroupSize);
+        if (group.length > 0) {
+            pseudoPlaylists.push({
+                title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
+                videos: group,
+                thumbnail: group[0]?.thumbnail?.static || group[0]?.thumbnail || GENERIC_FAVICON_SRC,
+                video_count: group.length
+            });
+        }
+    }
+
+    console.log(`🎧 Created ${pseudoPlaylists.length} pseudo-playlists from ${allVideos.length} videos`);
+    renderYouTubeResults(pseudoPlaylists, "playlists");
+}
+
             } else {
                 // 4️⃣ Handle no results at all
                 youtubeSearchResultsContainer.innerHTML = "<p>No playlists or videos found.</p>";
