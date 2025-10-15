@@ -1050,12 +1050,14 @@ button.rabbit-default:hover {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    gap: 8px;
+    gap: 4px; /* Reduced gap */
 }
-
-.player-navigation .dialog-icon-btn {
-    width: 32px !important;
-    height: 32px !important;
+/* ... */
+.player-main-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px; /* Reduced gap */
 }
 
 .player-navigation .dialog-icon-btn svg {
