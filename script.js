@@ -672,7 +672,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             // FOR THE FIRST PAGE: Send the search query parameters.
             messagePayload = {
                 query_params: {
-                    engine: "youtube",
+                    engine: "youtube_playlists",
                     search_query: query,
                     num: 50
                 }
