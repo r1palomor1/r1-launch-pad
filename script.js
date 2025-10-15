@@ -661,102 +661,34 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         }
     }
 
-    // 🪟 Full-screen scrollable alert window for Rabbit R1
-    let alertOverlay = document.getElementById('r1AlertOverlay');
-    let alertContent;
-    if (!alertOverlay) {
-        alertOverlay = document.createElement('div');
-        alertOverlay.id = 'r1AlertOverlay';
-        Object.assign(alertOverlay.style, {
-            position: 'absolute',
-            top: '0',
-            left: '0',
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0,0,0,0.92)',
-            color: '#00ff00',
-            fontSize: '11px',
-            zIndex: '9999',
-            padding: '8px',
-            boxSizing: 'border-box',
-            display: 'flex',
-            flexDirection: 'column'
-        });
+    // 🧠 Conditional Mode Switch — bias playlist searches toward actual playlists
+    let finalQuery = query.trim();
 
-        const closeBtn = document.createElement('div');
-        closeBtn.textContent = '✕';
-        Object.assign(closeBtn.style, {
-            alignSelf: 'flex-end',
-            color: '#ff5555',
-            fontSize: '18px',
-            cursor: 'pointer',
-            marginBottom: '4px'
-        });
-        closeBtn.onclick = () => { alertOverlay.style.display = 'none'; };
-
-        alertContent = document.createElement('div');
-        alertContent.id = 'r1AlertContent';
-        Object.assign(alertContent.style, {
-            flex: '1',
-            overflowY: 'auto',
-            whiteSpace: 'pre-line',
-            border: '1px solid #444',
-            padding: '4px'
-        });
-
-        alertOverlay.appendChild(closeBtn);
-        alertOverlay.appendChild(alertContent);
-        document.body.appendChild(alertOverlay);
-    } else {
-        alertOverlay.style.display = 'flex';
-        alertContent = document.getElementById('r1AlertContent');
+    // Only append "playlist" if neither "playlist" nor "playlists" (any case) are already present
+    if (currentSearchMode === "playlists" && !/\bplaylists?\b/i.test(finalQuery)) {
+        finalQuery += " playlist";
     }
 
-    const log = (msg) => {
-        alertContent.innerText += msg + '\n';
-        alertContent.scrollTop = alertContent.scrollHeight;
-    };
-
-    log('\n──────────────────────────────────────');
-    log(`🔍 Query: ${query}`);
-    log(`🎛 Mode: ${currentSearchMode}`);
-
-    // ✅ Uses exact Rabbit SDK message flow
     if (typeof PluginMessageHandler !== "undefined") {
         let messagePayload;
 
         if (nextPageUrl) {
-    messagePayload = { url: nextPageUrl };
-    log(`➡️ Next page: ${nextPageUrl}`);
-} else {
-    // 🧠 Conditional Mode Switch — bias playlist searches toward actual playlists
-let finalQuery = query.trim();
-
-// Only append "playlist" if neither "playlist" nor "playlists" (any case) are already present
-if (currentSearchMode === "playlists" && !/\bplaylists?\b/i.test(finalQuery)) {
-    finalQuery += " playlist";
-}
-
-messagePayload = {
-    query_params: {
-        engine: "youtube",
-        search_query: finalQuery,
-        num: 50
-    }
-};
-
-log(`🚀 Sending initial search query to Rabbit... [${finalQuery}]`);
-
-}
-
+            messagePayload = { url: nextPageUrl };
+        } else {
+            messagePayload = {
+                query_params: {
+                    engine: "youtube",
+                    search_query: finalQuery,
+                    num: 50
+                }
+            };
+        }
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify(messagePayload),
             useSerpAPI: true
         }));
-        log('✅ Message sent to Rabbit SerpAPI.');
     } else {
-        log(`[Browser Mode] Simulating results for: ${query}`);
         const mockResults = [
             { link: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: `Mock Result 1 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' } },
             { link: 'https://www.youtube.com/watch?v=o-YBDTqX_ZU', title: `Mock Result 2 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/o-YBDTqX_ZU/hqdefault.jpg' } }
@@ -766,7 +698,6 @@ log(`🚀 Sending initial search query to Rabbit... [${finalQuery}]`);
         }
         renderYouTubeResults(mockResults);
         isFetchingYoutubeResults = false;
-        log('🧪 Mock results rendered.');
     }
 
     // 🔄 Capture Rabbit responses only when in playlist mode
@@ -777,70 +708,16 @@ log(`🚀 Sending initial search query to Rabbit... [${finalQuery}]`);
                 ? (typeof e.data === 'string' ? JSON.parse(e.data) : e.data)
                 : null;
 
-            if (currentSearchMode === 'playlists') {
-    log('📦 Received Rabbit response (Playlists mode)');
-    if (data) {
-        log(`   Keys: ${Object.keys(data).join(', ')}`);
-        if (Array.isArray(data.playlist_results))
-            log(`   playlist_results count: ${data.playlist_results.length}`);
-        if (Array.isArray(data.video_results))
-            log(`   video_results count: ${data.video_results.length}`);
-
-        // 🎵 Added snippet — detect embedded playlist links within video_results
-                        // 🎵 Added snippet — detect embedded playlist links within video_results
-        if (Array.isArray(data.video_results)) {
-            const playlistLinks = data.video_results.filter(v => v.link && v.link.includes('list='));
-            log(`🎵 Embedded playlist links found: ${playlistLinks.length}`);
-            if (playlistLinks.length > 0) {
-                playlistLinks.slice(0, 3).forEach((v, i) =>
-                    log(`   ${i + 1}. ${v.link}`)
-                );
+            if (currentSearchMode === 'playlists' && data) {
+                if (Array.isArray(data.playlist_results))
+                    console.log(`playlist_results count: ${data.playlist_results.length}`);
+                if (Array.isArray(data.video_results))
+                    console.log(`video_results count: ${data.video_results.length}`);
             }
-
-            // 🧠 NEW 1️⃣: Deep diagnostic — check for any hidden playlist/list IDs in nested fields
-            const jsonText = JSON.stringify(data.video_results, null, 2);
-            log(`🔍 Scanned JSON length: ${jsonText.length} characters`);
-            const matchIndex = jsonText.search(/"list"|"playlist"/);
-            if (matchIndex !== -1) {
-                log("⚠️ Potential hidden playlist field found!");
-                const snippet = jsonText.substring(
-                    Math.max(0, matchIndex - 150),
-                    Math.min(jsonText.length, matchIndex + 350)
-                );
-                log("⬇️ Context snippet around match:");
-                log(snippet);
-            } else {
-                log("✅ No hidden playlist identifiers found in video_results.");
-            }
-
-            // 🧠 NEW 2️⃣: Schema sampler — view structure of first video_result
-            const firstVideo = data.video_results[0];
-            if (firstVideo) {
-                const keys = Object.keys(firstVideo);
-                log(`🧩 Sample video_result keys: ${keys.join(', ')}`);
-            } else {
-                log("🧩 No video_results data available for schema inspection.");
-            }
-
-            // 🧠 NEW 3️⃣: Nested playlist-like detector
-            const nestedCandidates = data.video_results.filter(v =>
-                typeof v === "object" &&
-                (v.playlist_id || (v.thumbnails && Array.isArray(v.thumbnails)))
-            );
-            if (nestedCandidates.length > 0) {
-                log(`🧩 Found ${nestedCandidates.length} nested playlist-like objects.`);
-            } else {
-                log("🧩 No playlist-like nested objects detected.");
-            }
-        }
-
-
-    }
-}
 
             if (originalHandler) originalHandler(e);
         } catch (err) {
-            log('⚠️ Error parsing Rabbit response: ' + err);
+            console.error('Error parsing Rabbit response:', err);
         }
     };
 }

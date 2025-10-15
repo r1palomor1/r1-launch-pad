@@ -1,0 +1,639 @@
+YouTube Playlist Debug Reference Commentary  (below the ======= is the function examples containing the debug code)
+
+Purpose
+
+This debug version of handleYouTubeSearch() is designed to trace and diagnose how Rabbit’s SerpAPI responses handle YouTube playlist data.
+It helps determine whether the API ever returns:
+
+a playlist_results array, or
+
+playlist-related data hidden inside video_results (via list= URLs or nested playlist_id fields).
+
+Since the Rabbit backend currently does not send any true playlist objects, this debug system ensures that future server updates or API schema changes can be detected immediately — without further code changes.
+
+Debug Workflow Overview
+
+Query Handling & Mode Detection
+
+The user’s query is inspected.
+
+If currentSearchMode === "playlists", the code adds "playlist" to the search term unless the query already contains “playlist” or “playlists.”
+This biases results toward playlists when possible, but avoids duplication ("Playlist Playlist").
+
+Each query sent to Rabbit is logged, showing exactly what was transmitted.
+
+Example debug output:
+
+🔍 Query: Beatles
+🎛 Mode: playlists
+🚀 Sending initial search query to Rabbit... [Beatles playlist]
+✅ Message sent to Rabbit SerpAPI.
+
+
+Rabbit Response Capture
+
+The system overrides window.onPluginMessage temporarily to intercept all responses from Rabbit.
+
+For each response (particularly in playlist mode), it logs:
+
+The top-level keys of the JSON (e.g., video_results, playlist_results, etc.)
+
+Counts of each major array to verify data presence.
+
+A full schema sample from the first video_result.
+
+Example:
+
+📦 Received Rabbit response (Playlists mode)
+   Keys: search_metadata, video_results, serpapi_pagination
+   playlist_results count: 0
+   video_results count: 11
+   🧩 Sample video_result keys: position_on_page, title, link, channel, thumbnail
+
+
+Deep Diagnostic Scans
+Inside the same response check, several nested inspections occur:
+
+Embedded Playlist Detector
+Looks for any video_results whose .link contains list= (a strong playlist indicator).
+Logs the first few examples if found.
+
+🎵 Embedded playlist links found: 3
+   1. https://www.youtube.com/playlist?list=PL123ABC
+   2. ...
+
+
+Hidden Field Searcher
+Converts the entire video_results JSON to text and searches for "list" or "playlist" fields anywhere in the structure.
+If found, a 500-character snippet around the match is displayed for manual inspection.
+Otherwise, it logs confirmation that no such tags exist:
+
+🔍 Scanned JSON length: 12542 characters
+✅ No hidden playlist identifiers found in video_results.
+
+
+Schema Sampler
+Displays a list of keys from the first video result to reveal the shape of YouTube’s data payload for current Rabbit builds.
+Useful for spotting new or renamed fields.
+
+Nested Object Detector
+Searches for any objects with playlist_id or array-like thumbnails, identifying possibly misclassified playlist containers:
+
+🧩 No playlist-like nested objects detected.
+
+
+Logging Infrastructure
+
+A full-screen scrollable overlay (r1AlertOverlay) is dynamically created on Rabbit R1 devices.
+
+It displays all diagnostic messages in bright green text with a dismissible ✕ button.
+
+Logs are appended live, so users can monitor activity in real time.
+
+The console is also used for persistent debugging outside the overlay.
+
+Playlist Fallback Logic
+
+After all debug inspection, if no real playlists exist:
+
+The app groups regular video_results into pseudo-playlists (e.g., “Top Hits Mix #1”).
+
+This ensures the UI remains functional and visually consistent even when Rabbit returns no playlist data.
+
+Each pseudo-playlist groups ~10 videos and displays the thumbnail of the first video as its representative image.
+
+Pagination & Auto-Scroll
+
+If additional pages exist (serpapi_pagination.next), the function automatically fetches up to 3 pages to ensure playlist detection isn’t missed across paginated responses.
+
+Scroll-to-bottom detection triggers further fetches for continuous results.
+
+Summary of What This Debug Phase Confirms
+
+✅ Confirms Rabbit’s current behavior: no playlist_results and no embedded list= links in video_results.
+✅ Establishes real-time detection for future API changes.
+✅ Provides a self-contained diagnostics window for Rabbit R1 devices.
+✅ Keeps app behavior stable by using a pseudo-playlist fallback system.
+✅ Adds full transparency in both query formation and server responses for developer review.
+
+Recommended Notes to Include in Your Text File
+🧭 This debug build is a live telemetry and inspection tool for Rabbit YouTube integration.
+It safely logs, analyzes, and summarizes API behavior related to playlists.
+
+Keep this version as the diagnostic baseline.
+When Rabbit’s backend begins including playlist_results or list= links again,
+the logs in the overlay will immediately confirm it — no code change required.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+YouTube Playlist Debug Commentary
+Purpose
+
+This debug build of handleYouTubeSearch() provides a live diagnostic and telemetry layer for the Rabbit R1 app’s YouTube integration.
+Its goal is to trace exactly how Rabbit’s SerpAPI responds to different query types — specifically detecting if the server returns:
+
+a playlist_results array, or
+
+hidden playlist data embedded within video_results (e.g., list= URLs or playlist_id fields).
+
+Currently, the Rabbit backend does not expose either structure, so this module remains active to catch any future changes automatically.
+
+🔍 Core Debug Capabilities
+1. Dynamic Query Conditioning
+
+If the user selects Playlist mode, the search term automatically appends "playlist" unless the term already contains "playlist" or "playlists".
+
+This biases searches toward playlist-type responses while avoiding redundant queries like "Playlist Playlist".
+
+Example Log:
+
+🔍 Query: Beatles
+🎛 Mode: playlists
+🚀 Sending initial search query to Rabbit... [Beatles playlist]
+✅ Message sent to Rabbit SerpAPI.
+
+2. Response Interception & Key Summary
+
+Every incoming Rabbit message is captured and decoded.
+
+Logs show:
+
+Response type and mode.
+
+All top-level JSON keys returned.
+
+Counts for playlist_results and video_results.
+
+Example:
+
+📦 Received Rabbit response (Playlists mode)
+   Keys: search_metadata, search_information, video_results
+   playlist_results count: 0
+   video_results count: 11
+
+3. Deep Diagnostic Scans
+
+The debug engine performs three layered inspections:
+
+Diagnostic	What It Does	Typical Log
+Embedded Playlist Detector	Finds list= URLs in any video_results.link.	🎵 Embedded playlist links found: 0
+Hidden Field Searcher	Scans raw JSON for "list" or "playlist" keys, showing a snippet around any match.	🔍 Scanned JSON length: 12185 characters → ✅ No hidden playlist identifiers found
+Schema & Nested Object Sampler	Lists keys of the first video_result and searches for nested playlist-like objects.	🧩 Sample video_result keys: title, link, channel, thumbnail
+4. Live Overlay Logger (Rabbit R1 UI)
+
+Creates a full-screen, scrollable debug window (r1AlertOverlay) styled for R1’s small display.
+
+Messages stream live with green monospaced text.
+
+Includes a red ✕ close button and automatic scroll lock to newest output.
+
+This allows hands-free debugging directly on the device without connecting to the developer console.
+
+5. Pagination + Auto-Scroll
+
+Automatically fetches up to 3 pages of results via serpapi_pagination.next.
+
+A scroll-to-bottom listener loads additional pages dynamically.
+
+Ensures complete coverage of multi-page search results when testing playlist queries.
+
+6. Fallback Playlist Generator
+
+When neither playlist_results nor embedded playlists exist:
+
+Groups regular videos into pseudo-playlists (e.g., “Top Hits Mix #1”).
+
+Each contains 10 videos and displays the first thumbnail as its visual.
+
+Maintains smooth UI behavior even when Rabbit returns only individual videos.
+
+✅ Confirmed Findings
+
+Rabbit currently returns only video_results; no playlist_results or list= links are present.
+
+The debug overlay correctly verifies and logs that state on each query.
+
+When a true playlist structure reappears, the diagnostic will instantly reveal it — no additional coding required.
+
+🧩 Recommended Next Steps
+1. Persistent Debug Logging (Optional)
+
+Write the overlay’s output to localStorage or Rabbit’s creationStorage.plain.
+This lets you review a full debug session even after the overlay is closed or power is cycled.
+
+creationStorage.plain.set('lastYouTubeDebug', alertContent.innerText);
+
+2. Timestamped Event Log
+
+Add timestamps to each log() entry to measure latency between request and response:
+
+const log = (msg) => {
+  const ts = new Date().toISOString().split('T')[1].replace('Z','');
+  alertContent.innerText += `[${ts}] ${msg}\n`;
+  alertContent.scrollTop = alertContent.scrollHeight;
+};
+
+
+This makes debugging server lag or pagination delays easier.
+
+3. Structured Debug Mode Toggle
+
+Wrap all overlay logic under a single DEBUG_YOUTUBE flag.
+When set to false, all console and overlay logging is bypassed, producing a silent production build without needing to delete any code.
+
+const DEBUG_YOUTUBE = true;
+if (DEBUG_YOUTUBE) log('📡 Debug active for playlist mode');
+
+Summary
+
+🧠  This build is the canonical diagnostic version for Rabbit R1’s YouTube playlist feature.
+It captures, analyzes, and visually reports every key event in the query–response pipeline.
+Keep this reference to benchmark future SDK or backend changes.
+If playlist_results or list= fields ever reappear, this version will immediately expose them in the overlay window.
+
+
+
+================================================================================================================
+
+function handleYouTubeSearch(query, nextPageUrl = null) {
+    if (!query && !nextPageUrl) {
+        youtubeSearchResultsContainer.innerHTML = '';
+        return;
+    }
+
+    if (isFetchingYoutubeResults) return;
+    isFetchingYoutubeResults = true;
+
+    if (!nextPageUrl) {
+        youtubeSearchResultsContainer.innerHTML = '<p>Searching...</p>';
+        youtubeNextPageUrl = null;
+        if (currentSearchMode === 'playlists') {
+            allFetchedPages = [];
+        }
+    }
+
+    // 🪟 Full-screen scrollable alert window for Rabbit R1
+    let alertOverlay = document.getElementById('r1AlertOverlay');
+    let alertContent;
+    if (!alertOverlay) {
+        alertOverlay = document.createElement('div');
+        alertOverlay.id = 'r1AlertOverlay';
+        Object.assign(alertOverlay.style, {
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            background: 'rgba(0,0,0,0.92)',
+            color: '#00ff00',
+            fontSize: '11px',
+            zIndex: '9999',
+            padding: '8px',
+            boxSizing: 'border-box',
+            display: 'flex',
+            flexDirection: 'column'
+        });
+
+        const closeBtn = document.createElement('div');
+        closeBtn.textContent = '✕';
+        Object.assign(closeBtn.style, {
+            alignSelf: 'flex-end',
+            color: '#ff5555',
+            fontSize: '18px',
+            cursor: 'pointer',
+            marginBottom: '4px'
+        });
+        closeBtn.onclick = () => { alertOverlay.style.display = 'none'; };
+
+        alertContent = document.createElement('div');
+        alertContent.id = 'r1AlertContent';
+        Object.assign(alertContent.style, {
+            flex: '1',
+            overflowY: 'auto',
+            whiteSpace: 'pre-line',
+            border: '1px solid #444',
+            padding: '4px'
+        });
+
+        alertOverlay.appendChild(closeBtn);
+        alertOverlay.appendChild(alertContent);
+        document.body.appendChild(alertOverlay);
+    } else {
+        alertOverlay.style.display = 'flex';
+        alertContent = document.getElementById('r1AlertContent');
+    }
+
+    const log = (msg) => {
+        alertContent.innerText += msg + '\n';
+        alertContent.scrollTop = alertContent.scrollHeight;
+    };
+
+    log('\n──────────────────────────────────────');
+    log(`🔍 Query: ${query}`);
+    log(`🎛 Mode: ${currentSearchMode}`);
+
+    // ✅ Uses exact Rabbit SDK message flow
+    if (typeof PluginMessageHandler !== "undefined") {
+        let messagePayload;
+
+        if (nextPageUrl) {
+    messagePayload = { url: nextPageUrl };
+    log(`➡️ Next page: ${nextPageUrl}`);
+} else {
+    // 🧠 Conditional Mode Switch — bias playlist searches toward actual playlists
+let finalQuery = query.trim();
+
+// Only append "playlist" if neither "playlist" nor "playlists" (any case) are already present
+if (currentSearchMode === "playlists" && !/\bplaylists?\b/i.test(finalQuery)) {
+    finalQuery += " playlist";
+}
+
+messagePayload = {
+    query_params: {
+        engine: "youtube",
+        search_query: finalQuery,
+        num: 50
+    }
+};
+
+log(`🚀 Sending initial search query to Rabbit... [${finalQuery}]`);
+
+}
+
+
+        PluginMessageHandler.postMessage(JSON.stringify({
+            message: JSON.stringify(messagePayload),
+            useSerpAPI: true
+        }));
+        log('✅ Message sent to Rabbit SerpAPI.');
+    } else {
+        log(`[Browser Mode] Simulating results for: ${query}`);
+        const mockResults = [
+            { link: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: `Mock Result 1 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' } },
+            { link: 'https://www.youtube.com/watch?v=o-YBDTqX_ZU', title: `Mock Result 2 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/o-YBDTqX_ZU/hqdefault.jpg' } }
+        ];
+        if (youtubeSearchResultsContainer.innerHTML.includes('Searching...')) {
+            youtubeSearchResultsContainer.innerHTML = '';
+        }
+        renderYouTubeResults(mockResults);
+        isFetchingYoutubeResults = false;
+        log('🧪 Mock results rendered.');
+    }
+
+    // 🔄 Capture Rabbit responses only when in playlist mode
+    const originalHandler = window.onPluginMessage;
+    window.onPluginMessage = (e) => {
+        try {
+            const data = e.data
+                ? (typeof e.data === 'string' ? JSON.parse(e.data) : e.data)
+                : null;
+
+            if (currentSearchMode === 'playlists') {
+    log('📦 Received Rabbit response (Playlists mode)');
+    if (data) {
+        log(`   Keys: ${Object.keys(data).join(', ')}`);
+        if (Array.isArray(data.playlist_results))
+            log(`   playlist_results count: ${data.playlist_results.length}`);
+        if (Array.isArray(data.video_results))
+            log(`   video_results count: ${data.video_results.length}`);
+
+        // 🎵 Added snippet — detect embedded playlist links within video_results
+                        // 🎵 Added snippet — detect embedded playlist links within video_results
+        if (Array.isArray(data.video_results)) {
+            const playlistLinks = data.video_results.filter(v => v.link && v.link.includes('list='));
+            log(`🎵 Embedded playlist links found: ${playlistLinks.length}`);
+            if (playlistLinks.length > 0) {
+                playlistLinks.slice(0, 3).forEach((v, i) =>
+                    log(`   ${i + 1}. ${v.link}`)
+                );
+            }
+
+            // 🧠 NEW 1️⃣: Deep diagnostic — check for any hidden playlist/list IDs in nested fields
+            const jsonText = JSON.stringify(data.video_results, null, 2);
+            log(`🔍 Scanned JSON length: ${jsonText.length} characters`);
+            const matchIndex = jsonText.search(/"list"|"playlist"/);
+            if (matchIndex !== -1) {
+                log("⚠️ Potential hidden playlist field found!");
+                const snippet = jsonText.substring(
+                    Math.max(0, matchIndex - 150),
+                    Math.min(jsonText.length, matchIndex + 350)
+                );
+                log("⬇️ Context snippet around match:");
+                log(snippet);
+            } else {
+                log("✅ No hidden playlist identifiers found in video_results.");
+            }
+
+            // 🧠 NEW 2️⃣: Schema sampler — view structure of first video_result
+            const firstVideo = data.video_results[0];
+            if (firstVideo) {
+                const keys = Object.keys(firstVideo);
+                log(`🧩 Sample video_result keys: ${keys.join(', ')}`);
+            } else {
+                log("🧩 No video_results data available for schema inspection.");
+            }
+
+            // 🧠 NEW 3️⃣: Nested playlist-like detector
+            const nestedCandidates = data.video_results.filter(v =>
+                typeof v === "object" &&
+                (v.playlist_id || (v.thumbnails && Array.isArray(v.thumbnails)))
+            );
+            if (nestedCandidates.length > 0) {
+                log(`🧩 Found ${nestedCandidates.length} nested playlist-like objects.`);
+            } else {
+                log("🧩 No playlist-like nested objects detected.");
+            }
+        }
+
+
+    }
+}
+
+            if (originalHandler) originalHandler(e);
+        } catch (err) {
+            log('⚠️ Error parsing Rabbit response: ' + err);
+        }
+    };
+}
+
+
+// Helper: fetch up to 3 more pages looking for playlist-like results
+async function fetchNextPlaylistPages(query, firstData) {
+    let playlists = [];
+
+    // check first page for playlist_results OR playlist-like video_results
+    if (Array.isArray(firstData.playlist_results)) {
+        playlists = firstData.playlist_results;
+    }
+    if (playlists.length === 0 && Array.isArray(firstData.video_results)) {
+        playlists = firstData.video_results.filter(
+            v => v.playlist_id || (v.link && v.link.includes("list="))
+        );
+    }
+
+    let nextUrl = firstData.serpapi_pagination?.next || null;
+    let attempts = 0;
+
+    while (playlists.length === 0 && nextUrl && attempts < 3) {
+        attempts++;
+        youtubeSearchResultsContainer.innerHTML =
+            `<p>Searching playlists… (page ${attempts + 1})</p>`;
+        if (typeof PluginMessageHandler !== "undefined") {
+            PluginMessageHandler.postMessage(JSON.stringify({
+                message: JSON.stringify({
+                    query_params: { next_page_token: nextUrl },
+                    useSerpAPI: true
+                }),
+                useSerpAPI: true
+            }));
+            await new Promise(r => setTimeout(r, 2500));
+        } else break;
+    }
+
+    return playlists;
+}
+
+
+// ✅  Option B: Auto-scan for Playlists
+// ✅ Simplified single-page pseudo-playlist generator
+// ✅ Unified playlist detection and pseudo-playlist fallback
+// 🧩 DEBUG: store all YouTube fetch pages
+let allFetchedPages = [];
+
+window.onPluginMessage = async (e) => {
+    try {
+        const data = e.data
+            ? (typeof e.data === "string" ? JSON.parse(e.data) : e.data)
+            : null;
+            // 🧩 Append current page to combined collector
+if (data) {
+    allFetchedPages.push(data);
+    console.log(`🧩 Page #${allFetchedPages.length} appended`, data);
+}
+
+        if (youtubeSearchResultsContainer.innerHTML.includes("Searching...")) {
+            youtubeSearchResultsContainer.innerHTML = "";
+        }
+
+        if (!data) {
+            youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
+            return;
+        }
+
+        if (currentSearchMode === "videos") {
+            // 🎵 Songs mode — normal logic
+            if (Array.isArray(data.video_results) && data.video_results.length > 0) {
+                renderYouTubeResults(data.video_results, "videos");
+            } else {
+                youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
+            }
+            return;
+        }
+
+        // 🎧 Generate Playlist mode
+        // 🎧 Generate Playlist mode
+        if (currentSearchMode === "playlists") {
+            youtubeNextPageUrl = data.serpapi_pagination?.next || null;
+
+            // If there are more pages and we haven't hit our limit, fetch them before processing.
+            if (youtubeNextPageUrl && allFetchedPages.length < 3) {
+                youtubeSearchResultsContainer.innerHTML = `<p>Searching for playlists... (page ${allFetchedPages.length + 1})</p>`;
+                // This re-triggers the search for the next page automatically
+                handleYouTubeSearch(youtubeSearchInput.value.trim(), youtubeNextPageUrl);
+                return; // Exit and wait for the next page of results to arrive
+            }
+        
+            // --- Processing starts here, after all pages are fetched ---
+            youtubeSearchResultsContainer.innerHTML = ''; // Clear "Searching..." message
+            let realPlaylists = [];
+            let allVideos = [];
+        
+            // 1️⃣ Aggregate all real playlists and videos from all fetched pages
+            allFetchedPages.forEach(pageData => {
+                // Collect real playlists from `playlist_results`
+                if (Array.isArray(pageData.playlist_results)) {
+                    realPlaylists.push(...pageData.playlist_results
+                        .filter(p => p.playlist_id)
+                        .map(p => ({ ...p, thumbnail: p.thumbnail?.static || p.thumbnail })) // Normalize thumbnail
+                    );
+                }
+                // Collect real playlists from `video_results` with a `list=` param
+                if (Array.isArray(pageData.video_results)) {
+                    const embeddedPlaylists = pageData.video_results
+                        .filter(v => v.link && v.link.includes("list="))
+                        .map(v => {
+                            try {
+                                const u = new URL(v.link);
+                                const listParam = u.searchParams.get("list");
+                                return listParam ? {
+                                    title: v.title || "YouTube Playlist",
+                                    playlist_id: listParam,
+                                    thumbnail: v.thumbnail?.static || v.thumbnail || "",
+                                    link: v.link,
+                                    video_count: '?'
+                                } : null;
+                            } catch { return null; }
+                        }).filter(Boolean);
+                    realPlaylists.push(...embeddedPlaylists);
+                }
+                // Aggregate all individual videos for the fallback
+                if (Array.isArray(pageData.video_results)) {
+                    allVideos.push(...pageData.video_results);
+                }
+            });
+        
+            // 2️⃣ Decide whether to show real playlists or create pseudo-playlists
+            if (realPlaylists.length > 0) {
+                // If we found any real playlists, render them
+                renderYouTubeResults(realPlaylists, "playlists");
+            } else if (allVideos.length > 0) {
+                // 3️⃣ Fallback: Create pseudo-playlists from aggregated videos
+                const pseudoPlaylists = [];
+                const groupSize = 10;
+                const searchTerm = youtubeSearchInput.value.trim() || "Mix";
+        
+                for (let i = 0; i < allVideos.length; i += groupSize) {
+                    const group = allVideos.slice(i, i + groupSize);
+                    if (group.length > 0) {
+                        pseudoPlaylists.push({
+                            title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
+                            videos: group, // Store the video objects for the next step
+                            thumbnail: group[0]?.thumbnail?.static || group[0]?.thumbnail || "",
+                            video_count: group.length
+                        });
+                    }
+                }
+                renderYouTubeResults(pseudoPlaylists, "playlists");
+            } else {
+                // 4️⃣ Handle no results at all
+                youtubeSearchResultsContainer.innerHTML = "<p>No playlists or videos found.</p>";
+            }
+        }
+
+
+    } catch (err) {
+        console.error("Error parsing YouTube plugin message:", err);
+        youtubeSearchResultsContainer.innerHTML = "<p>Error loading results.</p>";
+    } finally {
+        isFetchingYoutubeResults = false;
+        const loader = document.getElementById("youtubeSearchLoader");
+        if (loader) loader.remove();
+    }
+};
+
+
+youtubeSearchView.addEventListener('scroll', () => {
+    if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = youtubeSearchView;
+
+    if (scrollTop + clientHeight >= scrollHeight - 50) {
+        const query = youtubeSearchInput.value.trim();
+        handleYouTubeSearch(query, youtubeNextPageUrl);
+    }
+});
+
+youtubeSearchInput.addEventListener('focus', () => youtubeSearchViewOverlay.classList.add('input-focused'));
+youtubeSearchInput.addEventListener('blur', () => youtubeSearchViewOverlay.classList.remove('input-focused'));
