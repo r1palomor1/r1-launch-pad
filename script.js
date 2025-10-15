@@ -775,14 +775,19 @@ if (data) {
             youtubeNextPageUrl = data.serpapi_pagination?.next || null;
 
             // If there are more pages and we haven't hit our limit, fetch them before processing.
-            if (youtubeNextPageUrl && allFetchedPages.length < 3) {
+if (youtubeNextPageUrl && allFetchedPages.length < 3) {
     youtubeSearchResultsContainer.innerHTML = `<p>Searching for playlists... (page ${allFetchedPages.length + 1})</p>`;
-    // ✅ Release the fetch lock so handleYouTubeSearch can fire again
+
+    // ✅ Release fetch lock and schedule next page fetch only ONCE
     const q = youtubeSearchInput.value.trim();
+    const nextUrl = youtubeNextPageUrl; // snapshot
+    youtubeNextPageUrl = null; // prevent endless loop
     isFetchingYoutubeResults = false;
-    setTimeout(() => handleYouTubeSearch(q, youtubeNextPageUrl), 0);
+
+    setTimeout(() => handleYouTubeSearch(q, nextUrl), 500);
     return; // Exit and wait for next page of results
 }
+
 
                     // --- Processing starts here, after all pages are fetched ---
             youtubeSearchResultsContainer.innerHTML = ''; // Clear "Searching..." message
