@@ -1039,7 +1039,7 @@ button.rabbit-default:hover {
 .player-controls {
     flex: 0 0 auto;
     display: flex;
-    flex-direction: column;
+    /* flex-direction: column; was removed */
     align-items: center;
     justify-content: space-between;
     padding-top: 10px;
