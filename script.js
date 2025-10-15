@@ -644,6 +644,9 @@ function renderYouTubeResults(results, mode) {
     youtubeSearchResultsContainer.appendChild(fragment);
 }
 
+// 🔒 New: watchdog timer handle (top-level with your other lets)
+let ytPlaylistWatchdog = null;
+
 function handleYouTubeSearch(query, nextPageUrl = null) {
     if (!query && !nextPageUrl) {
         youtubeSearchResultsContainer.innerHTML = '';
@@ -676,16 +679,14 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     if (typeof PluginMessageHandler !== "undefined") {
         let messagePayload;
 
-        // ✅ Always include engine for clarity in SerpAPI / Rabbit bridge
+        // ✅ Make pagination consistent w/ engine (matches Songs success path)
         if (nextPageUrl) {
-    // 🔁 Both Songs and Playlists use the same continuation pattern
-    messagePayload = { query_params: { next_page_token: nextPageUrl } };
-    console.log("[YT] Sending PAGINATION request:", nextPageUrl);
-} else {
-    // 🔍 Initial search — identical for both modes
-    messagePayload = { query_params: { engine: "youtube", search_query: finalQuery, num: 50 } };
-    console.log("[YT] Sending FIRST-PAGE request:", messagePayload.query_params);
-}
+            messagePayload = { query_params: { engine: "youtube", next_page_token: nextPageUrl } };
+            console.log("[YT] Sending PAGINATION request:", messagePayload.query_params);
+        } else {
+            messagePayload = { query_params: { engine: "youtube", search_query: finalQuery, num: 50 } };
+            console.log("[YT] Sending FIRST-PAGE request:", messagePayload.query_params);
+        }
 
         console.log("[YT] Sending request:", messagePayload);
 
@@ -693,6 +694,20 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             message: JSON.stringify(messagePayload),
             useSerpAPI: true
         }));
+
+        // 🕒 New: watchdog — if a continuation page never arrives, finalize anyway
+        if (currentSearchMode === 'playlists') {
+            clearTimeout(ytPlaylistWatchdog);
+            ytPlaylistWatchdog = setTimeout(() => {
+                console.warn("[YT] Watchdog fired — finalizing playlists from collected pages.");
+                // Only finalize if we're still waiting on a page (stuck spinner case)
+                if (isFetchingYoutubeResults) {
+                    isFetchingYoutubeResults = false;
+                    youtubeNextPageUrl = null;
+                    finalizeCollectedYouTubePlaylists(); // new helper below
+                }
+            }, 5000);
+        }
     } else {
         const mockResults = [
             { link: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: `Mock Result 1 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' } },
@@ -749,16 +764,96 @@ async function fetchNextPlaylistPages(query, firstData) {
 // 🧩 DEBUG: store all YouTube fetch pages
 let allFetchedPages = [];
 
+// 🧰 New: shared finalization helper (used by normal path + watchdog)
+function finalizeCollectedYouTubePlaylists() {
+    try {
+        youtubeSearchResultsContainer.innerHTML = ''; // Clear "Searching..." message
+        let realPlaylists = [];
+        let allVideos = [];
+
+        allFetchedPages.forEach(pageData => {
+            if (Array.isArray(pageData.playlist_results)) {
+                realPlaylists.push(...pageData.playlist_results
+                    .filter(p => p.playlist_id)
+                    .map(p => ({ ...p, thumbnail: p.thumbnail?.static || p.thumbnail }))
+                );
+            }
+            if (Array.isArray(pageData.video_results)) {
+                const embeddedPlaylists = pageData.video_results
+                    .filter(v => v.link && v.link.includes("list="))
+                    .map(v => {
+                        try {
+                            const u = new URL(v.link);
+                            const listParam = u.searchParams.get("list");
+                            return listParam ? {
+                                title: v.title || "YouTube Playlist",
+                                playlist_id: listParam,
+                                thumbnail: v.thumbnail?.static || v.thumbnail || "",
+                                link: v.link,
+                                video_count: '?'
+                            } : null;
+                        } catch { return null; }
+                    }).filter(Boolean);
+                realPlaylists.push(...embeddedPlaylists);
+                allVideos.push(...pageData.video_results);
+            }
+        });
+
+        if (realPlaylists.length > 0) {
+            renderYouTubeResults(realPlaylists, "playlists");
+        } else if (allVideos.length > 0) {
+            const pseudoPlaylists = [];
+            const dynamicGroupSize = allVideos.length > 30 ? 15 : 10;
+            const searchTerm = youtubeSearchInput.value.trim() || "Mix";
+            for (let i = 0; i < allVideos.length; i += dynamicGroupSize) {
+                const group = allVideos.slice(i, i + dynamicGroupSize);
+                if (group.length > 0) {
+                    pseudoPlaylists.push({
+                        title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
+                        videos: group,
+                        thumbnail: group[0]?.thumbnail?.static || group[0]?.thumbnail || GENERIC_FAVICON_SRC,
+                        video_count: group.length
+                    });
+                }
+            }
+            console.log(`🎧 Created ${pseudoPlaylists.length} pseudo-playlists from ${allVideos.length} videos`);
+            renderYouTubeResults(pseudoPlaylists, "playlists");
+        } else {
+            youtubeSearchResultsContainer.innerHTML = "<p>No playlists or videos found.</p>";
+        }
+    } catch (err) {
+        console.error("Finalize error:", err);
+        youtubeSearchResultsContainer.innerHTML = "<p>Error loading results.</p>";
+    } finally {
+        // ensure watchdog is cleared and fetching flag reset
+        clearTimeout(ytPlaylistWatchdog);
+        isFetchingYoutubeResults = false;
+    }
+}
+
 const youtubeOnPluginMessage = async (e) => {
     try {
         const data = e.data
             ? (typeof e.data === "string" ? JSON.parse(e.data) : e.data)
             : null;
-            // 🧩 Append current page to combined collector
-if (data) {
-    allFetchedPages.push(data);
-    console.log(`🧩 Page #${allFetchedPages.length} appended`, data);
-}
+
+        // Any page arrival means bridge is alive — refresh watchdog
+        if (currentSearchMode === 'playlists') {
+            clearTimeout(ytPlaylistWatchdog);
+            ytPlaylistWatchdog = setTimeout(() => {
+                console.warn("[YT] Watchdog re-fired after page — finalizing.");
+                if (isFetchingYoutubeResults) {
+                    isFetchingYoutubeResults = false;
+                    youtubeNextPageUrl = null;
+                    finalizeCollectedYouTubePlaylists();
+                }
+            }, 5000);
+        }
+
+        if (data) {
+            allFetchedPages.push(data);
+            console.log(`🧩 Page #${allFetchedPages.length} appended`, data);
+        }
 
         if (youtubeSearchResultsContainer.innerHTML.includes("Searching...")) {
             youtubeSearchResultsContainer.innerHTML = "";
@@ -770,7 +865,6 @@ if (data) {
         }
 
         if (currentSearchMode === "videos") {
-            // 🎵 Songs mode — normal logic
             if (Array.isArray(data.video_results) && data.video_results.length > 0) {
                 renderYouTubeResults(data.video_results, "videos");
             } else {
@@ -779,108 +873,31 @@ if (data) {
             return;
         }
 
-        // 🎧 Generate Playlist mode
-        // 🎧 Generate Playlist mode
         if (currentSearchMode === "playlists") {
             youtubeNextPageUrl = data.serpapi_pagination?.next || null;
 
-            // If there are more pages and we haven't hit our limit, fetch them before processing.
-if (youtubeNextPageUrl && allFetchedPages.length < 3) {
-    youtubeSearchResultsContainer.innerHTML = `<p>Searching for playlists... (page ${allFetchedPages.length + 1})</p>`;
+            if (youtubeNextPageUrl && allFetchedPages.length < 3) {
+                youtubeSearchResultsContainer.innerHTML = `<p>Searching for playlists... (page ${allFetchedPages.length + 1})</p>`;
 
-    // ✅ Release fetch lock and schedule next page fetch only ONCE
-    const q = youtubeSearchInput.value.trim();
-    const nextUrl = youtubeNextPageUrl; // snapshot
-    youtubeNextPageUrl = null; // prevent endless loop
-    isFetchingYoutubeResults = false;
+                const q = youtubeSearchInput.value.trim();
+                const nextUrl = youtubeNextPageUrl; // snapshot
+                youtubeNextPageUrl = null;          // prevent loop re-entrancy
+                isFetchingYoutubeResults = false;
 
-    setTimeout(() => handleYouTubeSearch(q, nextUrl), 500);
-    console.log(`▶️ Playlist page fetch #${allFetchedPages.length + 1} triggered`);
-    return; // Exit and wait for next page of results
-}
-
-
-                    // --- Processing starts here, after all pages are fetched ---
-            youtubeSearchResultsContainer.innerHTML = ''; // Clear "Searching..." message
-            let realPlaylists = [];
-            let allVideos = [];
-        
-            // 1️⃣ Aggregate all real playlists and videos from all fetched pages
-            allFetchedPages.forEach(pageData => {
-                // Collect real playlists from `playlist_results`
-                if (Array.isArray(pageData.playlist_results)) {
-                    realPlaylists.push(...pageData.playlist_results
-                        .filter(p => p.playlist_id)
-                        .map(p => ({ ...p, thumbnail: p.thumbnail?.static || p.thumbnail })) // Normalize thumbnail
-                    );
-                }
-                // Collect real playlists from `video_results` with a `list=` param
-                if (Array.isArray(pageData.video_results)) {
-                    const embeddedPlaylists = pageData.video_results
-                        .filter(v => v.link && v.link.includes("list="))
-                        .map(v => {
-                            try {
-                                const u = new URL(v.link);
-                                const listParam = u.searchParams.get("list");
-                                return listParam ? {
-                                    title: v.title || "YouTube Playlist",
-                                    playlist_id: listParam,
-                                    thumbnail: v.thumbnail?.static || v.thumbnail || "",
-                                    link: v.link,
-                                    video_count: '?'
-                                } : null;
-                            } catch { return null; }
-                        }).filter(Boolean);
-                    realPlaylists.push(...embeddedPlaylists);
-                }
-                // Aggregate all individual videos for the fallback
-                if (Array.isArray(pageData.video_results)) {
-                    allVideos.push(...pageData.video_results);
-                }
-            });
-        
-            // 2️⃣ Decide whether to show real playlists or create pseudo-playlists
-            if (realPlaylists.length > 0) {
-                // If we found any real playlists, render them
-                renderYouTubeResults(realPlaylists, "playlists");
-            } else if (allVideos.length > 0) {
-                // 3️⃣ Fallback: Create pseudo-playlists only if pages have finished loading
-if (!isFetchingYoutubeResults && allVideos.length > 0) {
-    const pseudoPlaylists = [];
-    const groupSize = 10;
-    const searchTerm = youtubeSearchInput.value.trim() || "Mix";
-
-    // Group every 10–15 videos depending on total count
-    const dynamicGroupSize = allVideos.length > 30 ? 15 : 10;
-
-    for (let i = 0; i < allVideos.length; i += dynamicGroupSize) {
-        const group = allVideos.slice(i, i + dynamicGroupSize);
-        if (group.length > 0) {
-            pseudoPlaylists.push({
-                title: `${searchTerm} Mix #${pseudoPlaylists.length + 1}`,
-                videos: group,
-                thumbnail: group[0]?.thumbnail?.static || group[0]?.thumbnail || GENERIC_FAVICON_SRC,
-                video_count: group.length
-            });
-        }
-    }
-
-    console.log(`🎧 Created ${pseudoPlaylists.length} pseudo-playlists from ${allVideos.length} videos`);
-    renderYouTubeResults(pseudoPlaylists, "playlists");
-}
-
-            } else {
-                // 4️⃣ Handle no results at all
-                youtubeSearchResultsContainer.innerHTML = "<p>No playlists or videos found.</p>";
+                setTimeout(() => handleYouTubeSearch(q, nextUrl), 500);
+                console.log(`▶️ Playlist page fetch #${allFetchedPages.length + 1} triggered`);
+                return;
             }
-        }
 
+            // --- Processing starts here, after all pages are fetched OR watchdog fires ---
+            finalizeCollectedYouTubePlaylists();
+            return;
+        }
 
     } catch (err) {
         console.error("Error parsing YouTube plugin message:", err);
         youtubeSearchResultsContainer.innerHTML = "<p>Error loading results.</p>";
     } finally {
-        isFetchingYoutubeResults = false;
         const loader = document.getElementById("youtubeSearchLoader");
         if (loader) loader.remove();
     }
