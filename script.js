@@ -785,6 +785,7 @@ if (youtubeNextPageUrl && allFetchedPages.length < 3) {
     isFetchingYoutubeResults = false;
 
     setTimeout(() => handleYouTubeSearch(q, nextUrl), 500);
+    console.log(`▶️ Playlist page fetch #${allFetchedPages.length + 1} triggered`);
     return; // Exit and wait for next page of results
 }
 
