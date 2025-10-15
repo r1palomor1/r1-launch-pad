@@ -650,6 +650,11 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         return;
     }
 
+    // ✅ Always ensure YouTube responses go to the YouTube handler
+    if (typeof youtubeOnPluginMessage === "function") {
+        window.onPluginMessage = youtubeOnPluginMessage;
+    }
+
     if (isFetchingYoutubeResults) return;
     isFetchingYoutubeResults = true;
 
@@ -664,7 +669,6 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     // 🧠 Conditional Mode Switch — bias playlist searches toward actual playlists
     let finalQuery = query.trim();
 
-    // Only append "playlist" if neither "playlist" nor "playlists" (any case) are already present
     if (currentSearchMode === "playlists" && !/\bplaylists?\b/i.test(finalQuery)) {
         finalQuery += " playlist";
     }
@@ -672,12 +676,14 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     if (typeof PluginMessageHandler !== "undefined") {
         let messagePayload;
 
+        // ✅ Always include engine for clarity in SerpAPI / Rabbit bridge
         if (nextPageUrl) {
-    messagePayload = { query_params: { next_page_token: nextPageUrl } };
-} else {
-    messagePayload = { query_params: { engine: "youtube", search_query: finalQuery, num: 50 } };
-}
+            messagePayload = { query_params: { engine: "youtube", next_page_token: nextPageUrl } };
+        } else {
+            messagePayload = { query_params: { engine: "youtube", search_query: finalQuery, num: 50 } };
+        }
 
+        console.log("[YT] Sending request:", messagePayload);
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify(messagePayload),
@@ -694,7 +700,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         renderYouTubeResults(mockResults);
         isFetchingYoutubeResults = false;
     }
-    }
+}
 
 // Helper: fetch up to 3 more pages looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
