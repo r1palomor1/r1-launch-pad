@@ -678,10 +678,14 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
 
         // ✅ Always include engine for clarity in SerpAPI / Rabbit bridge
         if (nextPageUrl) {
-            messagePayload = { query_params: { engine: "youtube", next_page_token: nextPageUrl } };
-        } else {
-            messagePayload = { query_params: { engine: "youtube", search_query: finalQuery, num: 50 } };
-        }
+    // 🔁 Both Songs and Playlists use the same continuation pattern
+    messagePayload = { query_params: { next_page_token: nextPageUrl } };
+    console.log("[YT] Sending PAGINATION request:", nextPageUrl);
+} else {
+    // 🔍 Initial search — identical for both modes
+    messagePayload = { query_params: { engine: "youtube", search_query: finalQuery, num: 50 } };
+    console.log("[YT] Sending FIRST-PAGE request:", messagePayload.query_params);
+}
 
         console.log("[YT] Sending request:", messagePayload);
 
