@@ -653,7 +653,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     if (isFetchingYoutubeResults) return;
     isFetchingYoutubeResults = true;
 
-    if (!nextPageUrl) {
+    if (!nextPageUrl) { // This is a new, first-page search
         youtubeSearchResultsContainer.innerHTML = '<p>Searching...</p>';
         youtubeNextPageUrl = null;
         if (currentSearchMode === 'playlists') {
@@ -661,34 +661,32 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         }
     }
 
-    // 🧠 Conditional Mode Switch — bias playlist searches toward actual playlists
-    let finalQuery = query.trim();
-
-    // Only append "playlist" if neither "playlist" nor "playlists" (any case) are already present
-    if (currentSearchMode === "playlists" && !/\bplaylists?\b/i.test(finalQuery)) {
-        finalQuery += " playlist";
-    }
-
     if (typeof PluginMessageHandler !== "undefined") {
         let messagePayload;
 
         if (nextPageUrl) {
+            // FOR SUBSEQUENT PAGES: Send the full, unmodified URL.
+            // This is the correct way to handle pagination with the R1 environment.
             messagePayload = { url: nextPageUrl };
         } else {
+            // FOR THE FIRST PAGE: Send the search query parameters.
             messagePayload = {
                 query_params: {
                     engine: "youtube",
-                    search_query: finalQuery,
+                    search_query: query,
                     num: 50
                 }
             };
         }
 
+        // Send the correctly formatted message to the R1 environment.
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify(messagePayload),
             useSerpAPI: true
         }));
     } else {
+        // Mock data for browser testing remains unchanged
+        console.log(`[Browser Mode] Searching YouTube for: ${query}`);
         const mockResults = [
             { link: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: `Mock Result 1 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg' } },
             { link: 'https://www.youtube.com/watch?v=o-YBDTqX_ZU', title: `Mock Result 2 for ${query}`, thumbnail: { static: 'https://i.ytimg.com/vi/o-YBDTqX_ZU/hqdefault.jpg' } }
@@ -699,29 +697,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         renderYouTubeResults(mockResults);
         isFetchingYoutubeResults = false;
     }
-
-    // 🔄 Capture Rabbit responses only when in playlist mode
-    const originalHandler = window.onPluginMessage;
-    window.onPluginMessage = (e) => {
-        try {
-            const data = e.data
-                ? (typeof e.data === 'string' ? JSON.parse(e.data) : e.data)
-                : null;
-
-            if (currentSearchMode === 'playlists' && data) {
-                if (Array.isArray(data.playlist_results))
-                    console.log(`playlist_results count: ${data.playlist_results.length}`);
-                if (Array.isArray(data.video_results))
-                    console.log(`video_results count: ${data.video_results.length}`);
-            }
-
-            if (originalHandler) originalHandler(e);
-        } catch (err) {
-            console.error('Error parsing Rabbit response:', err);
-        }
-    };
 }
-
 
 // Helper: fetch up to 3 more pages looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
