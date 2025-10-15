@@ -645,55 +645,43 @@ function renderYouTubeResults(results, mode) {
 }
 
 function handleYouTubeSearch(query, nextPageUrl = null) {
-    // --- ADDED: Guard clause to handle empty searches ---
     if (!query && !nextPageUrl) {
-        youtubeSearchResultsContainer.innerHTML = ''; // Clear any "Searching..." message
-        return; // Stop the function immediately
+        youtubeSearchResultsContainer.innerHTML = '';
+        return;
     }
-    // --- END OF ADDED CODE ---
 
-    if (isFetchingYoutubeResults) return; // Prevent multiple requests
+    if (isFetchingYoutubeResults) return;
     isFetchingYoutubeResults = true;
 
-    if (!nextPageUrl) { // This is a new search
+    if (!nextPageUrl) { // This is a new, first-page search
         youtubeSearchResultsContainer.innerHTML = '<p>Searching...</p>';
-        youtubeNextPageUrl = null; // Reset pagination
+        youtubeNextPageUrl = null;
         if (currentSearchMode === 'playlists') {
-            allFetchedPages = []; // Clear previous aggregated pages for a new search
+            allFetchedPages = [];
         }
-    }
-
-    if (nextPageUrl) { // This is an infinite scroll fetch
-        const loader = document.createElement('div');
-        loader.id = 'youtubeSearchLoader';
-        loader.textContent = 'Loading...';
-        loader.className = 'youtube-search-loader'; 
-        youtubeSearchResultsContainer.appendChild(loader);
     }
 
     if (typeof PluginMessageHandler !== "undefined") {
-        // Create the base search parameters
-        let params = { engine: "youtube", search_query: query, num: 50 };
+        let messagePayload;
 
         if (nextPageUrl) {
-            try {
-                // The next page URL contains the token we need to extract.
-                const url = new URL(nextPageUrl);
-                // According to SerpApi docs, the token is in 'next_page_token'.
-                const nextPageToken = url.searchParams.get("next_page_token");
-                if (nextPageToken) {
-                    // And the parameter to SEND it back is 'sp'.
-                    params.sp = nextPageToken;
-                } else {
-                    console.warn("Could not find 'next_page_token' in the URL:", nextPageUrl);
+            // FOR SUBSEQUENT PAGES: Send the full, unmodified URL.
+            // This is the correct way to handle pagination with the R1 environment.
+            messagePayload = { url: nextPageUrl };
+        } else {
+            // FOR THE FIRST PAGE: Send the search query parameters.
+            messagePayload = {
+                query_params: {
+                    engine: "youtube",
+                    search_query: query,
+                    num: 50
                 }
-            } catch (e) {
-                console.error("Could not parse next page URL:", e);
-            }
+            };
         }
 
+        // Send the correctly formatted message to the R1 environment.
         PluginMessageHandler.postMessage(JSON.stringify({
-            message: JSON.stringify({ query_params: params }),
+            message: JSON.stringify(messagePayload),
             useSerpAPI: true
         }));
     } else {
