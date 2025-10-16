@@ -771,7 +771,7 @@ async function fetchNextPlaylistPages(query, firstData) {
 }
 
 
-// ✅  Option B: Auto-scan for Playlists — DEBUG WRAPPED & GOOGLE CHECK
+// ✅ Option B: Auto-scan for Playlists — FULL JSON DEBUG STACKED
 window.onPluginMessage = async (e) => {
     try {
         const data = e.data
@@ -787,59 +787,58 @@ window.onPluginMessage = async (e) => {
             return;
         }
 
-        // 🧠 DEBUG: Scrollable overlay for small screen (text wrapping added)
-        const debugOverlay = document.createElement('div');
-        debugOverlay.style.cssText = `
-            position: fixed;
-            top: 10px; left: 10px;
-            width: 220px; height: 260px;
-            background: rgba(0,0,0,0.85);
-            color: #00ff88;
-            font-size: 10px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 6px;
-            z-index: 9999;
-            border-radius: 6px;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-        `;
+        // 🧠 DEBUG OVERLAY (persistent + scrollable + full JSON)
+        let debugOverlay = document.getElementById("debugOverlay");
+        if (!debugOverlay) {
+            debugOverlay = document.createElement("div");
+            debugOverlay.id = "debugOverlay";
+            debugOverlay.style.cssText = `
+                position: fixed;
+                top: 8px; left: 8px;
+                width: 225px; height: 265px;
+                background: rgba(0, 0, 0, 0.9);
+                color: #00ff88;
+                font-size: 9px;
+                overflow-y: auto;
+                overflow-x: hidden;
+                padding: 6px;
+                border-radius: 6px;
+                z-index: 99999;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            `;
+            document.body.appendChild(debugOverlay);
+        }
 
+        // Determine engine type
         const engine = data.engine ||
             (data.search_parameters && data.search_parameters.engine) ||
-            'unknown';
-        const keys = Object.keys(data || {}).join(', ');
+            "unknown";
+
         const organicCount = data.organic_results ? data.organic_results.length : 0;
-        const sample = JSON.stringify(data, null, 2).slice(0, 400);
+        const keys = Object.keys(data || {}).join(", ");
 
-        const googleDetected = (data.engine === "google") ||
-            (data.search_parameters && data.search_parameters.engine === "google");
+        // Build entry
+        const entry = `
+==== NEW RESPONSE ====
+🧩 ENGINE: ${engine}
+🗝 KEYS: ${keys}
+🌐 ORGANIC_RESULTS: ${organicCount}
+📅 TIMESTAMP: ${new Date().toLocaleTimeString()}
 
-        debugOverlay.innerHTML = `
-<b>🧩 ENGINE:</b> ${engine}
-<b>📦 KEYS:</b> ${keys}
-<b>🌐 ORGANIC RESULTS:</b> ${organicCount}
-<b>🔎 GOOGLE DETECTED:</b> ${googleDetected}
-<b>📜 SAMPLE JSON:</b>
-${sample}
-        `;
+📜 FULL JSON:
+${JSON.stringify(data, null, 2)}
 
-        const closeBtn = document.createElement('button');
-        closeBtn.textContent = 'X';
-        closeBtn.style.cssText = `
-            position: absolute; top: 2px; right: 4px;
-            background: #ff4444; color: white;
-            border: none; font-size: 10px;
-            border-radius: 4px; padding: 2px 4px;
-        `;
-        closeBtn.onclick = () => debugOverlay.remove();
-        debugOverlay.appendChild(closeBtn);
-        document.body.appendChild(debugOverlay);
+`;
 
-        console.log("🧠 DEBUG DATA:", data);
-        console.log("🧠 ENGINE:", engine);
-        console.log("🧠 KEYS:", Object.keys(data));
-        console.log("🧠 ORGANIC_RESULTS COUNT:", organicCount);
+        // Append new entry to top for readability
+        debugOverlay.innerText = entry + debugOverlay.innerText;
+
+        // Always scroll to top of debug box for latest info
+        debugOverlay.scrollTop = 0;
+
+        // Console also receives the full data for external debugging
+        console.log("🧠 FULL DATA RETURNED:", data);
 
         if (currentSearchMode === "videos") {
             if (Array.isArray(data.video_results) && data.video_results.length > 0) {
@@ -859,11 +858,12 @@ ${sample}
                 );
             }
 
-            // 🧩 DEBUG: Google fallback section
+            // 🧩 Handle possible Google fallback data
             if (
                 (!playlists || playlists.length === 0) &&
                 (
-                    googleDetected ||
+                    engine === "google" ||
+                    (data.search_parameters && data.search_parameters.engine === "google") ||
                     Array.isArray(data.organic_results)
                 )
             ) {
@@ -902,6 +902,7 @@ ${sample}
         }
 
         youtubeNextPageUrl = data.serpapi_pagination?.next || null;
+
     } catch (err) {
         console.error("Error parsing YouTube plugin message:", err);
         youtubeSearchResultsContainer.innerHTML = "<p>Error loading results.</p>";
@@ -912,7 +913,7 @@ ${sample}
     }
 };
 
-// 🧩 EXTRA: CONFIRM WE ACTUALLY SEND THE GOOGLE QUERY
+// 🧩 CONFIRM GOOGLE QUERY SENT
 (function interceptGoogleQuery() {
     const _postMessage = PluginMessageHandler?.postMessage;
     if (_postMessage) {
@@ -921,9 +922,18 @@ ${sample}
                 const parsed = JSON.parse(msg);
                 if (parsed.message && parsed.message.includes('"engine":"google"')) {
                     console.log("📡 Google query sent:", parsed.message);
-                    alert("📡 Sent Google engine query");
+                    const debugOverlay = document.getElementById("debugOverlay");
+                    if (debugOverlay) {
+                        debugOverlay.innerText =
+                            "====== SENT GOOGLE QUERY ======\n" +
+                            parsed.message +
+                            "\n" +
+                            debugOverlay.innerText;
+                    }
                 }
-            } catch {}
+            } catch (err) {
+                console.warn("⚠️ Google query intercept error:", err);
+            }
             return _postMessage.apply(this, arguments);
         };
     }
