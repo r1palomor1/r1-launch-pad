@@ -794,17 +794,49 @@ window.onPluginMessage = async (e) => {
             } else {
                 youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
             }
-        } else if (currentSearchMode === "playlists") {
+                } else if (currentSearchMode === "playlists") {
             // PLAYLISTS mode
             let playlists = Array.isArray(data.playlist_results)
                 ? data.playlist_results
                 : [];
+
             if (playlists.length === 0) {
                 playlists = await fetchNextPlaylistPages(
                     youtubeSearchInput.value.trim(),
                     data
                 );
             }
+
+            // 🧩 NEW: Handle Google Search (engine:"google") fallback
+            if (
+                (!playlists || playlists.length === 0) &&
+                (data.engine === "google" || Array.isArray(data.organic_results))
+            ) {
+                const googleResults = data.organic_results || [];
+                const playlistLinks = googleResults
+                    .filter(
+                        r =>
+                            r.link &&
+                            (r.link.includes("list=") ||
+                                r.link.includes("/playlist"))
+                    )
+                    .map(r => ({
+                        title: r.title,
+                        playlist_id: (r.link.match(/list=([^&]+)/) || [])[1],
+                        link: r.link,
+                        thumbnail:
+                            r.thumbnail?.static ||
+                            r.thumbnail ||
+                            "https://www.google.com/s2/favicons?domain=youtube.com",
+                        video_count: "?"
+                    }));
+
+                if (playlistLinks.length > 0) {
+                    renderYouTubeResults(playlistLinks, "playlists");
+                    return; // ✅ stop before "No playlists found."
+                }
+            }
+
             if (playlists && playlists.length > 0) {
                 renderYouTubeResults(playlists, "playlists");
             } else {
