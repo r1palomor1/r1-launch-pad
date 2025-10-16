@@ -713,10 +713,13 @@ setTimeout(() => {
         num: 20
     };
 
-    // 🧩 DEBUG: Confirm Google query triggered
-    console.log("📡 GOOGLE FALLBACK QUERY SENT:", googleParams);
+    // 🧩 DEBUG: Outbound tracker (all messages)
+    if (!window.sentMessages) window.sentMessages = [];
+    const timestamp = Date.now();
+    window.sentMessages.push({ engine: "google", ts: timestamp });
+    console.log("📡 GOOGLE FALLBACK QUERY SENT @", new Date(timestamp).toLocaleTimeString(), googleParams);
 
-    // 🔶 Overlay visual confirmation
+    // 🧩 Overlay confirmation
     let debugOverlay = document.getElementById("debugOverlay");
     if (!debugOverlay) {
         debugOverlay = document.createElement("div");
@@ -733,20 +736,34 @@ setTimeout(() => {
     }
 
     const flash = document.createElement("div");
-    flash.textContent = `====== SENT GOOGLE FALLBACK ======\n${JSON.stringify(googleParams, null, 2)}\n`;
+    flash.textContent = `====== SENT GOOGLE FALLBACK (${new Date(timestamp).toLocaleTimeString()}) ======\n${JSON.stringify(googleParams, null, 2)}\n`;
     flash.style.cssText = "border-top:1px solid #00ff88; margin-top:4px; padding-top:4px;";
     debugOverlay.prepend(flash);
-
-    // Flash visual cue
     debugOverlay.style.background = "rgba(255, 230, 0, 0.3)";
     setTimeout(() => debugOverlay.style.background = "rgba(0,0,0,0.9)", 400);
 
-    // Now send the Google fallback message
+    // 🧩 Send message + timestamp marker
     PluginMessageHandler.postMessage(JSON.stringify({
         message: JSON.stringify({ query_params: googleParams }),
         useSerpAPI: true
     }));
+
+    // 🧩 Diagnostic #1 — Timeout check (no response)
+    setTimeout(() => {
+        const elapsed = (Date.now() - timestamp) / 1000;
+        const newEntries = window.receivedMessages || [];
+        const found = newEntries.some(m => m.engine === "google" && m.ts > timestamp);
+
+        if (!found) {
+            const warn = document.createElement("div");
+            warn.textContent = `⚠️ Google Engine Response Timeout (${elapsed}s) — No inbound message`;
+            warn.style.cssText = "color:#ff6666; border-top:1px dashed #ff6666; margin-top:4px; padding-top:4px;";
+            debugOverlay.prepend(warn);
+            console.warn("⚠️ GOOGLE ENGINE TIMEOUT — No inbound response detected.");
+        }
+    }, 7000); // Wait 7s max for a Google response
 }, 3500);
+
  // delay ensures previous YouTube queries complete first
         }
     } else {
@@ -801,6 +818,28 @@ async function fetchNextPlaylistPages(query, firstData) {
     return playlists;
 }
 
+// 🧩 Global inbound tracker to pair with outbound timestamps
+window.receivedMessages = [];
+
+const originalHandler = window.onPluginMessage;
+window.onPluginMessage = function(e) {
+    const start = Date.now();
+    try {
+        const data = e.data
+            ? (typeof e.data === "string" ? JSON.parse(e.data) : e.data)
+            : null;
+
+        const engine = data?.engine || data?.search_parameters?.engine || "unknown";
+        window.receivedMessages.push({ engine, ts: start });
+
+        console.log(`📥 RECEIVED RESPONSE (${engine}) @ ${new Date(start).toLocaleTimeString()}`);
+
+        // Continue existing handling logic
+        if (originalHandler) originalHandler(e);
+    } catch (err) {
+        console.error("Error in inbound tracker:", err);
+    }
+};
 
 // ✅ Option B: Auto-scan for Playlists — FULL JSON DEBUG STACKED
 window.onPluginMessage = async (e) => {
