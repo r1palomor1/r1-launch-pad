@@ -685,7 +685,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             return;
         }
 
-        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow + Google Fallback) ---
+        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow) ---
         if (isPlaylistMode) {
             // 1️⃣ First query — with SP (official playlists)
             const withSpParams = { ...baseParams, sp: "EgIQAw==" };
@@ -703,70 +703,6 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
                     useSerpAPI: true
                 }));
             }, 700); // slight delay to ensure sequential execution
-
-            // 3️⃣ Final fallback — Google Videos API search for YouTube playlists
-setTimeout(() => {
-    const googleParams = {
-        engine: "google_videos",
-        q: `site:youtube.com "playlist" (intitle:"${query}" | "top ${query} playlist" | "best ${query} playlist")`,
-        num: 20,
-        hl: "en",
-        gl: "us"
-    };
-
-    // 🧩 DEBUG: Outbound tracker (all messages)
-    if (!window.sentMessages) window.sentMessages = [];
-    const timestamp = Date.now();
-    window.sentMessages.push({ engine: "google_videos", ts: timestamp });
-    console.log("📡 GOOGLE VIDEOS FALLBACK QUERY SENT @", new Date(timestamp).toLocaleTimeString(), googleParams);
-
-    // 🧩 Overlay confirmation
-    let debugOverlay = document.getElementById("debugOverlay");
-    if (!debugOverlay) {
-        debugOverlay = document.createElement("div");
-        debugOverlay.id = "debugOverlay";
-        debugOverlay.style.cssText = `
-            position: fixed; top: 8px; left: 8px;
-            width: 225px; height: 265px;
-            background: rgba(0,0,0,0.9); color: #00ff88;
-            font-size: 9px; overflow-y: auto; overflow-x: hidden;
-            padding: 6px; border-radius: 6px; z-index: 99999;
-            white-space: pre-wrap; word-wrap: break-word;
-        `;
-        document.body.appendChild(debugOverlay);
-    }
-
-    const flash = document.createElement("div");
-    flash.textContent = `====== SENT GOOGLE VIDEOS FALLBACK (${new Date(timestamp).toLocaleTimeString()}) ======\n${JSON.stringify(googleParams, null, 2)}\n`;
-    flash.style.cssText = "border-top:1px solid #00ff88; margin-top:4px; padding-top:4px;";
-    debugOverlay.prepend(flash);
-    debugOverlay.style.background = "rgba(255, 230, 0, 0.3)";
-    setTimeout(() => debugOverlay.style.background = "rgba(0,0,0,0.9)", 400);
-
-    // 🧩 Send message + timestamp marker
-    PluginMessageHandler.postMessage(JSON.stringify({
-        message: JSON.stringify({ query_params: googleParams }),
-        useSerpAPI: true
-    }));
-
-    // 🧩 Diagnostic #1 — Timeout check (no response)
-    setTimeout(() => {
-        const elapsed = (Date.now() - timestamp) / 1000;
-        const newEntries = window.receivedMessages || [];
-        const found = newEntries.some(m => m.engine === "google_videos" && m.ts > timestamp);
-
-        if (!found) {
-            const warn = document.createElement("div");
-            warn.textContent = `⚠️ Google Videos Engine Response Timeout (${elapsed}s) — No inbound message`;
-            warn.style.cssText = "color:#ff6666; border-top:1px dashed #ff6666; margin-top:4px; padding-top:4px;";
-            debugOverlay.prepend(warn);
-            console.warn("⚠️ GOOGLE VIDEOS ENGINE TIMEOUT — No inbound response detected.");
-        }
-    }, 7000); // Wait 7s max for a Google Videos response
-}, 3500);
-
-
- // delay ensures previous YouTube queries complete first
         }
     } else {
         // Mock data for browser testing remains unchanged
@@ -782,7 +718,6 @@ setTimeout(() => {
         isFetchingYoutubeResults = false;
     }
 }
-
 
 // Helper: fetch up to 3 more pages looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
@@ -820,30 +755,8 @@ async function fetchNextPlaylistPages(query, firstData) {
     return playlists;
 }
 
-// 🧩 Global inbound tracker to pair with outbound timestamps
-window.receivedMessages = [];
 
-const originalHandler = window.onPluginMessage;
-window.onPluginMessage = function(e) {
-    const start = Date.now();
-    try {
-        const data = e.data
-            ? (typeof e.data === "string" ? JSON.parse(e.data) : e.data)
-            : null;
-
-        const engine = data?.engine || data?.search_parameters?.engine || "unknown";
-        window.receivedMessages.push({ engine, ts: start });
-
-        console.log(`📥 RECEIVED RESPONSE (${engine}) @ ${new Date(start).toLocaleTimeString()}`);
-
-        // Continue existing handling logic
-        if (originalHandler) originalHandler(e);
-    } catch (err) {
-        console.error("Error in inbound tracker:", err);
-    }
-};
-
-// ✅ Option B: Auto-scan for Playlists — FULL JSON DEBUG STACKED
+// ✅  Option B: Auto-scan for Playlists
 window.onPluginMessage = async (e) => {
     try {
         const data = e.data
@@ -859,112 +772,24 @@ window.onPluginMessage = async (e) => {
             return;
         }
 
-        // 🧠 DEBUG OVERLAY (persistent + scrollable + full JSON)
-        let debugOverlay = document.getElementById("debugOverlay");
-        if (!debugOverlay) {
-            debugOverlay = document.createElement("div");
-            debugOverlay.id = "debugOverlay";
-            debugOverlay.style.cssText = `
-                position: fixed;
-                top: 8px; left: 8px;
-                width: 225px; height: 265px;
-                background: rgba(0, 0, 0, 0.9);
-                color: #00ff88;
-                font-size: 9px;
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding: 6px;
-                border-radius: 6px;
-                z-index: 99999;
-                white-space: pre-wrap;
-                word-wrap: break-word;
-            `;
-            document.body.appendChild(debugOverlay);
-        }
-
-        // Determine engine type
-        const engine = data.engine ||
-            (data.search_parameters && data.search_parameters.engine) ||
-            "unknown";
-
-        const organicCount = data.organic_results ? data.organic_results.length : 0;
-        const keys = Object.keys(data || {}).join(", ");
-
-        // Build entry
-        const entry = `
-==== NEW RESPONSE ====
-🧩 ENGINE: ${engine}
-🗝 KEYS: ${keys}
-🌐 ORGANIC_RESULTS: ${organicCount}
-📅 TIMESTAMP: ${new Date().toLocaleTimeString()}
-
-📜 FULL JSON:
-${JSON.stringify(data, null, 2)}
-
-`;
-
-        // Append new entry to top for readability
-        debugOverlay.innerText = entry + debugOverlay.innerText;
-
-        // Always scroll to top of debug box for latest info
-        debugOverlay.scrollTop = 0;
-
-        // Console also receives the full data for external debugging
-        console.log("🧠 FULL DATA RETURNED:", data);
-
         if (currentSearchMode === "videos") {
+            // SONGS mode
             if (Array.isArray(data.video_results) && data.video_results.length > 0) {
                 renderYouTubeResults(data.video_results, "videos");
             } else {
                 youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
             }
         } else if (currentSearchMode === "playlists") {
+            // PLAYLISTS mode
             let playlists = Array.isArray(data.playlist_results)
                 ? data.playlist_results
                 : [];
-
             if (playlists.length === 0) {
                 playlists = await fetchNextPlaylistPages(
                     youtubeSearchInput.value.trim(),
                     data
                 );
             }
-
-            // 🧩 Handle possible Google fallback data
-            if (
-                (!playlists || playlists.length === 0) &&
-                (
-                    engine === "google" ||
-                    (data.search_parameters && data.search_parameters.engine === "google") ||
-                    Array.isArray(data.organic_results)
-                )
-            ) {
-                console.log("🧩 GOOGLE ENGINE DETECTED. Parsing fallback...");
-                const googleResults = data.organic_results || [];
-                const playlistLinks = googleResults
-                    .filter(r =>
-                        r.link &&
-                        (r.link.includes("list=") || r.link.includes("/playlist"))
-                    )
-                    .map(r => ({
-                        title: r.title,
-                        playlist_id: (r.link.match(/list=([^&]+)/) || [])[1],
-                        link: r.link,
-                        thumbnail:
-                            r.thumbnail?.static ||
-                            r.thumbnail ||
-                            "https://www.google.com/s2/favicons?domain=youtube.com",
-                        video_count: "?"
-                    }));
-
-                if (playlistLinks.length > 0) {
-                    renderYouTubeResults(playlistLinks, "playlists");
-                    return;
-                } else {
-                    console.warn("⚠️ Google fallback returned no playlist-like results.");
-                }
-            }
-
             if (playlists && playlists.length > 0) {
                 renderYouTubeResults(playlists, "playlists");
             } else {
@@ -974,7 +799,6 @@ ${JSON.stringify(data, null, 2)}
         }
 
         youtubeNextPageUrl = data.serpapi_pagination?.next || null;
-
     } catch (err) {
         console.error("Error parsing YouTube plugin message:", err);
         youtubeSearchResultsContainer.innerHTML = "<p>Error loading results.</p>";
@@ -985,31 +809,6 @@ ${JSON.stringify(data, null, 2)}
     }
 };
 
-// 🧩 CONFIRM GOOGLE QUERY SENT
-(function interceptGoogleQuery() {
-    const _postMessage = PluginMessageHandler?.postMessage;
-    if (_postMessage) {
-        PluginMessageHandler.postMessage = function(msg) {
-            try {
-                const parsed = JSON.parse(msg);
-                if (parsed.message && parsed.message.includes('"engine":"google"')) {
-                    console.log("📡 Google query sent:", parsed.message);
-                    const debugOverlay = document.getElementById("debugOverlay");
-                    if (debugOverlay) {
-                        debugOverlay.innerText =
-                            "====== SENT GOOGLE QUERY ======\n" +
-                            parsed.message +
-                            "\n" +
-                            debugOverlay.innerText;
-                    }
-                }
-            } catch (err) {
-                console.warn("⚠️ Google query intercept error:", err);
-            }
-            return _postMessage.apply(this, arguments);
-        };
-    }
-})();
 
 youtubeSearchView.addEventListener('scroll', () => {
     if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
