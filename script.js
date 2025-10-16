@@ -685,7 +685,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             return;
         }
 
-        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow) ---
+        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow + Google Fallback) ---
         if (isPlaylistMode) {
             // 1️⃣ First query — with SP (official playlists)
             const withSpParams = { ...baseParams, sp: "EgIQAw==" };
@@ -703,6 +703,20 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
                     useSerpAPI: true
                 }));
             }, 700); // slight delay to ensure sequential execution
+
+            // 3️⃣ Final fallback — Google search for YouTube playlists
+            setTimeout(() => {
+                const googleQuery = `site:youtube.com "playlist" (intitle:"${query}" | "top ${query} playlist" | "best ${query} playlist")`;
+                const googleParams = {
+                    engine: "google",
+                    search_query: googleQuery,
+                    num: 20
+                };
+                PluginMessageHandler.postMessage(JSON.stringify({
+                    message: JSON.stringify({ query_params: googleParams }),
+                    useSerpAPI: true
+                }));
+            }, 3500); // delay ensures previous YouTube queries complete first
         }
     } else {
         // Mock data for browser testing remains unchanged
@@ -718,6 +732,7 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         isFetchingYoutubeResults = false;
     }
 }
+
 
 // Helper: fetch up to 3 more pages looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
