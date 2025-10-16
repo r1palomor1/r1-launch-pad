@@ -508,11 +508,30 @@ function openPlayerView(options) {
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
     playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
 
-    const createPlayer = () => {
-        if (player) {
-            player.destroy();
-        }
-        try {
+// 🎛 Adjust controls visibility based on mode (songs vs playlists)
+const shuffleBtn = document.getElementById('playerShuffleBtn');
+const nextBtn = document.getElementById('playerNextBtn');
+
+if (options.playlistId) {
+    // Playlist mode — show Shuffle & Next
+    shuffleBtn.style.display = 'inline-flex';
+    nextBtn.style.display = 'inline-flex';
+} else {
+    // Songs mode — hide Shuffle & Next
+    shuffleBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+}
+
+// Compact spacing for both modes
+document.querySelector('.player-main-controls').style.gap = '4px';
+
+const createPlayer = () => {
+    if (player) {
+        player.destroy();
+    }
+    try {
+        // existing player config
+
             // This is the core change: It now creates the player differently
             // based on whether it receives a videoId or a playlistId.
             let playerConfig = {
