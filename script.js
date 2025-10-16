@@ -812,8 +812,12 @@ async function fetchNextPlaylistPages(query, firstData) {
             await new Promise(r => setTimeout(r, 2500));
         } else break;
 
-        // Continue pagination using any updated next page
-        nextUrl = youtubeNextPageUrl || null;
+        // Continue pagination only if a *new* next page appeared
+const prevUrl = nextUrl;
+nextUrl = youtubeNextPageUrl && youtubeNextPageUrl !== prevUrl
+    ? youtubeNextPageUrl
+    : null;
+
     }
 
     return playlists;
