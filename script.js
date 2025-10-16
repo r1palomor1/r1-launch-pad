@@ -704,20 +704,21 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
                 }));
             }, 700); // slight delay to ensure sequential execution
 
-            // 3️⃣ Final fallback — Google Light search for YouTube playlists
+            // 3️⃣ Final fallback — Google Videos API search for YouTube playlists
 setTimeout(() => {
-    const googleQuery = `site:youtube.com "playlist" (intitle:"${query}" | "top ${query} playlist" | "best ${query} playlist")`;
     const googleParams = {
-        engine: "google_light",
-        search_query: googleQuery,
-        num: 20
+        engine: "google_videos",
+        q: `site:youtube.com "playlist" (intitle:"${query}" | "top ${query} playlist" | "best ${query} playlist")`,
+        num: 20,
+        hl: "en",
+        gl: "us"
     };
 
     // 🧩 DEBUG: Outbound tracker (all messages)
     if (!window.sentMessages) window.sentMessages = [];
     const timestamp = Date.now();
-    window.sentMessages.push({ engine: "google_light", ts: timestamp });
-    console.log("📡 GOOGLE LIGHT FALLBACK QUERY SENT @", new Date(timestamp).toLocaleTimeString(), googleParams);
+    window.sentMessages.push({ engine: "google_videos", ts: timestamp });
+    console.log("📡 GOOGLE VIDEOS FALLBACK QUERY SENT @", new Date(timestamp).toLocaleTimeString(), googleParams);
 
     // 🧩 Overlay confirmation
     let debugOverlay = document.getElementById("debugOverlay");
@@ -736,7 +737,7 @@ setTimeout(() => {
     }
 
     const flash = document.createElement("div");
-    flash.textContent = `====== SENT GOOGLE LIGHT FALLBACK (${new Date(timestamp).toLocaleTimeString()}) ======\n${JSON.stringify(googleParams, null, 2)}\n`;
+    flash.textContent = `====== SENT GOOGLE VIDEOS FALLBACK (${new Date(timestamp).toLocaleTimeString()}) ======\n${JSON.stringify(googleParams, null, 2)}\n`;
     flash.style.cssText = "border-top:1px solid #00ff88; margin-top:4px; padding-top:4px;";
     debugOverlay.prepend(flash);
     debugOverlay.style.background = "rgba(255, 230, 0, 0.3)";
@@ -752,16 +753,16 @@ setTimeout(() => {
     setTimeout(() => {
         const elapsed = (Date.now() - timestamp) / 1000;
         const newEntries = window.receivedMessages || [];
-        const found = newEntries.some(m => m.engine === "google_light" && m.ts > timestamp);
+        const found = newEntries.some(m => m.engine === "google_videos" && m.ts > timestamp);
 
         if (!found) {
             const warn = document.createElement("div");
-            warn.textContent = `⚠️ Google Light Engine Response Timeout (${elapsed}s) — No inbound message`;
+            warn.textContent = `⚠️ Google Videos Engine Response Timeout (${elapsed}s) — No inbound message`;
             warn.style.cssText = "color:#ff6666; border-top:1px dashed #ff6666; margin-top:4px; padding-top:4px;";
             debugOverlay.prepend(warn);
-            console.warn("⚠️ GOOGLE LIGHT ENGINE TIMEOUT — No inbound response detected.");
+            console.warn("⚠️ GOOGLE VIDEOS ENGINE TIMEOUT — No inbound response detected.");
         }
-    }, 7000); // Wait 7s max for a Google Light response
+    }, 7000); // Wait 7s max for a Google Videos response
 }, 3500);
 
 
