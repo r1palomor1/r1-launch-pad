@@ -685,25 +685,30 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             return;
         }
 
-        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow) ---
-        if (isPlaylistMode) {
-            // 1️⃣ First query — with SP (official playlists)
-            const withSpParams = { ...baseParams, sp: "EgIQAw==" };
-            PluginMessageHandler.postMessage(JSON.stringify({
-                message: JSON.stringify({ query_params: withSpParams }),
-                useSerpAPI: true
-            }));
+        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow with optional HTML output) ---
+if (isPlaylistMode) {
+    // 1️⃣ First query — with SP (official playlists)
+    const withSpParams = { ...baseParams, sp: "EgIQAw==", output: "html" }; // ✅ request HTML
+    console.log("[YouTubeSearch] Sending HTML request (playlist mode, step 1)");
 
-            // 2️⃣ Second query — without SP (derived playlists fallback)
-            setTimeout(() => {
-                const withoutSpParams = { ...baseParams };
-                delete withoutSpParams.sp;
-                PluginMessageHandler.postMessage(JSON.stringify({
-                    message: JSON.stringify({ query_params: withoutSpParams }),
-                    useSerpAPI: true
-                }));
-            }, 700); // slight delay to ensure sequential execution
-        }
+    PluginMessageHandler.postMessage(JSON.stringify({
+        message: JSON.stringify({ query_params: withSpParams }),
+        useSerpAPI: true
+    }));
+
+    // 2️⃣ Second query — without SP (derived playlists fallback)
+    setTimeout(() => {
+        const withoutSpParams = { ...baseParams, output: "html" }; // ✅ still HTML
+        delete withoutSpParams.sp;
+        console.log("[YouTubeSearch] Sending HTML request (playlist mode, step 2)");
+
+        PluginMessageHandler.postMessage(JSON.stringify({
+            message: JSON.stringify({ query_params: withoutSpParams }),
+            useSerpAPI: true
+        }));
+    }, 700); // slight delay to ensure sequential execution
+}
+
     } else {
         // Mock data for browser testing remains unchanged
         console.log(`[Browser Mode] Searching YouTube for: ${query}`);
@@ -759,8 +764,48 @@ async function fetchNextPlaylistPages(query, firstData) {
 // ✅  Option B: Auto-scan for Playlists
 window.onPluginMessage = async (e) => {
     try {
+        // --- 🎯 Step 1: Detect and parse HTML fallback (Playlist mode only) ---
+        if (
+            currentSearchMode === "playlists" &&
+            typeof e.data === "string" &&
+            e.data.includes("<a") &&
+            e.data.includes("list=")
+        ) {
+            console.log("[YouTubeSearch] HTML fallback detected — extracting playlists...");
+
+            const html = e.data;
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = html;
+
+            const links = [...tempDiv.querySelectorAll('a[href*="list="]')];
+            const playlistResults = links.map((a) => {
+                const href = a.getAttribute("href");
+                const title = a.textContent.trim() || "Untitled Playlist";
+                const match = href.match(/list=([^&]+)/);
+                const playlist_id = match ? match[1] : null;
+
+                return {
+                    title,
+                    link: href.startsWith("http")
+                        ? href
+                        : `https://www.youtube.com${href}`,
+                    playlist_id,
+                    video_count: "?",
+                    thumbnail: null,
+                };
+            });
+
+            console.log(`[YouTubeSearch] Extracted ${playlistResults.length} playlist(s) from HTML`);
+            renderYouTubeResults(playlistResults, "playlists");
+            isFetchingYoutubeResults = false;
+            return; // ✅ Stop here — we handled this message fully
+        }
+
+        // --- 🎯 Step 2: Normal JSON handling continues below ---
         const data = e.data
-            ? (typeof e.data === "string" ? JSON.parse(e.data) : e.data)
+            ? typeof e.data === "string"
+                ? JSON.parse(e.data)
+                : e.data
             : null;
 
         if (youtubeSearchResultsContainer.innerHTML.includes("Searching...")) {
@@ -773,14 +818,14 @@ window.onPluginMessage = async (e) => {
         }
 
         if (currentSearchMode === "videos") {
-            // SONGS mode
+            // SONGS mode (unchanged)
             if (Array.isArray(data.video_results) && data.video_results.length > 0) {
                 renderYouTubeResults(data.video_results, "videos");
             } else {
                 youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
             }
         } else if (currentSearchMode === "playlists") {
-            // PLAYLISTS mode
+            // PLAYLISTS mode (JSON normal path)
             let playlists = Array.isArray(data.playlist_results)
                 ? data.playlist_results
                 : [];
