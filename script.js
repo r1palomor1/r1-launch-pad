@@ -768,7 +768,7 @@ if (isPlaylistMode) {
 async function fetchNextPlaylistPages(query, firstData) {
     let playlists = [];
 
-    // Check first page for playlist_results OR playlist-like video_results
+    // 1️⃣ First check: the current data
     if (Array.isArray(firstData.playlist_results)) {
         playlists = firstData.playlist_results;
     }
@@ -781,19 +781,20 @@ async function fetchNextPlaylistPages(query, firstData) {
     let nextUrl = firstData.serpapi_pagination?.next || null;
     let attempts = 0;
 
+    // 2️⃣ Loop through at most 3 more pages, only if nothing found yet
     while (playlists.length === 0 && nextUrl && attempts < 3) {
         attempts++;
         youtubeSearchResultsContainer.innerHTML =
             `<p>Searching playlists… (page ${attempts + 1})</p>`;
 
-        // ✅ Extract SP token correctly from next URL
+        // Extract SP token correctly
         let spToken = null;
         try {
             const u = new URL(nextUrl);
             spToken = u.searchParams.get("sp");
         } catch (_) {}
 
-        // ✅ Always include engine + search_query for consistency
+        // --- 🧩 FIXED: Always send proper structure with useSerpAPI only once ---
         if (typeof PluginMessageHandler !== "undefined") {
             const followupParams = {
                 engine: "youtube",
@@ -802,22 +803,18 @@ async function fetchNextPlaylistPages(query, firstData) {
             };
             if (spToken) followupParams.sp = spToken;
 
-            // ✅ Correct message structure — useSerpAPI only at top level
             PluginMessageHandler.postMessage(JSON.stringify({
                 message: JSON.stringify({ query_params: followupParams }),
                 useSerpAPI: true
             }));
-
-            // Give Rabbit time to return a response before next iteration
-            await new Promise(r => setTimeout(r, 2500));
         } else break;
 
-        // Continue pagination only if a *new* next page appeared
-const prevUrl = nextUrl;
-nextUrl = youtubeNextPageUrl && youtubeNextPageUrl !== prevUrl
-    ? youtubeNextPageUrl
-    : null;
+        // Wait for possible Rabbit response before next iteration
+        await new Promise(r => setTimeout(r, 2500));
 
+        // ✅ Stop loop if nothing new comes in
+        if (!youtubeNextPageUrl || youtubeNextPageUrl === nextUrl) break;
+        nextUrl = youtubeNextPageUrl;
     }
 
     return playlists;
