@@ -764,11 +764,11 @@ if (isPlaylistMode) {
     }
 }
 
-// ✅ Helper: fetch up to 3 more pages looking for playlist-like results
+// Helper: fetch up to 3 more pages looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
     let playlists = [];
 
-    // 1️⃣ First check: the current data
+    // check first page for playlist_results OR playlist-like video_results
     if (Array.isArray(firstData.playlist_results)) {
         playlists = firstData.playlist_results;
     }
@@ -781,40 +781,20 @@ async function fetchNextPlaylistPages(query, firstData) {
     let nextUrl = firstData.serpapi_pagination?.next || null;
     let attempts = 0;
 
-    // 2️⃣ Loop through at most 3 more pages, only if nothing found yet
     while (playlists.length === 0 && nextUrl && attempts < 3) {
         attempts++;
         youtubeSearchResultsContainer.innerHTML =
             `<p>Searching playlists… (page ${attempts + 1})</p>`;
-
-        // Extract SP token correctly
-        let spToken = null;
-        try {
-            const u = new URL(nextUrl);
-            spToken = u.searchParams.get("sp");
-        } catch (_) {}
-
-        // --- 🧩 FIXED: Always send proper structure with useSerpAPI only once ---
         if (typeof PluginMessageHandler !== "undefined") {
-            const followupParams = {
-                engine: "youtube",
-                search_query: query,
-                num: 50
-            };
-            if (spToken) followupParams.sp = spToken;
-
             PluginMessageHandler.postMessage(JSON.stringify({
-                message: JSON.stringify({ query_params: followupParams }),
+                message: JSON.stringify({
+                    query_params: { next_page_token: nextUrl },
+                    useSerpAPI: true
+                }),
                 useSerpAPI: true
             }));
+            await new Promise(r => setTimeout(r, 2500));
         } else break;
-
-        // Wait for possible Rabbit response before next iteration
-        await new Promise(r => setTimeout(r, 2500));
-
-        // ✅ Stop loop if nothing new comes in
-        if (!youtubeNextPageUrl || youtubeNextPageUrl === nextUrl) break;
-        nextUrl = youtubeNextPageUrl;
     }
 
     return playlists;
