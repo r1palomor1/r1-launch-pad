@@ -641,29 +641,49 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         const loader = document.createElement('div');
         loader.id = 'youtubeSearchLoader';
         loader.textContent = 'Loading...';
-        loader.className = 'youtube-search-loader'; 
+        loader.className = 'youtube-search-loader';
         youtubeSearchResultsContainer.appendChild(loader);
     }
 
     if (typeof PluginMessageHandler !== "undefined") {
-        let params;
-    if (nextPageUrl) {
-        // Logic for next pages remains the same
-        const url = new URL(nextPageUrl);
-        const spToken = url.searchParams.get('sp');
-        params = { engine: "youtube", search_query: query, sp: spToken, num: 50 };
-    } else {
-        // Logic for the first page now checks the search mode
-        params = { engine: "youtube", search_query: query, num: 50 };
-        if (currentSearchMode === 'playlists') {
-        params.sp = "EgIQAw=="; // The special token for playlists
-    }
-}
+        const isPlaylistMode = currentSearchMode === 'playlists';
+        const baseParams = { engine: "youtube", search_query: query, num: 50 };
 
-        PluginMessageHandler.postMessage(JSON.stringify({
-            message: JSON.stringify({ query_params: params }),
-            useSerpAPI: true
-        }));
+        // --- Handle pagination (same for all modes) ---
+        if (nextPageUrl) {
+            const url = new URL(nextPageUrl);
+            const spToken = url.searchParams.get('sp');
+            baseParams.sp = spToken || undefined;
+        }
+
+        // --- SONGS MODE (Unchanged) ---
+        if (currentSearchMode === 'videos') {
+            PluginMessageHandler.postMessage(JSON.stringify({
+                message: JSON.stringify({ query_params: baseParams }),
+                useSerpAPI: true
+            }));
+            return;
+        }
+
+        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow) ---
+        if (isPlaylistMode) {
+            // 1️⃣ First query — with SP (official playlists)
+            const withSpParams = { ...baseParams, sp: "EgIQAw==" };
+            PluginMessageHandler.postMessage(JSON.stringify({
+                message: JSON.stringify({ query_params: withSpParams }),
+                useSerpAPI: true
+            }));
+
+            // 2️⃣ Second query — without SP (derived playlists fallback)
+            setTimeout(() => {
+                const withoutSpParams = { ...baseParams };
+                delete withoutSpParams.sp;
+                PluginMessageHandler.postMessage(JSON.stringify({
+                    message: JSON.stringify({ query_params: withoutSpParams }),
+                    useSerpAPI: true
+                }));
+            }, 700); // slight delay to ensure sequential execution
+        }
     } else {
         // Mock data for browser testing remains unchanged
         console.log(`[Browser Mode] Searching YouTube for: ${query}`);
