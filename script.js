@@ -771,7 +771,7 @@ async function fetchNextPlaylistPages(query, firstData) {
 }
 
 
-// ✅  Option B: Auto-scan for Playlists (DEBUG ENHANCED)
+// ✅  Option B: Auto-scan for Playlists — DEBUG WRAPPED & GOOGLE CHECK
 window.onPluginMessage = async (e) => {
     try {
         const data = e.data
@@ -787,7 +787,7 @@ window.onPluginMessage = async (e) => {
             return;
         }
 
-        // 🧠 DEBUG START — Small Screen Scrollable Debug Overlay
+        // 🧠 DEBUG: Scrollable overlay for small screen (text wrapping added)
         const debugOverlay = document.createElement('div');
         debugOverlay.style.cssText = `
             position: fixed;
@@ -796,21 +796,32 @@ window.onPluginMessage = async (e) => {
             background: rgba(0,0,0,0.85);
             color: #00ff88;
             font-size: 10px;
-            overflow-y: scroll;
+            overflow-y: auto;
+            overflow-x: hidden;
             padding: 6px;
             z-index: 9999;
             border-radius: 6px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
         `;
+
+        const engine = data.engine ||
+            (data.search_parameters && data.search_parameters.engine) ||
+            'unknown';
         const keys = Object.keys(data || {}).join(', ');
-        const engine = data.engine || (data.search_parameters && data.search_parameters.engine) || 'unknown';
         const organicCount = data.organic_results ? data.organic_results.length : 0;
-        const sample = JSON.stringify(data).slice(0, 400);
+        const sample = JSON.stringify(data, null, 2).slice(0, 400);
+
+        const googleDetected = (data.engine === "google") ||
+            (data.search_parameters && data.search_parameters.engine === "google");
 
         debugOverlay.innerHTML = `
-            <b>🔍 ENGINE:</b> ${engine}<br>
-            <b>🗝 KEYS:</b> ${keys}<br>
-            <b>📦 ORGANIC RESULTS:</b> ${organicCount}<br>
-            <b>📜 SAMPLE:</b><br><pre>${sample}</pre>
+<b>🧩 ENGINE:</b> ${engine}
+<b>📦 KEYS:</b> ${keys}
+<b>🌐 ORGANIC RESULTS:</b> ${organicCount}
+<b>🔎 GOOGLE DETECTED:</b> ${googleDetected}
+<b>📜 SAMPLE JSON:</b>
+${sample}
         `;
 
         const closeBtn = document.createElement('button');
@@ -825,17 +836,18 @@ window.onPluginMessage = async (e) => {
         debugOverlay.appendChild(closeBtn);
         document.body.appendChild(debugOverlay);
 
-        // 🧠 DEBUG END — we’ll remove after confirming structure
+        console.log("🧠 DEBUG DATA:", data);
+        console.log("🧠 ENGINE:", engine);
+        console.log("🧠 KEYS:", Object.keys(data));
+        console.log("🧠 ORGANIC_RESULTS COUNT:", organicCount);
 
         if (currentSearchMode === "videos") {
-            // SONGS mode
             if (Array.isArray(data.video_results) && data.video_results.length > 0) {
                 renderYouTubeResults(data.video_results, "videos");
             } else {
                 youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
             }
         } else if (currentSearchMode === "playlists") {
-            // PLAYLISTS mode
             let playlists = Array.isArray(data.playlist_results)
                 ? data.playlist_results
                 : [];
@@ -847,16 +859,15 @@ window.onPluginMessage = async (e) => {
                 );
             }
 
-            // 🧩 GOOGLE FALLBACK DEBUG
+            // 🧩 DEBUG: Google fallback section
             if (
                 (!playlists || playlists.length === 0) &&
                 (
-                    (data.engine === "google") ||
-                    (data.search_parameters && data.search_parameters.engine === "google") ||
+                    googleDetected ||
                     Array.isArray(data.organic_results)
                 )
             ) {
-                console.log("🧩 GOOGLE ENGINE DETECTED:", data);
+                console.log("🧩 GOOGLE ENGINE DETECTED. Parsing fallback...");
                 const googleResults = data.organic_results || [];
                 const playlistLinks = googleResults
                     .filter(r =>
@@ -877,6 +888,8 @@ window.onPluginMessage = async (e) => {
                 if (playlistLinks.length > 0) {
                     renderYouTubeResults(playlistLinks, "playlists");
                     return;
+                } else {
+                    console.warn("⚠️ Google fallback returned no playlist-like results.");
                 }
             }
 
@@ -898,6 +911,23 @@ window.onPluginMessage = async (e) => {
         if (loader) loader.remove();
     }
 };
+
+// 🧩 EXTRA: CONFIRM WE ACTUALLY SEND THE GOOGLE QUERY
+(function interceptGoogleQuery() {
+    const _postMessage = PluginMessageHandler?.postMessage;
+    if (_postMessage) {
+        PluginMessageHandler.postMessage = function(msg) {
+            try {
+                const parsed = JSON.parse(msg);
+                if (parsed.message && parsed.message.includes('"engine":"google"')) {
+                    console.log("📡 Google query sent:", parsed.message);
+                    alert("📡 Sent Google engine query");
+                }
+            } catch {}
+            return _postMessage.apply(this, arguments);
+        };
+    }
+})();
 
 youtubeSearchView.addEventListener('scroll', () => {
     if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
