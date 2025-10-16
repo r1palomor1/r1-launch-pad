@@ -685,11 +685,11 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             return;
         }
 
-        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow with optional HTML output) ---
+        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow — JSON default + safe timeout) ---
 if (isPlaylistMode) {
     // 1️⃣ First query — with SP (official playlists)
-    const withSpParams = { ...baseParams, sp: "EgIQAw==", output: "html" }; // ✅ request HTML
-    console.log("[YouTubeSearch] Sending HTML request (playlist mode, step 1)");
+    const withSpParams = { ...baseParams, sp: "EgIQAw==" }; // ✅ JSON again (no output param)
+    console.log("[YouTubeSearch] Sending JSON request (playlist mode, step 1)");
 
     PluginMessageHandler.postMessage(JSON.stringify({
         message: JSON.stringify({ query_params: withSpParams }),
@@ -698,16 +698,26 @@ if (isPlaylistMode) {
 
     // 2️⃣ Second query — without SP (derived playlists fallback)
     setTimeout(() => {
-        const withoutSpParams = { ...baseParams, output: "html" }; // ✅ still HTML
+        const withoutSpParams = { ...baseParams }; // ✅ JSON again
         delete withoutSpParams.sp;
-        console.log("[YouTubeSearch] Sending HTML request (playlist mode, step 2)");
+        console.log("[YouTubeSearch] Sending JSON request (playlist mode, step 2)");
 
         PluginMessageHandler.postMessage(JSON.stringify({
             message: JSON.stringify({ query_params: withoutSpParams }),
             useSerpAPI: true
         }));
-    }, 700); // slight delay to ensure sequential execution
+    }, 700);
+
+    // ⏳ Fail-safe timeout in case no response comes back
+    setTimeout(() => {
+        if (isFetchingYoutubeResults) {
+            youtubeSearchResultsContainer.innerHTML =
+                "<p>No response from server.</p>";
+            isFetchingYoutubeResults = false;
+        }
+    }, 8000); // 8 seconds
 }
+
 
     } else {
         // Mock data for browser testing remains unchanged
