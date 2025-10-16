@@ -809,9 +809,14 @@ window.onPluginMessage = async (e) => {
 
             // 🧩 NEW: Handle Google Search (engine:"google") fallback
             if (
-                (!playlists || playlists.length === 0) &&
-                (data.engine === "google" || Array.isArray(data.organic_results))
-            ) {
+    (!playlists || playlists.length === 0) &&
+    (
+        (data.engine === "google") ||
+        (data.search_parameters && data.search_parameters.engine === "google") ||
+        Array.isArray(data.organic_results)
+    )
+)
+ {
                 const googleResults = data.organic_results || [];
                 const playlistLinks = googleResults
                     .filter(
