@@ -685,37 +685,67 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             return;
         }
 
-        // --- PLAYLIST MODE (Enhanced Dual Sequential Flow — JSON default + safe timeout) ---
+        // --- PLAYLIST MODE (Multi-Tier Fallback: JSON + HTML with optional hints) ---
 if (isPlaylistMode) {
-    // 1️⃣ First query — with SP (official playlists)
-    const withSpParams = { ...baseParams, sp: "EgIQAw==" }; // ✅ JSON again (no output param)
-    console.log("[YouTubeSearch] Sending JSON request (playlist mode, step 1)");
+    console.log("[YouTubeSearch] ▶ Starting Playlist multi-mode query sequence...");
 
+    // 🔹 1️⃣ First: JSON with SP (official playlists)
+    const withSpJSON = { ...baseParams, sp: "EgIQAw==" };
     PluginMessageHandler.postMessage(JSON.stringify({
-        message: JSON.stringify({ query_params: withSpParams }),
+        message: JSON.stringify({ query_params: withSpJSON }),
         useSerpAPI: true
     }));
+    console.log("[YouTubeSearch] Sent JSON (SP) request");
 
-    // 2️⃣ Second query — without SP (derived playlists fallback)
+    // 🔹 2️⃣ Second: HTML with SP (optional fallback)
     setTimeout(() => {
-        const withoutSpParams = { ...baseParams }; // ✅ JSON again
-        delete withoutSpParams.sp;
-        console.log("[YouTubeSearch] Sending JSON request (playlist mode, step 2)");
-
+        const withSpHTML = {
+            ...baseParams,
+            sp: "EgIQAw==",
+            output: "html",
+            json_restrictor: "playlist_results,video_results"
+        };
         PluginMessageHandler.postMessage(JSON.stringify({
-            message: JSON.stringify({ query_params: withoutSpParams }),
+            message: JSON.stringify({ query_params: withSpHTML }),
             useSerpAPI: true
         }));
-    }, 700);
+        console.log("[YouTubeSearch] Sent HTML (SP) request");
+    }, 600);
 
-    // ⏳ Fail-safe timeout in case no response comes back
+    // 🔹 3️⃣ Third: JSON without SP (broader derived playlists)
+    setTimeout(() => {
+        const withoutSpJSON = { ...baseParams };
+        delete withoutSpJSON.sp;
+        PluginMessageHandler.postMessage(JSON.stringify({
+            message: JSON.stringify({ query_params: withoutSpJSON }),
+            useSerpAPI: true
+        }));
+        console.log("[YouTubeSearch] Sent JSON (no SP) request");
+    }, 1200);
+
+    // 🔹 4️⃣ Fourth: HTML without SP (last-chance fallback)
+    setTimeout(() => {
+        const withoutSpHTML = {
+            ...baseParams,
+            output: "html",
+            json_restrictor: "playlist_results,video_results"
+        };
+        delete withoutSpHTML.sp;
+        PluginMessageHandler.postMessage(JSON.stringify({
+            message: JSON.stringify({ query_params: withoutSpHTML }),
+            useSerpAPI: true
+        }));
+        console.log("[YouTubeSearch] Sent HTML (no SP) request");
+    }, 1800);
+
+    // ⏳ Safety timeout to end "Searching..." if none respond
     setTimeout(() => {
         if (isFetchingYoutubeResults) {
             youtubeSearchResultsContainer.innerHTML =
-                "<p>No response from server.</p>";
+                "<p>No playlists detected from any source.</p>";
             isFetchingYoutubeResults = false;
         }
-    }, 8000); // 8 seconds
+    }, 9000);
 }
 
 
