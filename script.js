@@ -781,7 +781,7 @@ async function fetchNextPlaylistPages(query, firstData) {
     let nextUrl = firstData.serpapi_pagination?.next || null;
     let attempts = 0;
 
-    while (playlists.length === 0 && nextUrl && attempts < 3) {
+    while (playlists.length === 0 && nextUrl && attempts < 1) {
         attempts++;
         youtubeSearchResultsContainer.innerHTML =
             `<p>Searching playlists… (page ${attempts + 1})</p>`;
