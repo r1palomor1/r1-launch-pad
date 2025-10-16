@@ -764,11 +764,11 @@ if (isPlaylistMode) {
     }
 }
 
-// Helper: fetch up to 3 more pages looking for playlist-like results
+// ✅ Helper: fetch up to 3 more pages looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
     let playlists = [];
 
-    // check first page for playlist_results OR playlist-like video_results
+    // Check first page for playlist_results OR playlist-like video_results
     if (Array.isArray(firstData.playlist_results)) {
         playlists = firstData.playlist_results;
     }
@@ -785,16 +785,35 @@ async function fetchNextPlaylistPages(query, firstData) {
         attempts++;
         youtubeSearchResultsContainer.innerHTML =
             `<p>Searching playlists… (page ${attempts + 1})</p>`;
+
+        // ✅ Extract SP token correctly from next URL
+        let spToken = null;
+        try {
+            const u = new URL(nextUrl);
+            spToken = u.searchParams.get("sp");
+        } catch (_) {}
+
+        // ✅ Always include engine + search_query for consistency
         if (typeof PluginMessageHandler !== "undefined") {
+            const followupParams = {
+                engine: "youtube",
+                search_query: query,
+                num: 50
+            };
+            if (spToken) followupParams.sp = spToken;
+
+            // ✅ Correct message structure — useSerpAPI only at top level
             PluginMessageHandler.postMessage(JSON.stringify({
-                message: JSON.stringify({
-                    query_params: { next_page_token: nextUrl },
-                    useSerpAPI: true
-                }),
+                message: JSON.stringify({ query_params: followupParams }),
                 useSerpAPI: true
             }));
+
+            // Give Rabbit time to return a response before next iteration
             await new Promise(r => setTimeout(r, 2500));
         } else break;
+
+        // Continue pagination using any updated next page
+        nextUrl = youtubeNextPageUrl || null;
     }
 
     return playlists;
