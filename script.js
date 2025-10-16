@@ -771,7 +771,7 @@ async function fetchNextPlaylistPages(query, firstData) {
 }
 
 
-// ✅  Option B: Auto-scan for Playlists
+// ✅  Option B: Auto-scan for Playlists (DEBUG ENHANCED)
 window.onPluginMessage = async (e) => {
     try {
         const data = e.data
@@ -787,6 +787,46 @@ window.onPluginMessage = async (e) => {
             return;
         }
 
+        // 🧠 DEBUG START — Small Screen Scrollable Debug Overlay
+        const debugOverlay = document.createElement('div');
+        debugOverlay.style.cssText = `
+            position: fixed;
+            top: 10px; left: 10px;
+            width: 220px; height: 260px;
+            background: rgba(0,0,0,0.85);
+            color: #00ff88;
+            font-size: 10px;
+            overflow-y: scroll;
+            padding: 6px;
+            z-index: 9999;
+            border-radius: 6px;
+        `;
+        const keys = Object.keys(data || {}).join(', ');
+        const engine = data.engine || (data.search_parameters && data.search_parameters.engine) || 'unknown';
+        const organicCount = data.organic_results ? data.organic_results.length : 0;
+        const sample = JSON.stringify(data).slice(0, 400);
+
+        debugOverlay.innerHTML = `
+            <b>🔍 ENGINE:</b> ${engine}<br>
+            <b>🗝 KEYS:</b> ${keys}<br>
+            <b>📦 ORGANIC RESULTS:</b> ${organicCount}<br>
+            <b>📜 SAMPLE:</b><br><pre>${sample}</pre>
+        `;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = 'X';
+        closeBtn.style.cssText = `
+            position: absolute; top: 2px; right: 4px;
+            background: #ff4444; color: white;
+            border: none; font-size: 10px;
+            border-radius: 4px; padding: 2px 4px;
+        `;
+        closeBtn.onclick = () => debugOverlay.remove();
+        debugOverlay.appendChild(closeBtn);
+        document.body.appendChild(debugOverlay);
+
+        // 🧠 DEBUG END — we’ll remove after confirming structure
+
         if (currentSearchMode === "videos") {
             // SONGS mode
             if (Array.isArray(data.video_results) && data.video_results.length > 0) {
@@ -794,7 +834,7 @@ window.onPluginMessage = async (e) => {
             } else {
                 youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
             }
-                } else if (currentSearchMode === "playlists") {
+        } else if (currentSearchMode === "playlists") {
             // PLAYLISTS mode
             let playlists = Array.isArray(data.playlist_results)
                 ? data.playlist_results
@@ -807,23 +847,21 @@ window.onPluginMessage = async (e) => {
                 );
             }
 
-            // 🧩 NEW: Handle Google Search (engine:"google") fallback
+            // 🧩 GOOGLE FALLBACK DEBUG
             if (
-    (!playlists || playlists.length === 0) &&
-    (
-        (data.engine === "google") ||
-        (data.search_parameters && data.search_parameters.engine === "google") ||
-        Array.isArray(data.organic_results)
-    )
-)
- {
+                (!playlists || playlists.length === 0) &&
+                (
+                    (data.engine === "google") ||
+                    (data.search_parameters && data.search_parameters.engine === "google") ||
+                    Array.isArray(data.organic_results)
+                )
+            ) {
+                console.log("🧩 GOOGLE ENGINE DETECTED:", data);
                 const googleResults = data.organic_results || [];
                 const playlistLinks = googleResults
-                    .filter(
-                        r =>
-                            r.link &&
-                            (r.link.includes("list=") ||
-                                r.link.includes("/playlist"))
+                    .filter(r =>
+                        r.link &&
+                        (r.link.includes("list=") || r.link.includes("/playlist"))
                     )
                     .map(r => ({
                         title: r.title,
@@ -838,7 +876,7 @@ window.onPluginMessage = async (e) => {
 
                 if (playlistLinks.length > 0) {
                     renderYouTubeResults(playlistLinks, "playlists");
-                    return; // ✅ stop before "No playlists found."
+                    return;
                 }
             }
 
@@ -860,7 +898,6 @@ window.onPluginMessage = async (e) => {
         if (loader) loader.remove();
     }
 };
-
 
 youtubeSearchView.addEventListener('scroll', () => {
     if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
