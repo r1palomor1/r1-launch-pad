@@ -705,18 +705,49 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
             }, 700); // slight delay to ensure sequential execution
 
             // 3️⃣ Final fallback — Google search for YouTube playlists
-            setTimeout(() => {
-                const googleQuery = `site:youtube.com "playlist" (intitle:"${query}" | "top ${query} playlist" | "best ${query} playlist")`;
-                const googleParams = {
-                    engine: "google",
-                    search_query: googleQuery,
-                    num: 20
-                };
-                PluginMessageHandler.postMessage(JSON.stringify({
-                    message: JSON.stringify({ query_params: googleParams }),
-                    useSerpAPI: true
-                }));
-            }, 3500); // delay ensures previous YouTube queries complete first
+setTimeout(() => {
+    const googleQuery = `site:youtube.com "playlist" (intitle:"${query}" | "top ${query} playlist" | "best ${query} playlist")`;
+    const googleParams = {
+        engine: "google",
+        search_query: googleQuery,
+        num: 20
+    };
+
+    // 🧩 DEBUG: Confirm Google query triggered
+    console.log("📡 GOOGLE FALLBACK QUERY SENT:", googleParams);
+
+    // 🔶 Overlay visual confirmation
+    let debugOverlay = document.getElementById("debugOverlay");
+    if (!debugOverlay) {
+        debugOverlay = document.createElement("div");
+        debugOverlay.id = "debugOverlay";
+        debugOverlay.style.cssText = `
+            position: fixed; top: 8px; left: 8px;
+            width: 225px; height: 265px;
+            background: rgba(0,0,0,0.9); color: #00ff88;
+            font-size: 9px; overflow-y: auto; overflow-x: hidden;
+            padding: 6px; border-radius: 6px; z-index: 99999;
+            white-space: pre-wrap; word-wrap: break-word;
+        `;
+        document.body.appendChild(debugOverlay);
+    }
+
+    const flash = document.createElement("div");
+    flash.textContent = `====== SENT GOOGLE FALLBACK ======\n${JSON.stringify(googleParams, null, 2)}\n`;
+    flash.style.cssText = "border-top:1px solid #00ff88; margin-top:4px; padding-top:4px;";
+    debugOverlay.prepend(flash);
+
+    // Flash visual cue
+    debugOverlay.style.background = "rgba(255, 230, 0, 0.3)";
+    setTimeout(() => debugOverlay.style.background = "rgba(0,0,0,0.9)", 400);
+
+    // Now send the Google fallback message
+    PluginMessageHandler.postMessage(JSON.stringify({
+        message: JSON.stringify({ query_params: googleParams }),
+        useSerpAPI: true
+    }));
+}, 3500);
+ // delay ensures previous YouTube queries complete first
         }
     } else {
         // Mock data for browser testing remains unchanged
