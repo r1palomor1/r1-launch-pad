@@ -1036,71 +1036,22 @@ button.rabbit-default:hover {
     height: 100%;
 }
 
-/* === Player Controls Section (Updated for Two-Row Layout) === */
 .player-controls {
     flex: 0 0 auto;
     display: flex;
-    flex-direction: column; /* stack rows vertically */
+    /* flex-direction: column; was removed */
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     padding-top: 10px;
-    gap: 4px; /* small vertical gap between playlist and main row */
 }
 
-/* 🆕 Playlist Controls Row (Top Row for Playlist Mode) */
-.player-playlist-controls {
+.player-navigation {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 2px; /* slight space before bottom row */
+    width: 100%;
+    gap: 4px; /* Reduced gap */
 }
-
-.player-main-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-/* === Player Icon Sizing & Proportions (Final) === */
-
-/* Top row icons (Prev, Shuffle, Play All, Next) */
-.player-playlist-controls button {
-    width: 38px;
-    height: 38px;
-}
-
-.player-playlist-controls svg {
-    width: 24px;
-    height: 24px;
-}
-
-/* Base row icons (Back, Play/Pause, Audio Only, Search) */
-#playerShuffleBtn,
-#playerNextBtn,
-#playerAudioOnlyBtn {
-    width: 38px;
-    height: 38px;
-}
-
-#playerShuffleBtn svg,
-#playerNextBtn svg,
-#playerAudioOnlyBtn svg {
-    width: 24px;
-    height: 24px;
-}
-
-/* Override: Keep the main Play/Pause button and its icon the largest for emphasis */
-#playerPlayPauseBtn {
-    width: 44px;
-    height: 44px;
-}
-#playerPlayPauseBtn svg {
-    width: 30px;
-    height: 30px;
-}
-
 /* ... */
 .player-main-controls {
     display: flex;
@@ -1368,125 +1319,4 @@ button.rabbit-default:hover {
 #playerPlayPauseBtn svg {
     width: 30px;
     height: 30px;
-}
-
-/* =========================================================
-   🧩 R1 Compact Mode Styles
-   Activated when <body class="r1-compact"> is set
-   Purpose: Optimize spacing and scaling for 240×282 screen
-   ========================================================= */
-body.r1-compact {
-    font-size: clamp(11px, 3.4vw, 13px);
-    --touch-target-size: 30px;
-    --card-padding-y: 4px;
-    --card-padding-x: 6px;
-    --icon-size-small: 14px;
-    --icon-size-medium: 16px;
-    --icon-size-large: 18px;
-    --actions-icon-size: 14px;
-}
-
-/* Header and logo area */
-body.r1-compact header {
-    padding-top: 4px;
-    padding-bottom: 2px;
-}
-body.r1-compact #logo {
-    gap: 4px;
-}
-body.r1-compact .logo-text {
-    font-size: 0.95em;
-}
-
-/* Search section */
-body.r1-compact .search-section {
-    margin-bottom: 2px;
-    gap: 2px;
-}
-body.r1-compact input[type="text"] {
-    padding: 2px 6px;
-    font-size: 0.85em;
-}
-
-/* Cards & lists */
-body.r1-compact .card {
-    padding: 4px 6px;
-    gap: 6px;
-    border-radius: 8px;
-}
-body.r1-compact .link-description {
-    font-size: 0.85em;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-}
-body.r1-compact .link-actions span {
-    width: 24px;
-    height: 24px;
-}
-
-/* Player overlay */
-body.r1-compact #internalPlayerOverlay {
-    padding: 6px;
-}
-body.r1-compact #playerVideoTitle {
-    font-size: 0.8em;
-}
-/* --- FINAL R1 Compact Player Optimization (True Fix) --- */
-body.r1-compact .player-container {
-    flex-grow: 1;
-    height: auto;
-    min-height: calc(100vh - 90px); /* More flexible vertical space */
-    border-radius: 6px;
-    margin: 0;
-    padding: 0;
-}
-
-/* Tighten playlist + main controls directly (no .player-controls wrapper) */
-body.r1-compact .player-playlist-controls,
-body.r1-compact .player-main-controls {
-    margin: 0 !important;
-    padding: 0 !important;
-    gap: 1px !important; /* minimal horizontal spacing */
-}
-
-/* Force eliminate vertical space between rows */
-body.r1-compact .player-main-controls {
-    margin-top: -2px !important;
-}
-
-/* Compact buttons */
-body.r1-compact .player-playlist-controls button,
-body.r1-compact .player-main-controls button {
-    width: 28px !important;
-    height: 28px !important;
-}
-body.r1-compact .player-playlist-controls svg,
-body.r1-compact .player-main-controls svg {
-    width: 16px !important;
-    height: 16px !important;
-}
-
-/* Play/Pause button slightly larger for visual balance */
-body.r1-compact #playerPlayPauseBtn {
-    width: 34px !important;
-    height: 34px !important;
-}
-body.r1-compact #playerPlayPauseBtn svg {
-    width: 20px !important;
-    height: 20px !important;
-}
-
-/* Now playing bar */
-body.r1-compact #nowPlayingBar {
-    padding: 3px 8px;
-    font-size: 0.7em;
-    gap: 4px;
-}
-
-/* Scrollbars slimmed */
-body.r1-compact ::-webkit-scrollbar {
-    width: 5px;
-}
-body.r1-compact ::-webkit-scrollbar-thumb {
-    border-radius: 3px;
 }
