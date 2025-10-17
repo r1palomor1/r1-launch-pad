@@ -1431,13 +1431,43 @@ body.r1-compact #internalPlayerOverlay {
 body.r1-compact #playerVideoTitle {
     font-size: 0.8em;
 }
+/* --- Compact Player Layout Tightened and Expanded --- */
 body.r1-compact .player-container {
+    flex-grow: 1;
+    height: auto;
+    min-height: calc(100vh - 125px); /* Expands video area vertically */
     border-radius: 6px;
+    margin: 0;
+    padding: 0;
 }
+
+/* Remove excess spacing between player window and controls */
+body.r1-compact .player-controls {
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    gap: 0; /* eliminates space between top and bottom control rows */
+}
+
+/* Tighten playlist and main control rows */
+body.r1-compact .player-playlist-controls {
+    margin: 0;
+    padding: 0;
+    gap: 2px; /* minimal horizontal space between icons */
+}
+
+body.r1-compact .player-main-controls {
+    margin: 0;
+    padding: 0;
+    gap: 2px; /* minimal horizontal space between icons */
+}
+
+/* Button & icon sizing tuned for compact mode */
 body.r1-compact .player-playlist-controls button,
 body.r1-compact .player-main-controls button {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
 }
 body.r1-compact .player-playlist-controls svg,
 body.r1-compact .player-main-controls svg {
@@ -1445,12 +1475,12 @@ body.r1-compact .player-main-controls svg {
     height: 18px;
 }
 body.r1-compact #playerPlayPauseBtn {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
 }
 body.r1-compact #playerPlayPauseBtn svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
 }
 
 /* Now playing bar */
