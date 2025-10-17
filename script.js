@@ -475,18 +475,26 @@ cardContainer.addEventListener('click', async (e) => {
             });
             
             if (choice === 'internal') {
-                const videoId = getYoutubeVideoId(link.url);
-                if (videoId) {
-                    // If it's a link to a specific video, open the player directly.
-                    openPlayerView(videoId, link.description);
-                } else {
-                    // If it's a generic YouTube link, open our new search view.
-                    openYouTubeSearchView();
-                }
-            } else if (choice === 'external') {
-                triggerHaptic();
-                launchUrlOnRabbit(link.url, link.description);
-            }
+    const videoId = getYoutubeVideoId(link.url);
+    const playlistId = getYoutubePlaylistId(link.url); // 🔹 NEW helper below
+
+    if (playlistId) {
+        console.log(`[YouTube] Playlist ID detected: ${playlistId}`);
+        // ✅ If it’s a YouTube playlist, open as playlist
+        openPlayerView({ playlistId, title: link.description });
+    } else if (videoId) {
+        console.log(`[YouTube] Video ID detected: ${videoId}`);
+        // ✅ Normal single video behavior
+        openPlayerView({ videoId, title: link.description });
+    } else {
+        // Generic or channel link → open search
+        openYouTubeSearchView();
+    }
+} else if (choice === 'external') {
+    triggerHaptic();
+    launchUrlOnRabbit(link.url, link.description);
+}
+
         } else {
             // Default behavior for all other links (including non-video YouTube links)
             triggerHaptic();
@@ -499,6 +507,11 @@ function getYoutubeVideoId(url) {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
+}
+
+function getYoutubePlaylistId(url) {
+    const match = url.match(/[?&]list=([^&]+)/);
+    return match ? match[1] : null;
 }
 
 function openPlayerView(options) {
