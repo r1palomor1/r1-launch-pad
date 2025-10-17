@@ -547,17 +547,27 @@ if (options.playlistId) {
     shuffleBtn.style.display = 'inline-flex';
     playAllBtn.style.display = 'inline-flex';
     nextBtn.style.display = 'inline-flex';
-
-    // Ensure proper stacking
-    mainControls.style.marginTop = '4px';
 } else {
     // 🎵 Songs mode — hide playlist-only row
     playlistControls.style.display = 'none';
 }
 
-// Compact spacing for both modes
-mainControls.style.gap = '4px';
-playlistControls.style.gap = '6px';
+// 🧩 Compact mode awareness (Rabbit R1 or .r1-compact body)
+const isCompact =
+    document.body.classList.contains('r1-compact') ||
+    (typeof window.rabbit !== 'undefined');
+
+if (isCompact) {
+    // Tightened vertical and horizontal spacing for compact layout
+    mainControls.style.marginTop = '0px';
+    mainControls.style.gap = '1px';
+    playlistControls.style.gap = '1px';
+} else {
+    // Normal desktop / browser layout
+    mainControls.style.marginTop = '4px';
+    mainControls.style.gap = '4px';
+    playlistControls.style.gap = '6px';
+}
 
 const createPlayer = () => {
     if (player) {

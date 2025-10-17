@@ -1431,56 +1431,49 @@ body.r1-compact #internalPlayerOverlay {
 body.r1-compact #playerVideoTitle {
     font-size: 0.8em;
 }
-/* --- Compact Player Layout Tightened and Expanded --- */
+/* --- FINAL R1 Compact Player Optimization (True Fix) --- */
 body.r1-compact .player-container {
     flex-grow: 1;
     height: auto;
-    min-height: calc(100vh - 125px); /* Expands video area vertically */
+    min-height: calc(100vh - 90px); /* More flexible vertical space */
     border-radius: 6px;
     margin: 0;
     padding: 0;
 }
 
-/* Remove excess spacing between player window and controls */
-body.r1-compact .player-controls {
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-    gap: 0; /* eliminates space between top and bottom control rows */
-}
-
-/* Tighten playlist and main control rows */
-body.r1-compact .player-playlist-controls {
-    margin: 0;
-    padding: 0;
-    gap: 2px; /* minimal horizontal space between icons */
-}
-
+/* Tighten playlist + main controls directly (no .player-controls wrapper) */
+body.r1-compact .player-playlist-controls,
 body.r1-compact .player-main-controls {
-    margin: 0;
-    padding: 0;
-    gap: 2px; /* minimal horizontal space between icons */
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 1px !important; /* minimal horizontal spacing */
 }
 
-/* Button & icon sizing tuned for compact mode */
+/* Force eliminate vertical space between rows */
+body.r1-compact .player-main-controls {
+    margin-top: -2px !important;
+}
+
+/* Compact buttons */
 body.r1-compact .player-playlist-controls button,
 body.r1-compact .player-main-controls button {
-    width: 30px;
-    height: 30px;
+    width: 28px !important;
+    height: 28px !important;
 }
 body.r1-compact .player-playlist-controls svg,
 body.r1-compact .player-main-controls svg {
-    width: 18px;
-    height: 18px;
+    width: 16px !important;
+    height: 16px !important;
 }
+
+/* Play/Pause button slightly larger for visual balance */
 body.r1-compact #playerPlayPauseBtn {
-    width: 36px;
-    height: 36px;
+    width: 34px !important;
+    height: 34px !important;
 }
 body.r1-compact #playerPlayPauseBtn svg {
-    width: 22px;
-    height: 22px;
+    width: 20px !important;
+    height: 20px !important;
 }
 
 /* Now playing bar */
