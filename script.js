@@ -764,11 +764,11 @@ if (isPlaylistMode) {
     }
 }
 
-// Helper: fetch up to 3 more pages looking for playlist-like results
+// Helper: fetch up to 1 more page (2 total) looking for playlist-like results
 async function fetchNextPlaylistPages(query, firstData) {
     let playlists = [];
 
-    // check first page for playlist_results OR playlist-like video_results
+    // ✅ Step 1: Check first page for playlists or playlist-like video_results
     if (Array.isArray(firstData.playlist_results)) {
         playlists = firstData.playlist_results;
     }
@@ -778,13 +778,16 @@ async function fetchNextPlaylistPages(query, firstData) {
         );
     }
 
+    // ✅ Step 2: Prepare pagination if needed
     let nextUrl = firstData.serpapi_pagination?.next || null;
     let attempts = 0;
 
+    // ✅ Step 3: Only allow 1 retry (so total = 2 pages)
     while (playlists.length === 0 && nextUrl && attempts < 1) {
         attempts++;
         youtubeSearchResultsContainer.innerHTML =
             `<p>Searching playlists… (page ${attempts + 1})</p>`;
+
         if (typeof PluginMessageHandler !== "undefined") {
             PluginMessageHandler.postMessage(JSON.stringify({
                 message: JSON.stringify({
@@ -793,7 +796,9 @@ async function fetchNextPlaylistPages(query, firstData) {
                 }),
                 useSerpAPI: true
             }));
-            await new Promise(r => setTimeout(r, 2500));
+
+            // ⏳ Reduced delay: was 2500 ms → now 1500 ms
+            await new Promise(r => setTimeout(r, 1500));
         } else break;
     }
 
