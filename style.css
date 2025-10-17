@@ -1274,6 +1274,25 @@ button.rabbit-default:hover {
     gap: 8px;
 }
 
+/* 🆕 Playlist Controls Row (Top Row for Playlist Mode) */
+.player-playlist-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 4px; /* spacing from bottom row */
+}
+
+.player-playlist-controls button {
+    width: 38px;
+    height: 38px;
+}
+
+.player-playlist-controls svg {
+    width: 24px;
+    height: 24px;
+}
+
 /* === Player Icon Sizing & Proportions (Final) === */
 
 /* Set a standard size for the icon buttons (Shuffle, Next, and Audio Only) */

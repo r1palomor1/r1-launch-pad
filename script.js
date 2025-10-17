@@ -524,19 +524,31 @@ function openPlayerView(options) {
 // 🎛 Adjust controls visibility based on mode (songs vs playlists)
 const shuffleBtn = document.getElementById('playerShuffleBtn');
 const nextBtn = document.getElementById('playerNextBtn');
+const prevBtn = document.getElementById('playerPrevBtn');
+const playAllBtn = document.getElementById('playerPlayAllBtn');
+
+// Get both control row containers
+const mainControls = document.querySelector('.player-main-controls');      // Bottom row (shared)
+const playlistControls = document.querySelector('.player-playlist-controls'); // New top row (playlist-only)
 
 if (options.playlistId) {
-    // Playlist mode — show Shuffle & Next
+    // ▶ Playlist mode — show top row and its buttons
+    playlistControls.style.display = 'flex';
+    prevBtn.style.display = 'inline-flex';
     shuffleBtn.style.display = 'inline-flex';
+    playAllBtn.style.display = 'inline-flex';
     nextBtn.style.display = 'inline-flex';
+
+    // Ensure proper stacking
+    mainControls.style.marginTop = '4px';
 } else {
-    // Songs mode — hide Shuffle & Next
-    shuffleBtn.style.display = 'none';
-    nextBtn.style.display = 'none';
+    // 🎵 Songs mode — hide playlist-only row
+    playlistControls.style.display = 'none';
 }
 
 // Compact spacing for both modes
-document.querySelector('.player-main-controls').style.gap = '4px';
+mainControls.style.gap = '4px';
+playlistControls.style.gap = '6px';
 
 const createPlayer = () => {
     if (player) {
