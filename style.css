@@ -1036,22 +1036,71 @@ button.rabbit-default:hover {
     height: 100%;
 }
 
+/* === Player Controls Section (Updated for Two-Row Layout) === */
 .player-controls {
     flex: 0 0 auto;
     display: flex;
-    /* flex-direction: column; was removed */
+    flex-direction: column; /* stack rows vertically */
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding-top: 10px;
+    gap: 4px; /* small vertical gap between playlist and main row */
 }
 
-.player-navigation {
+/* 🆕 Playlist Controls Row (Top Row for Playlist Mode) */
+.player-playlist-controls {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    width: 100%;
-    gap: 4px; /* Reduced gap */
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 2px; /* slight space before bottom row */
 }
+
+.player-main-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* === Player Icon Sizing & Proportions (Final) === */
+
+/* Top row icons (Prev, Shuffle, Play All, Next) */
+.player-playlist-controls button {
+    width: 38px;
+    height: 38px;
+}
+
+.player-playlist-controls svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Base row icons (Back, Play/Pause, Audio Only, Search) */
+#playerShuffleBtn,
+#playerNextBtn,
+#playerAudioOnlyBtn {
+    width: 38px;
+    height: 38px;
+}
+
+#playerShuffleBtn svg,
+#playerNextBtn svg,
+#playerAudioOnlyBtn svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Override: Keep the main Play/Pause button and its icon the largest for emphasis */
+#playerPlayPauseBtn {
+    width: 44px;
+    height: 44px;
+}
+#playerPlayPauseBtn svg {
+    width: 30px;
+    height: 30px;
+}
+
 /* ... */
 .player-main-controls {
     display: flex;
