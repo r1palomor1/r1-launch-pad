@@ -1321,94 +1321,40 @@ button.rabbit-default:hover {
     height: 30px;
 }
 
-/* === SONGS MODE CONTROLS === */
-/* Unchanged layout — retain spacing, sizing, and hierarchy exactly */
-.player-controls-songs {
+/* New Playlist Player Styles */
+.player-navigation-playlist {
     display: flex;
-    align-items: center;
+    flex-direction: column; /* Stack the rows vertically */
+    width: 100%;
+    gap: 2px; /* Very small gap between the two rows */
+    padding: 4px 8px; /* Reduced vertical padding */
+    box-sizing: border-box;
+}
+
+.playlist-controls-row {
+    display: flex;
     justify-content: space-between;
-    gap: 6px;
-    padding: 4px 6px;
+    align-items: center;
     width: 100%;
 }
 
-.player-controls-songs button {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 3px 6px;
+/* Make all buttons within the new playlist controls more compact */
+.player-navigation-playlist .dialog-icon-btn,
+.player-navigation-playlist .secondary {
+    padding: 4px; /* Reduce padding */
+    height: 36px; /* Reduce height */
+    min-width: 36px;
+    flex-shrink: 0;
 }
 
-/* === PLAYLIST MODE CONTROLS (Two-Row Compact Layout) === */
-.player-controls-playlists {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 2px;
-    width: 100%;
+/* Make icons smaller */
+.player-navigation-playlist .dialog-icon-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
-/* Top Row: Playlist Navigation (Compact) */
-.playlist-nav-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: clamp(1px, 0.5vw, 3px);
-    padding: 1px 2px;
-}
-
-.playlist-nav-row button {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 1px 2px;
-    min-height: 24px;
-    height: 24px;
-}
-
-.playlist-nav-row svg {
-    width: clamp(12px, 3vw, 14px);
-    height: clamp(12px, 3vw, 14px);
-}
-
-/* Bottom Row: Main Controls (Compact) */
-.playlist-main-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: clamp(1px, 0.5vw, 3px);
-    padding: 1px 2px;
-}
-
-.playlist-main-row button {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 1px 2px;
-    min-height: 24px;
-    height: 24px;
-}
-
-.playlist-main-row svg {
-    width: clamp(12px, 3vw, 14px);
-    height: clamp(12px, 3vw, 14px);
-}
-
-/* Hover Effects */
-.playlist-nav-row button:hover svg,
-.playlist-main-row button:hover svg {
-    fill: var(--primary-color);
-}
-
-/* Responsive: Extra small screens */
-@media (max-width: 260px) {
-    .playlist-nav-row, .playlist-main-row {
-        gap: 1px;
-        padding: 1px;
-    }
-    .playlist-nav-row button, .playlist-main-row button {
-        min-height: 20px;
-        height: 20px;
-    }
-    .playlist-nav-row svg, .playlist-main-row svg {
-        width: 10px;
-        height: 10px;
-    }
+/* Specific adjustments for text buttons */
+.player-navigation-playlist .secondary {
+    padding: 4px 10px; /* Give text buttons a bit more horizontal padding */
+    font-size: 14px;
 }

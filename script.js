@@ -1,3 +1,4 @@
+﻿
 // Working state app for Song and Playlist modes (latter no playlist_results)
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
@@ -38,90 +39,17 @@ const nowPlayingBar = document.getElementById('nowPlayingBar');
 const nowPlayingTitle = document.getElementById('nowPlayingTitle');
 const playerVideoTitle = document.getElementById('playerVideoTitle');
 const youtubePlayerContainer = document.getElementById('youtubePlayer');
-
-// 🎛 Separate player control buttons for Songs vs Playlists
-// 🎛 Separate player control buttons for Songs vs Playlists
-const playerBackBtnSongs = document.getElementById('playerBackBtnSongs');
-const playerSearchBtnSongs = document.getElementById('playerSearchBtnSongs');
-const playerBackBtnPlaylists = document.getElementById('playerBackBtnPlaylists');
-const playerSearchBtnPlaylists = document.getElementById('playerSearchBtnPlaylists');
+const playerBackBtn = document.getElementById('playerBackBtn');
+const playerSearchBtn = document.getElementById('playerSearchBtn');
 const playerPlayPauseBtn = document.getElementById('playerPlayPauseBtn');
 const playerAudioOnlyBtn = document.getElementById('playerAudioOnlyBtn');
-const playerPlayPauseBtnPlaylists = document.getElementById('playerPlayPauseBtnPlaylists');
-const playerAudioOnlyBtnPlaylists = document.getElementById('playerAudioOnlyBtnPlaylists');
 const playerContainer = document.querySelector('.player-container');
-
-const songsControls = document.querySelector('.player-controls-songs');
-const playlistsControls = document.querySelector('.player-controls-playlists');
-
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
 const searchModePlaylistsBtn = document.getElementById('searchModePlaylists');
 const youtubeSearchViewOverlay = document.getElementById('youtubeSearchViewOverlay');
 const youtubeSearchInput = document.getElementById('youtubeSearchInput');
 const youtubeSearchCancelBtn = document.getElementById('youtubeSearchCancelBtn');
 const youtubeSearchGoBtn = document.getElementById('youtubeSearchGoBtn');
-
-// 🧩 Toggle which control group is visible based on mode
-function showPlayerMode(options) {
-    if (options.playlistId) {
-        // 📜 PLAYLIST MODE
-        songsControls.style.display = 'none';
-        playlistsControls.style.display = 'flex';
-    } else {
-        // 🎵 SONGS MODE
-        playlistsControls.style.display = 'none';
-        songsControls.style.display = 'flex';
-    }
-}
-
-// 🎬 PLAYLIST Search button → opens YouTube overlay in Playlist mode
-if (playerSearchBtnPlaylists) {
-    playerSearchBtnPlaylists.addEventListener('click', () => {
-        internalPlayerOverlay.style.display = 'none';
-        youtubeSearchViewOverlay.style.display = 'flex';
-        searchModePlaylistsBtn.checked = true;
-        youtubeSearchInput.focus();
-    });
-}
-
-// 🎵 SONGS Search button → opens YouTube overlay in Songs mode
-if (playerSearchBtnSongs) {
-    playerSearchBtnSongs.addEventListener('click', () => {
-        internalPlayerOverlay.style.display = 'none';
-        youtubeSearchViewOverlay.style.display = 'flex';
-        searchModeVideosBtn.checked = true;
-        youtubeSearchInput.focus();
-    });
-}
-
-// 🎛 PLAYLIST Play/Pause Button
-if (playerPlayPauseBtnPlaylists) {
-    playerPlayPauseBtnPlaylists.addEventListener('click', () => {
-        if (player) {
-            const state = player.getPlayerState();
-            if (state === 1) { // Playing
-                player.pauseVideo();
-            } else { // Paused or other
-                player.playVideo();
-            }
-        }
-    });
-}
-
-// 🎛 PLAYLIST Audio Only Button
-if (playerAudioOnlyBtnPlaylists) {
-    playerAudioOnlyBtnPlaylists.addEventListener('click', () => {
-        isAudioOnly = !isAudioOnly;
-        playerContainer.classList.toggle('audio-only', isAudioOnly);
-        playerAudioOnlyBtnPlaylists.classList.toggle('active', isAudioOnly);
-    });
-}
-
-// 🎛 PLAYLIST Back Button
-if (playerBackBtnPlaylists) {
-    playerBackBtnPlaylists.addEventListener('click', closePlayerView);
-}
-
 const youtubeSearchResultsContainer = document.getElementById('youtubeSearchResultsContainer');
 const youtubeSearchView = document.getElementById('youtubeSearchView');
 const youtubeSearchLoader = document.getElementById('youtubeSearchLoader');
@@ -588,97 +516,78 @@ function getYoutubePlaylistId(url) {
 }
 
 function openPlayerView(options) {
-    // Hide any other overlays and bring player to front
-    youtubeSearchViewOverlay.style.display = 'none';
     nowPlayingBar.style.display = 'none';
+    playerVideoTitle.textContent = options.title;
     internalPlayerOverlay.style.display = 'flex';
-    playerVideoTitle.textContent = options.title || 'Now Playing';
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
     playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
 
-    // 🧩 Auto-set control mode (Songs vs Playlists)
-    if (typeof showPlayerMode === "function") {
-        showPlayerMode(options);
+// 🎛 Adjust controls visibility based on mode (songs vs playlists)
+const shuffleBtn = document.getElementById('playerShuffleBtn');
+const nextBtn = document.getElementById('playerNextBtn');
+const prevBtn = document.getElementById('playerPrevBtn');
+const playAllBtn = document.getElementById('playerPlayAllBtn');
+
+// Get both control row containers
+const mainControls = document.querySelector('.player-main-controls');      // Bottom row (shared)
+const playlistControls = document.querySelector('.player-playlist-controls'); // New top row (playlist-only)
+
+if (options.playlistId) {
+    // ▶ Playlist mode — show top row and its buttons
+    playlistControls.style.display = 'flex';
+    prevBtn.style.display = 'inline-flex';
+    shuffleBtn.style.display = 'inline-flex';
+    playAllBtn.style.display = 'inline-flex';
+    nextBtn.style.display = 'inline-flex';
+
+    // Ensure proper stacking
+    mainControls.style.marginTop = '4px';
+} else {
+    // 🎵 Songs mode — hide playlist-only row
+    playlistControls.style.display = 'none';
+}
+
+// Compact spacing for both modes
+mainControls.style.gap = '4px';
+playlistControls.style.gap = '6px';
+
+const createPlayer = () => {
+    if (player) {
+        player.destroy();
     }
+    try {
+        // existing player config
 
-    // 🎛 Initialize playlist control buttons with icons
-    if (playerPlayPauseBtnPlaylists) {
-        playerPlayPauseBtnPlaylists.innerHTML = PLAY_ICON_SVG;
-    }
-    if (playerAudioOnlyBtnPlaylists) {
-        playerAudioOnlyBtnPlaylists.innerHTML = AUDIO_ICON_SVG;
-        playerAudioOnlyBtnPlaylists.classList.remove('active');
-    }
+            // This is the core change: It now creates the player differently
+            // based on whether it receives a videoId or a playlistId.
+            let playerConfig = {
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                    'playsinline': 1,
+                    'controls': 1,
+                    'autoplay': 1,
+                    'rel': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            };
 
-    // 🎛 Control row visibility (still supports legacy containers)
-    const shuffleBtn = document.getElementById('playerShuffleBtn');
-    const nextBtn = document.getElementById('playerNextBtn');
-    const prevBtn = document.getElementById('playerPrevBtn');
-    const playAllBtn = document.getElementById('playerPlayAllBtn');
-    const searchBtnPlaylists = document.getElementById('playerSearchBtnPlaylists');
-    const mainControls = document.querySelector('.player-main-controls');
-    const playlistControls = document.querySelector('.player-playlist-controls');
-
-    // Reset states
-    mainControls.classList.remove('player-controls-songs', 'player-controls-playlists');
-    playlistControls.classList.remove('player-controls-songs', 'player-controls-playlists');
-
-    if (options.playlistId) {
-        // ▶ PLAYLIST MODE
-        playlistControls.style.display = 'flex';
-        mainControls.style.display = 'none';
-        playlistControls.classList.add('player-controls-playlists');
-
-        prevBtn?.style.setProperty('display', 'inline-flex');
-        shuffleBtn?.style.setProperty('display', 'inline-flex');
-        playAllBtn?.style.setProperty('display', 'inline-flex');
-        nextBtn?.style.setProperty('display', 'inline-flex');
-        searchBtnPlaylists?.style.setProperty('display', 'inline-flex');
-    } else {
-        // 🎵 SONGS MODE
-        playlistControls.style.display = 'none';
-        mainControls.style.display = 'flex';
-        mainControls.classList.add('player-controls-songs');
-    }
-
-    // Compact spacing
-    mainControls.style.gap = '4px';
-    playlistControls.style.gap = 'clamp(2px, 1vw, 6px)';
-
-    // 🧠 Create new YouTube Player
-    const createPlayer = () => {
-        if (player) {
-            try { player.destroy(); } catch {}
-        }
-
-        const playerConfig = {
-            height: '100%',
-            width: '100%',
-            playerVars: {
-                playsinline: 1,
-                controls: 1,
-                autoplay: 1,
-                rel: 0,
-                showinfo: 0,
-                modestbranding: 1
-            },
-            events: {
-                onReady: onPlayerReady,
-                onStateChange: onPlayerStateChange
+            if (options.videoId) {
+                playerConfig.videoId = options.videoId;
+            } else if (options.playlistId) {
+                playerConfig.playerVars.listType = 'playlist';
+                playerConfig.playerVars.list = options.playlistId;
             }
-        };
 
-        if (options.videoId) {
-            playerConfig.videoId = options.videoId;
-        } else if (options.playlistId) {
-            playerConfig.playerVars.listType = 'playlist';
-            playerConfig.playerVars.list = options.playlistId;
-        }
-
-        try {
             player = new YT.Player('youtubePlayer', playerConfig);
-        } catch (err) {
-            console.error("Error creating YouTube player:", err);
+
+        } catch (e) {
+            console.error("Error creating YouTube player:", e);
         }
     };
 
@@ -689,42 +598,20 @@ function openPlayerView(options) {
 }
 
 function closePlayerView() {
-    // 🧹 Fully hide and reset both player control groups
     internalPlayerOverlay.style.display = 'none';
-    songsControls.style.display = 'none';
-    playlistsControls.style.display = 'none';
-    nowPlayingBar.style.display = 'none';
-
-    // Safely destroy YouTube player
     if (player && typeof player.destroy === 'function') {
-        try { player.destroy(); } catch {}
+        player.destroy();
     }
     player = null;
-
-    // Reset UI state including new playlist controls
     playerVideoTitle.textContent = '';
+    // Reset player UI elements
     playerPlayPauseBtn.innerHTML = '';
-    playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
-    playerAudioOnlyBtn.classList.remove('active');
-    
-    // Reset new playlist controls
-    if (playerPlayPauseBtnPlaylists) {
-        playerPlayPauseBtnPlaylists.innerHTML = '';
-    }
-    if (playerAudioOnlyBtnPlaylists) {
-        playerAudioOnlyBtnPlaylists.innerHTML = AUDIO_ICON_SVG;
-        playerAudioOnlyBtnPlaylists.classList.remove('active');
-    }
-    
-    playerContainer.classList.remove('audio-only');
     isAudioOnly = false;
+    playerContainer.classList.remove('audio-only');
+    playerAudioOnlyBtn.classList.remove('active');
     youtubePlayerContainer.innerHTML = '';
-
-    // Restore focus if returning from playlist or songs search
-    if (youtubeSearchViewOverlay.style.display === 'flex') {
-        youtubeSearchInput.focus();
-    }
 }
+
 function openYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'flex';
     youtubeSearchInput.value = '';
@@ -2058,30 +1945,14 @@ function onPlayerStateChange(event) {
         const videoData = player.getVideoData();
         playerVideoTitle.textContent = videoData.title;
 
-        // Update both Songs and Playlist mode Play/Pause buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
-        if (playerPlayPauseBtnPlaylists) {
-            playerPlayPauseBtnPlaylists.innerHTML = PAUSE_ICON_SVG;
-        }
     } else if (event.data === YT.PlayerState.PAUSED ) {
-        // Update both Songs and Playlist mode Play/Pause buttons
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
-        if (playerPlayPauseBtnPlaylists) {
-            playerPlayPauseBtnPlaylists.innerHTML = PLAY_ICON_SVG;
-        }
     } else if (event.data === YT.PlayerState.ENDED ) {
-    // Update both Songs and Playlist mode Play/Pause buttons
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
-    if (playerPlayPauseBtnPlaylists) {
-        playerPlayPauseBtnPlaylists.innerHTML = PLAY_ICON_SVG;
-    }
     nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
     } else if (event.data === YT.PlayerState.BUFFERING) {
     } else if (event.data === YT.PlayerState.UNSTARTED) {
-    // Update both Songs and Playlist mode Play/Pause buttons
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
-    if (playerPlayPauseBtnPlaylists) {
-        playerPlayPauseBtnPlaylists.innerHTML = PLAY_ICON_SVG;
-    }
 }
 }
