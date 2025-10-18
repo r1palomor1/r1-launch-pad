@@ -77,12 +77,10 @@ const PLAY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 2
 const PAUSE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
 const STOP_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>`;
 const AUDIO_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1a7 7 0 0 1 14 0v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 0 0-9-9z"/></svg>`;
-// ... existing code ...
 let isAudioOnly = false;
 let isShuffleActive = false; // Add this line
 let youtubeNextPageUrl = null;
 let isFetchingYoutubeResults = false;
-// ... existing code ...
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
@@ -1971,13 +1969,19 @@ function togglePlayback() {
 }
 
 function onPlayerReady(event) {
-    // Don't autoplay. The player is ready and will wait for user input.
-    // The initial state change to UNSTARTED (-1) will set the UI.
+    // This function fires as soon as the player has loaded the video/playlist data.
+    const videoData = player.getVideoData();
+
+    // Check if we are in a playlist context. The `videoData` object will have a `list` property.
+    if (videoData && videoData.list) {
+        // The playlist title is available in the `videoData.title` field at this stage.
+        if (videoData.title) {
+            playerVideoTitle.textContent = videoData.title;
+        }
+    }
 }
 
-// ... existing code ...
-function toggleShuffle() {
-    if (!player) return;
+function toggleShuffle() {    if (!player) return;
     isShuffleActive = !isShuffleActive;
     player.setShuffle(isShuffleActive);
     playerShuffleBtn.classList.toggle('active', isShuffleActive);
@@ -1991,8 +1995,6 @@ function toggleShuffle() {
     }
 }
 
-// ... existing code ...
-// ... existing code ...
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         // Update title with the full title from the API - this is the most reliable time.
@@ -2005,11 +2007,9 @@ function onPlayerStateChange(event) {
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
     } else if (event.data === YT.PlayerState.PAUSED ) {
-// ... existing code ...
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
     } else if (event.data === YT.PlayerState.ENDED ) {
-// ... existing code ...
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
     nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
