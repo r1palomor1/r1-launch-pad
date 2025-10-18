@@ -1,5 +1,4 @@
-﻿
-// Working state app for Song and Playlist modes (latter no playlist_results)
+﻿// Working state app for Song and Playlist modes
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
