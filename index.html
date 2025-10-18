@@ -129,50 +129,48 @@
             <div id="youtubePlayer"></div>
             <!-- This div will act as a "click shield" to prevent external launches -->
         </div>
-        <div class="player-controls">
-    <div class="player-navigation">
-        <button id="playerBackBtn" class="secondary">Back</button>
-
-        <!-- 🆕 New Playlist Controls Row (visible only in playlist mode) -->
-        <div class="player-playlist-controls" style="display: none;">
-            <button id="playerPrevBtn" class="dialog-icon-btn" title="Previous">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 6v12l-8.5-6L18 6zM6 6v12h2V6H6z"></path>
-                </svg>
-            </button>
-            <button id="playerShuffleBtn" class="dialog-icon-btn" title="Shuffle">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"></path>
-                </svg>
-            </button>
-            <button id="playerPlayAllBtn" class="dialog-icon-btn" title="Play All">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z"></path>
-                </svg>
-            </button>
-            <button id="playerNextBtn" class="dialog-icon-btn" title="Next">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path>
-                </svg>
-            </button>
-        </div>
-        <!-- 🆕 End New Playlist Controls Row -->
-
-        <div class="player-main-controls">
-            <button id="playerShuffleBtn" class="dialog-icon-btn" title="Shuffle" style="display: none;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"></path></svg>
-            </button>
-            <button id="playerPlayPauseBtn" class="dialog-icon-btn"></button>
-            <button id="playerNextBtn" class="dialog-icon-btn" title="Next" style="display: none;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
-            </button>
-            <button id="playerAudioOnlyBtn" class="dialog-icon-btn"></button>
-        </div>
-        <button id="playerSearchBtn" class="secondary">Search</button>
-    </div>
+        <!-- 🎵 SONGS MODE CONTROLS -->
+<div class="player-controls player-controls-songs" style="display:none;">
+    <button id="playerBackBtnSongs" class="secondary">Back</button>
+    <button id="playerPlayPauseBtnSongs" class="dialog-icon-btn" title="Play / Pause"></button>
+    <button id="playerAudioOnlyBtnSongs" class="dialog-icon-btn" title="Audio Only"></button>
+    <button id="playerSearchBtnSongs" class="secondary">Search</button>
 </div>
 
-
+<!-- 📜 PLAYLIST MODE CONTROLS (Two-Row Layout) -->
+<div class="player-controls player-controls-playlists" style="display:none;">
+    <!-- Top Row: Playlist Navigation -->
+    <div class="playlist-nav-row">
+        <button id="playerPrevBtn" class="dialog-icon-btn" title="Previous">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18 6v12l-8.5-6L18 6zM6 6v12h2V6H6z"></path>
+            </svg>
+        </button>
+        <button id="playerShuffleBtn" class="dialog-icon-btn" title="Shuffle">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"></path>
+            </svg>
+        </button>
+        <button id="playerPlayAllBtn" class="dialog-icon-btn" title="Play All">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"></path>
+            </svg>
+        </button>
+        <button id="playerNextBtn" class="dialog-icon-btn" title="Next">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path>
+            </svg>
+        </button>
+    </div>
+    
+    <!-- Bottom Row: Main Controls (Same as Songs Layout) -->
+    <div class="playlist-main-row">
+        <button id="playerBackBtnPlaylists" class="secondary">Back</button>
+        <button id="playerPlayPauseBtnPlaylists" class="dialog-icon-btn" title="Play / Pause"></button>
+        <button id="playerAudioOnlyBtnPlaylists" class="dialog-icon-btn" title="Audio Only"></button>
+        <button id="playerSearchBtnPlaylists" class="secondary">Search</button>
+    </div>
+</div>
     </div>
 
     <!-- YouTube Internal Search View -->
