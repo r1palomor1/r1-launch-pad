@@ -1363,15 +1363,18 @@ button.rabbit-default:hover {
 #internalPlayerOverlay.theater-mode .player-header,
 #internalPlayerOverlay.theater-mode .player-controls {
     opacity: 0;
-    visibility: hidden; /* ADD THIS */
-    height: 0; /* ADD THIS */
-    padding: 0; /* ADD THIS */
-    margin: 0; /* ADD THIS */
+    visibility: hidden;
+    height: 0;
+    padding: 0;
+    margin: 0;
     pointer-events: none;
-    transition: all 0.3s ease-in-out; /* MODIFIED */
+    transition: all 0.3s ease-in-out;
 }
 
 #internalPlayerOverlay.theater-mode .player-container {
+    position: absolute; /* ADD: Take player out of flex flow */
+    top: 0;             /* ADD: Position at the top */
+    left: 0;            /* ADD: Position at the left */
     height: 100%;
     width: 100%;
     border-radius: 0;

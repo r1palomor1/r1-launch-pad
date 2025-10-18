@@ -604,11 +604,16 @@ internalPlayerOverlay.addEventListener('click', (e) => {
         internalPlayerOverlay.classList.remove('theater-mode');
         clearTimeout(theaterModeTimer); // Cancel timer if user exits manually
 
+        // ADD THIS: Tell player to resize back to its smaller container
+        if (player) player.setSize('100%', '100%');
+
         // --- TIMER RESTART LOGIC START ---
         // If the video is still playing, restart the countdown to re-enter theater mode.
         if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
             theaterModeTimer = setTimeout(() => {
                 internalPlayerOverlay.classList.add('theater-mode');
+                // ADD THIS: Also resize player when re-entering
+                if (player) player.setSize('100%', '100%');
             }, 10000); // 10 seconds
         }
         // --- TIMER RESTART LOGIC END ---
@@ -2035,6 +2040,8 @@ function onPlayerStateChange(event) {
         clearTimeout(theaterModeTimer); // Clear any previous timer
         theaterModeTimer = setTimeout(() => {
             internalPlayerOverlay.classList.add('theater-mode');
+            // ADD THIS: Tell the player to resize to its new container dimensions
+            if (player) player.setSize('100%', '100%');
         }, 10000); // 10 seconds
         // --- THEATER MODE LOGIC END ---
 
