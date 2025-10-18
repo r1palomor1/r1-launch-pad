@@ -39,11 +39,26 @@ const nowPlayingBar = document.getElementById('nowPlayingBar');
 const nowPlayingTitle = document.getElementById('nowPlayingTitle');
 const playerVideoTitle = document.getElementById('playerVideoTitle');
 const youtubePlayerContainer = document.getElementById('youtubePlayer');
-const playerBackBtn = document.getElementById('playerBackBtn');
-const playerSearchBtn = document.getElementById('playerSearchBtn');
+const playerContainer = document.querySelector('.player-container');
+
+// Player Controls - Song Mode
+const playerSongControls = document.getElementById('playerSongControls');
 const playerPlayPauseBtn = document.getElementById('playerPlayPauseBtn');
 const playerAudioOnlyBtn = document.getElementById('playerAudioOnlyBtn');
-const playerContainer = document.querySelector('.player-container');
+const playerBackBtn = document.getElementById('playerBackBtn');
+const playerSearchBtn = document.getElementById('playerSearchBtn');
+
+// Player Controls - Playlist Mode
+const playerPlaylistControls = document.getElementById('playerPlaylistControls');
+const playerPlayPauseBtn_playlist = document.getElementById('playerPlayPauseBtn_playlist');
+const playerAudioOnlyBtn_playlist = document.getElementById('playerAudioOnlyBtn_playlist');
+const playerBackBtn_playlist = document.getElementById('playerBackBtn_playlist');
+const playerSearchBtn_playlist = document.getElementById('playerSearchBtn_playlist');
+const playerPrevBtn = document.getElementById('playerPrevBtn');
+const playerNextBtn = document.getElementById('playerNextBtn');
+const playerShuffleBtn = document.getElementById('playerShuffleBtn');
+const playerPlayAllBtn = document.getElementById('playerPlayAllBtn');
+
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
 const searchModePlaylistsBtn = document.getElementById('searchModePlaylists');
 const youtubeSearchViewOverlay = document.getElementById('youtubeSearchViewOverlay');
@@ -519,39 +534,23 @@ function openPlayerView(options) {
     nowPlayingBar.style.display = 'none';
     playerVideoTitle.textContent = options.title;
     internalPlayerOverlay.style.display = 'flex';
-    playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
-    playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
 
-// 🎛 Adjust controls visibility based on mode (songs vs playlists)
-const shuffleBtn = document.getElementById('playerShuffleBtn');
-const nextBtn = document.getElementById('playerNextBtn');
-const prevBtn = document.getElementById('playerPrevBtn');
-const playAllBtn = document.getElementById('playerPlayAllBtn');
+    // Show/hide the correct controls
+    if (options.playlistId) {
+        playerSongControls.style.display = 'none';
+        playerPlaylistControls.style.display = 'flex';
+        // Set initial state for playlist controls
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+        playerAudioOnlyBtn_playlist.innerHTML = AUDIO_ICON_SVG;
+    } else {
+        playerSongControls.style.display = 'flex';
+        playerPlaylistControls.style.display = 'none';
+        // Set initial state for song controls
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+        playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
+    }
 
-// Get both control row containers
-const mainControls = document.querySelector('.player-main-controls');      // Bottom row (shared)
-const playlistControls = document.querySelector('.player-playlist-controls'); // New top row (playlist-only)
-
-if (options.playlistId) {
-    // ▶ Playlist mode — show top row and its buttons
-    playlistControls.style.display = 'flex';
-    prevBtn.style.display = 'inline-flex';
-    shuffleBtn.style.display = 'inline-flex';
-    playAllBtn.style.display = 'inline-flex';
-    nextBtn.style.display = 'inline-flex';
-
-    // Ensure proper stacking
-    mainControls.style.marginTop = '4px';
-} else {
-    // 🎵 Songs mode — hide playlist-only row
-    playlistControls.style.display = 'none';
-}
-
-// Compact spacing for both modes
-mainControls.style.gap = '4px';
-playlistControls.style.gap = '6px';
-
-const createPlayer = () => {
+    const createPlayer = () => {
     if (player) {
         player.destroy();
     }
