@@ -77,9 +77,12 @@ const PLAY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 2
 const PAUSE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
 const STOP_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>`;
 const AUDIO_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1a7 7 0 0 1 14 0v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 0 0-9-9z"/></svg>`;
+// ... existing code ...
 let isAudioOnly = false;
+let isShuffleActive = false; // Add this line
 let youtubeNextPageUrl = null;
 let isFetchingYoutubeResults = false;
+// ... existing code ...
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
@@ -1964,14 +1967,18 @@ function onPlayerReady(event) {
 
 function toggleShuffle() {
     if (!player) return;
-    const isShuffle = player.getShuffle();
-    player.setShuffle(!isShuffle);
-    playerShuffleBtn.classList.toggle('active', !isShuffle);
+    isShuffleActive = !isShuffleActive; // Toggle our state variable
+    player.setShuffle(isShuffleActive); // Set the player's shuffle state
+    playerShuffleBtn.classList.toggle('active', isShuffleActive);
     triggerHaptic();
-    sayOnRabbit(!isShuffle ? "Shuffle enabled" : "Shuffle disabled");
+    sayOnRabbit(isShuffleActive ? "Shuffle enabled" : "Shuffle disabled");
+    
+    // If shuffling is activated while playing, jump to the next video in the new shuffled order.
+    if (isShuffleActive && player.getPlayerState() === YT.PlayerState.PLAYING) {
+        player.nextVideo();
+    }
 }
 
-// ... existing code ...
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         // Update title with the full title from the API
