@@ -1971,20 +1971,29 @@ function toggleShuffle() {
     sayOnRabbit(!isShuffle ? "Shuffle enabled" : "Shuffle disabled");
 }
 
+// ... existing code ...
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         // Update title with the full title from the API
         const videoData = player.getVideoData();
         playerVideoTitle.textContent = videoData.title;
 
+        // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
     } else if (event.data === YT.PlayerState.PAUSED ) {
+        // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
     } else if (event.data === YT.PlayerState.ENDED ) {
-    playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
+        // Update BOTH buttons
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
     nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
     } else if (event.data === YT.PlayerState.BUFFERING) {
     } else if (event.data === YT.PlayerState.UNSTARTED) {
+        // Update BOTH buttons
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+    playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
 }
 }
