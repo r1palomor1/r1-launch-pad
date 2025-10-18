@@ -1975,20 +1975,23 @@ function onPlayerReady(event) {
     // The initial state change to UNSTARTED (-1) will set the UI.
 }
 
+// ... existing code ...
 function toggleShuffle() {
     if (!player) return;
-    isShuffleActive = !isShuffleActive; // Toggle our state variable
-    player.setShuffle(isShuffleActive); // Set the player's shuffle state
+    isShuffleActive = !isShuffleActive;
+    player.setShuffle(isShuffleActive);
     playerShuffleBtn.classList.toggle('active', isShuffleActive);
     triggerHaptic();
     sayOnRabbit(isShuffleActive ? "Shuffle enabled" : "Shuffle disabled");
-    
-    // If shuffling is activated while playing, jump to the next video in the new shuffled order.
-    if (isShuffleActive && player.getPlayerState() === YT.PlayerState.PLAYING) {
-        player.nextVideo();
+
+    // If a video isn't already playing, start the playlist.
+    // The player will automatically start with a shuffled video.
+    if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+        player.playVideoAt(0);
     }
 }
 
+// ... existing code ...
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
         // Update BOTH buttons
@@ -2004,12 +2007,12 @@ function onPlayerStateChange(event) {
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
     nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
     } else if (event.data === YT.PlayerState.BUFFERING) {
-    } else if (event.data === YT.PlayerState.UNSTARTED) {
-        // A new video is cued, update the title immediately.
+        // Update title as soon as the video starts loading.
         const videoData = player.getVideoData();
         if (videoData && videoData.title) {
             playerVideoTitle.textContent = videoData.title;
         }
+    } else if (event.data === YT.PlayerState.UNSTARTED) {
         // Update BOTH buttons
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
     playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
