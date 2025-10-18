@@ -1992,26 +1992,29 @@ function toggleShuffle() {
 }
 
 // ... existing code ...
+// ... existing code ...
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
-        // Update BOTH buttons
-        playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
-        playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
-    } else if (event.data === YT.PlayerState.PAUSED ) {
-        // Update BOTH buttons
-        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
-        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
-    } else if (event.data === YT.PlayerState.ENDED ) {
-        // Update BOTH buttons
-        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
-        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
-    nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
-    } else if (event.data === YT.PlayerState.BUFFERING) {
-        // Update title as soon as the video starts loading.
+        // Update title with the full title from the API - this is the most reliable time.
         const videoData = player.getVideoData();
         if (videoData && videoData.title) {
             playerVideoTitle.textContent = videoData.title;
         }
+
+        // Update BOTH buttons
+        playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
+    } else if (event.data === YT.PlayerState.PAUSED ) {
+// ... existing code ...
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+    } else if (event.data === YT.PlayerState.ENDED ) {
+// ... existing code ...
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+    nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
+    } else if (event.data === YT.PlayerState.BUFFERING) {
+        // This state is unreliable for title updates, do nothing here.
     } else if (event.data === YT.PlayerState.UNSTARTED) {
         // Update BOTH buttons
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
