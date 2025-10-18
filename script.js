@@ -1854,6 +1854,30 @@ playerSearchBtn.addEventListener('click', () => {
     nowPlayingBar.style.display = 'flex'; // ADD THIS
 });
 
+// Event Listeners for playlist controls
+playerBackBtn_playlist.addEventListener('click', closePlayerView);
+playerShuffleBtn.addEventListener('click', toggleShuffle);
+playerPlayAllBtn.addEventListener('click', () => player.playVideoAt(0));
+playerPrevBtn.addEventListener('click', () => player.previousVideo());
+playerPlayPauseBtn_playlist.addEventListener('click', togglePlayback);
+playerAudioOnlyBtn_playlist.addEventListener('click', () => {
+    isAudioOnly = !isAudioOnly;
+    playerContainer.classList.toggle('audio-only', isAudioOnly);
+    playerAudioOnlyBtn_playlist.classList.toggle('active', isAudioOnly);
+    triggerHaptic();
+    sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
+});
+playerNextBtn.addEventListener('click', () => player.nextVideo());
+playerSearchBtn_playlist.addEventListener('click', () => {
+    internalPlayerOverlay.style.display = 'none';
+    youtubeSearchViewOverlay.style.display = 'flex';
+    youtubeSearchInput.value = '';
+    youtubeSearchInput.focus();
+    nowPlayingTitle.textContent = playerVideoTitle.textContent;
+    nowPlayingBar.style.display = 'flex';
+});
+
+
     playerPlayPauseBtn.addEventListener('click', togglePlayback);
 
         // This is the corrected listener for the Audio Only button
@@ -1936,6 +1960,15 @@ function togglePlayback() {
 function onPlayerReady(event) {
     // Don't autoplay. The player is ready and will wait for user input.
     // The initial state change to UNSTARTED (-1) will set the UI.
+}
+
+function toggleShuffle() {
+    if (!player) return;
+    const isShuffle = player.getShuffle();
+    player.setShuffle(!isShuffle);
+    playerShuffleBtn.classList.toggle('active', !isShuffle);
+    triggerHaptic();
+    sayOnRabbit(!isShuffle ? "Shuffle enabled" : "Shuffle disabled");
 }
 
 function onPlayerStateChange(event) {
