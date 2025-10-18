@@ -568,7 +568,7 @@ function openPlayerView(options) {
                 playerVars: {
                     'playsinline': 1,
                     'controls': 1,
-                    'autoplay': 0, // Changed to 0 to disable autoplay
+                    'autoplay': options.videoId ? 1 : 0, // Autoplay for songs, not playlists
                     'rel': 0,
                     'showinfo': 0,
                     'modestbranding': 1
@@ -1991,10 +1991,6 @@ function toggleShuffle() {
 
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
-        // Update title with the full title from the API
-        const videoData = player.getVideoData();
-        playerVideoTitle.textContent = videoData.title;
-
         // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
@@ -2009,6 +2005,11 @@ function onPlayerStateChange(event) {
     nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
     } else if (event.data === YT.PlayerState.BUFFERING) {
     } else if (event.data === YT.PlayerState.UNSTARTED) {
+        // A new video is cued, update the title immediately.
+        const videoData = player.getVideoData();
+        if (videoData && videoData.title) {
+            playerVideoTitle.textContent = videoData.title;
+        }
         // Update BOTH buttons
     playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
     playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
