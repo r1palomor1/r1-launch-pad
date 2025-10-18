@@ -78,6 +78,7 @@ const STOP_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 2
 const AUDIO_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1a7 7 0 0 1 14 0v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 0 0-9-9z"/></svg>`;
 let isAudioOnly = false;
 let isShuffleActive = false; // Add this line
+let theaterModeTimer = null; // ADD THIS LINE
 let youtubeNextPageUrl = null;
 let isFetchingYoutubeResults = false;
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
@@ -596,7 +597,21 @@ function openPlayerView(options) {
     }
 }
 
+// ADD THIS NEW EVENT LISTENER
+internalPlayerOverlay.addEventListener('click', (e) => {
+    // Only exit theater mode if the click is on the overlay itself, not on buttons inside it
+    if (e.target === internalPlayerOverlay && internalPlayerOverlay.classList.contains('theater-mode')) {
+        internalPlayerOverlay.classList.remove('theater-mode');
+        clearTimeout(theaterModeTimer); // Cancel timer if user exits manually
+    }
+});
+
 function closePlayerView() {
+    // --- THEATER MODE CLEANUP START ---
+    clearTimeout(theaterModeTimer);
+    internalPlayerOverlay.classList.remove('theater-mode');
+    // --- THEATER MODE CLEANUP END ---
+
     internalPlayerOverlay.style.display = 'none';
     if (player && typeof player.destroy === 'function') {
         player.destroy();
@@ -2005,13 +2020,30 @@ function onPlayerStateChange(event) {
         // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
+
+        // --- THEATER MODE LOGIC START ---
+        // Start a timer to enter theater mode
+        clearTimeout(theaterModeTimer); // Clear any previous timer
+        theaterModeTimer = setTimeout(() => {
+            internalPlayerOverlay.classList.add('theater-mode');
+        }, 10000); // 10 seconds
+        // --- THEATER MODE LOGIC END ---
+
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+        // --- THEATER MODE LOGIC START ---
+        clearTimeout(theaterModeTimer);
+        internalPlayerOverlay.classList.remove('theater-mode');
+        // --- THEATER MODE LOGIC END ---
     } else if (event.data === YT.PlayerState.ENDED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
     nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
+        // --- THEATER MODE LOGIC START ---
+        clearTimeout(theaterModeTimer);
+        internalPlayerOverlay.classList.remove('theater-mode');
+        // --- THEATER MODE LOGIC END ---
     } else if (event.data === YT.PlayerState.BUFFERING) {
         // This state is unreliable for title updates, do nothing here.
     } else if (event.data === YT.PlayerState.UNSTARTED) {

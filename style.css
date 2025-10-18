@@ -1358,3 +1358,18 @@ button.rabbit-default:hover {
     padding: 4px 10px; /* Give text buttons a bit more horizontal padding */
     font-size: 14px;
 }
+
+/* Theater Mode Styles */
+#internalPlayerOverlay.theater-mode .player-header,
+#internalPlayerOverlay.theater-mode .player-controls {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+}
+
+#internalPlayerOverlay.theater-mode .player-container {
+    height: 100%;
+    width: 100%;
+    border-radius: 0;
+    transition: all 0.3s ease-in-out;
+}

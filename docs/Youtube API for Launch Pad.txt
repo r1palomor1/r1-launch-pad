@@ -1,0 +1,34 @@
+
+Feature/Command	In Use?	Description
+Player Parameters (playerVars)		These are set when the player is first created.
+autoplay	Yes	Controls if the initial video will autoplay. Used conditionally: 1 (On) for single songs, 0 (Off) for playlists.
+controls	Yes	Determines whether the native YouTube player controls (timeline, quality, etc.) are displayed. Set to 1 (On).
+list	Yes	Used with listType, this specifies the YouTube Playlist ID to load.
+listType	Yes	Specifies the type of content list. Set to 'playlist' when a playlist is loaded.
+modestbranding	Yes	Prevents the YouTube logo from displaying in the control bar. Set to 1 (On).
+playsinline	Yes	Causes videos to play inline (within the app) on iOS, rather than forcing fullscreen. Set to 1 (On).
+rel	Yes	Determines if related videos are shown when playback ends. Set to 0 (Off) to not show them.
+showinfo	Yes	A deprecated parameter that used to show video information. Set to 0 (Off) for a cleaner look.
+cc_load_policy	No	Would force closed captions to be displayed by default.
+start / end	No	Would specify a start or end time in seconds for the video to play.
+Player Events		These are "listeners" that your code uses to react to changes in the player.
+onReady	Yes	Fires when the player has finished loading and is ready to receive API calls. Used to get playlist titles.
+onStateChange	Yes	Fires when the player's state (playing, paused, ended, etc.) changes. Used to update UI icons and titles.
+onPlaybackQualityChange	No	Would fire when the video playback quality changes.
+onError	No	Would fire if an error occurs in the player.
+Playback Controls		These functions are called on the player object to control it.
+playVideo()	Yes	Plays the currently cued/loaded video.
+pauseVideo()	Yes	Pauses the currently playing video.
+destroy()	Yes	Removes the <iframe> containing the player, cleaning it up when the player view is closed.
+getPlayerState()	Yes	Returns the current state of the player (playing, paused, etc.). Used to decide whether to play or pause.
+getVideoData()	Yes	Retrieves metadata for the currently playing video, such as its title.
+stopVideo()	No	Stops and cancels loading of the current video.
+seekTo()	No	Seeks to a specified time in the current video.
+setVolume() / getVolume()	No	Would control or read the player's volume.
+Playlist Controls		These functions are specifically for controlling playlists.
+nextVideo()	Yes	Loads and plays the next video in the playlist.
+previousVideo()	Yes	Loads and plays the previous video in the playlist.
+playVideoAt(index)	Yes	Loads and plays the video at a specified index in the playlist. Used by the Shuffle button.
+setShuffle(boolean)	Yes	Toggles whether the playlist should be shuffled.
+getPlaylist()	Yes	Returns an array of video IDs in the playlist. Used to get the playlist title.
+getPlaylistIndex()	No	Would return the index of the currently playing video in the playlist.
