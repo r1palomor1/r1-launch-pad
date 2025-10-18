@@ -1363,8 +1363,12 @@ button.rabbit-default:hover {
 #internalPlayerOverlay.theater-mode .player-header,
 #internalPlayerOverlay.theater-mode .player-controls {
     opacity: 0;
+    visibility: hidden; /* ADD THIS */
+    height: 0; /* ADD THIS */
+    padding: 0; /* ADD THIS */
+    margin: 0; /* ADD THIS */
     pointer-events: none;
-    transition: opacity 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out; /* MODIFIED */
 }
 
 #internalPlayerOverlay.theater-mode .player-container {
