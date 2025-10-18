@@ -568,7 +568,7 @@ function openPlayerView(options) {
                 playerVars: {
                     'playsinline': 1,
                     'controls': 1,
-                    'autoplay': 1,
+                    'autoplay': 0, // Changed to 0 to disable autoplay
                     'rel': 0,
                     'showinfo': 0,
                     'modestbranding': 1
@@ -1860,7 +1860,17 @@ playerSearchBtn.addEventListener('click', () => {
 // Event Listeners for playlist controls
 playerBackBtn_playlist.addEventListener('click', closePlayerView);
 playerShuffleBtn.addEventListener('click', toggleShuffle);
-playerPlayAllBtn.addEventListener('click', () => player.playVideoAt(0));
+playerPlayAllBtn.addEventListener('click', () => {
+    if (!player) return;
+    // Ensure shuffle is off and the button UI is correct
+    if (isShuffleActive) {
+        isShuffleActive = false;
+        player.setShuffle(false);
+        playerShuffleBtn.classList.remove('active');
+    }
+    // Play the very first video in the original playlist order
+    player.playVideoAt(0);
+});
 playerPrevBtn.addEventListener('click', () => player.previousVideo());
 playerPlayPauseBtn_playlist.addEventListener('click', togglePlayback);
 playerAudioOnlyBtn_playlist.addEventListener('click', () => {
