@@ -603,15 +603,6 @@ internalPlayerOverlay.addEventListener('click', (e) => {
     if (e.target === internalPlayerOverlay && internalPlayerOverlay.classList.contains('theater-mode')) {
         internalPlayerOverlay.classList.remove('theater-mode');
         clearTimeout(theaterModeTimer); // Cancel timer if user exits manually
-
-        // --- TIMER RESTART LOGIC START ---
-        // If the video is still playing, restart the countdown to re-enter theater mode.
-        if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
-            theaterModeTimer = setTimeout(() => {
-                internalPlayerOverlay.classList.add('theater-mode');
-            }, 10000); // 10 seconds
-        }
-        // --- TIMER RESTART LOGIC END ---
     }
 });
 
