@@ -975,7 +975,7 @@ button.rabbit-default:hover {
     z-index: 1001;
     display: flex;
     flex-direction: column;
-    padding: max(env(safe-area-inset-top), 10px) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    padding: max(env(safe-area-inset-top), 10px) max(4px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(4px, env(safe-area-inset-left));
 }
 
 .player-header {
@@ -1066,12 +1066,16 @@ button.rabbit-default:hover {
     height: 24px;
 }
 
+.player-navigation .secondary {
+    min-width: 65px; /* NEW: Ensures Back/Search buttons have same width */
+    text-align: center; /* NEW: Centers text within the buttons */
+}
+
 .player-navigation button {
     padding: 4px 8px;
     font-size: var(--font-size-small);
     min-height: 32px !important;
 }
-
 .youtube-search-view {
     background-color: var(--bg-color);
     padding: 8px;
