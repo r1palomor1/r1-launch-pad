@@ -984,6 +984,8 @@ button.rabbit-default:hover {
     align-items: center;
     justify-content: center;
     text-align: center;
+    transition: opacity 0.5s ease;
+    opacity: 1;
 }
 
 #playerVideoTitle {
@@ -1043,6 +1045,8 @@ button.rabbit-default:hover {
     align-items: center;
     justify-content: space-between;
     padding-top: 10px;
+    transition: opacity 0.5s ease;
+    opacity: 1;
 }
 
 .player-navigation {

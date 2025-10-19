@@ -80,6 +80,8 @@ let isAudioOnly = false;
 let isShuffleActive = false; // Add this line
 let youtubeNextPageUrl = null;
 let isFetchingYoutubeResults = false;
+let uiHideTimeout = null;
+let isUIVisible = true;
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
@@ -609,6 +611,33 @@ function closePlayerView() {
     playerContainer.classList.remove('audio-only');
     playerAudioOnlyBtn.classList.remove('active');
     youtubePlayerContainer.innerHTML = '';
+    clearTimeout(uiHideTimeout);
+    showPlayerUI();
+}
+
+function hidePlayerUI() {
+    isUIVisible = false;
+    const header = document.querySelector('#internalPlayerOverlay .player-header');
+    const controls = document.querySelector('#internalPlayerOverlay .player-controls');
+    if (header) header.style.opacity = '0';
+    if (controls) controls.style.opacity = '0';
+}
+
+function showPlayerUI() {
+    isUIVisible = true;
+    const header = document.querySelector('#internalPlayerOverlay .player-header');
+    const controls = document.querySelector('#internalPlayerOverlay .player-controls');
+    if (header) header.style.opacity = '1';
+    if (controls) controls.style.opacity = '1';
+}
+
+function startUIHideTimer() {
+    clearTimeout(uiHideTimeout);
+    uiHideTimeout = setTimeout(() => {
+        if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+            hidePlayerUI();
+        }
+    }, 10000);
 }
 
 function openYouTubeSearchView() {
@@ -1953,6 +1982,16 @@ nowPlayingBar.addEventListener('click', () => {
     });
     // --- End of Scroll Wheel Navigation ---
 
+    // --- Player overlay tap to show UI ---
+    internalPlayerOverlay.addEventListener('click', (e) => {
+        if (!isUIVisible && player) {
+            showPlayerUI();
+            if (player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                startUIHideTimer();
+            }
+        }
+    });
+
     renderLinks();
 })();
 
@@ -2005,13 +2044,21 @@ function onPlayerStateChange(event) {
         // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
+        
+        // Show UI and start hide timer
+        showPlayerUI();
+        startUIHideTimer();
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+        clearTimeout(uiHideTimeout);
+        showPlayerUI();
     } else if (event.data === YT.PlayerState.ENDED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
     nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
+        clearTimeout(uiHideTimeout);
+        showPlayerUI();
     } else if (event.data === YT.PlayerState.BUFFERING) {
         // This state is unreliable for title updates, do nothing here.
     } else if (event.data === YT.PlayerState.UNSTARTED) {
