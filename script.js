@@ -619,16 +619,28 @@ function hidePlayerUI() {
     isUIVisible = false;
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
-    if (header) header.style.opacity = '0';
-    if (controls) controls.style.opacity = '0';
+    if (header) {
+        header.style.opacity = '0';
+        header.style.pointerEvents = 'none';
+    }
+    if (controls) {
+        controls.style.opacity = '0';
+        controls.style.pointerEvents = 'none';
+    }
 }
 
 function showPlayerUI() {
     isUIVisible = true;
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
-    if (header) header.style.opacity = '1';
-    if (controls) controls.style.opacity = '1';
+    if (header) {
+        header.style.opacity = '1';
+        header.style.pointerEvents = 'auto';
+    }
+    if (controls) {
+        controls.style.opacity = '1';
+        controls.style.pointerEvents = 'auto';
+    }
 }
 
 function startUIHideTimer() {
@@ -1982,9 +1994,11 @@ nowPlayingBar.addEventListener('click', () => {
     });
     // --- End of Scroll Wheel Navigation ---
 
-    // --- Player overlay tap to show UI ---
+        // --- Player overlay tap to show UI ---
     internalPlayerOverlay.addEventListener('click', (e) => {
         if (!isUIVisible && player) {
+            e.preventDefault();
+            e.stopPropagation();
             showPlayerUI();
             if (player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
                 startUIHideTimer();
