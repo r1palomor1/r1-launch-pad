@@ -1046,11 +1046,11 @@ button.rabbit-default:hover {
 }
 
 .player-navigation {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     width: 100%;
-    gap: 4px; /* Reduced gap */
+    gap: 4px;
 }
 /* ... */
 .player-main-controls {
@@ -1058,7 +1058,7 @@ button.rabbit-default:hover {
     align-items: center;
     justify-content: center;
     gap: 4px; /* Reduced gap */
-    flex: 0 0 auto; /* Changed: Prevent growth, keep natural size */
+    grid-column: 2; /* Place in center column */
 }
 
 .player-navigation .dialog-icon-btn svg {
@@ -1333,10 +1333,11 @@ button.rabbit-default:hover {
 }
 
 .playlist-controls-row {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     width: 100%;
+    gap: 4px;
 }
 
 /* Make all buttons within the new playlist controls more compact */
@@ -1380,5 +1381,5 @@ button.rabbit-default:hover {
     justify-content: center;
     align-items: center;
     gap: 8px;
-    flex: 0 0 auto; /* Changed: Prevent growth, keep natural size */
+    grid-column: 2; /* Place in center column */
 }
