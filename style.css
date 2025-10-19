@@ -1046,23 +1046,30 @@ button.rabbit-default:hover {
 }
 
 /* SONG MODE — perfectly center the middle control cluster */
+/* SONGS — Back | [Play/Pause + Audio] | Search with absolute centering */
 .player-navigation {
-    /* Replace flex with grid for deterministic centering */
-    display: grid;
-    grid-template-columns: auto 1fr auto; /* Back | [center cluster] | Search */
+    position: relative;               /* anchor for absolute centering */
+    display: flex;
     align-items: center;
+    justify-content: space-between;   /* keep edges at left/right */
     width: 100%;
-    column-gap: 4px;
+    gap: 4px;
 }
 
 /* Middle cluster: center relative to full row, not just leftover space */
 .player-navigation .player-main-controls {
+    position: absolute;               /* force true geometric center */
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;                  /* use your preferred gap */
-    justify-self: center;      /* <-- the key */
-    /* Remove flex-grow tricks; grid handles spacing */
+    gap: 8px;
+}
+
+/* keep buttons neat and non-stretching */
+.player-navigation > * {
+    flex-shrink: 0;
 }
 
 .player-navigation .dialog-icon-btn svg {
@@ -1347,20 +1354,28 @@ button.rabbit-default:hover {
 }
 
 /* Bottom row (Back | [center cluster] | Search) uses grid for exact centering */
+/* PLAYLISTS (BOTTOM ROW) — Back | [Play/Pause + Audio] | Search with absolute centering */
 .player-navigation-playlist .playlist-controls-row:last-child {
-    display: grid;
-    grid-template-columns: auto 1fr auto;  /* Back | [center cluster] | Search */
+    position: relative;               /* anchor for absolute centering */
+    display: flex;
     align-items: center;
+    justify-content: space-between;   /* edges left/right */
     width: 100%;
-    column-gap: 4px;
+    gap: 4px;
 }
 
 /* Middle cluster centered relative to full row */
 .player-navigation-playlist .playlist-controls-row:last-child .player-main-controls {
+    position: absolute;               /* force true geometric center */
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;                 /* consistent with Song mode */
-    justify-self: center;     /* <-- the key */
-    /* no flex-grow needed */
+    gap: 8px;
+}
+
+/* keep children from distorting layout */
+.player-navigation-playlist .playlist-controls-row:last-child > * {
+    flex-shrink: 0;
 }
