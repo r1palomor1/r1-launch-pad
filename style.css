@@ -1359,8 +1359,21 @@ button.rabbit-default:hover {
     font-size: 14px;
 }
 
-.player-secondary-controls {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+/* Theater Mode Styles */
+#internalPlayerOverlay.theater-mode .player-header,
+#internalPlayerOverlay.theater-mode .player-controls {
+    opacity: 0;
+    visibility: hidden; /* ADD THIS */
+    height: 0; /* ADD THIS */
+    padding: 0; /* ADD THIS */
+    margin: 0; /* ADD THIS */
+    pointer-events: none;
+    transition: all 0.3s ease-in-out; /* MODIFIED */
+}
+
+#internalPlayerOverlay.theater-mode .player-container {
+    height: 100%;
+    width: 100%;
+    border-radius: 0;
+    transition: all 0.3s ease-in-out;
 }
