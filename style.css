@@ -1045,31 +1045,19 @@ button.rabbit-default:hover {
     padding-top: 10px;
 }
 
-/* SONG MODE — perfectly center the middle control cluster */
-/* SONGS — Back | [Play/Pause + Audio] | Search with absolute centering */
 .player-navigation {
-    position: relative;               /* anchor for absolute centering */
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: space-between;   /* keep edges at left/right */
     width: 100%;
-    gap: 4px;
+    gap: 4px; /* Reduced gap */
 }
-
-/* Middle cluster: center relative to full row, not just leftover space */
-.player-navigation .player-main-controls {
-    position: absolute;               /* force true geometric center */
-    left: 50%;
-    transform: translateX(-50%);
+/* ... */
+.player-main-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-}
-
-/* keep buttons neat and non-stretching */
-.player-navigation > * {
-    flex-shrink: 0;
+    gap: 4px; /* Reduced gap */
 }
 
 .player-navigation .dialog-icon-btn svg {
@@ -1343,39 +1331,30 @@ button.rabbit-default:hover {
     box-sizing: border-box;
 }
 
-/* PLAYLIST MODE — two rows: keep top row flex; bottom row uses grid */
-
-/* Top row (Prev | Shuffle | Play All | Next) remains flex-centered */
-.player-navigation-playlist .playlist-controls-row:first-child {
+.playlist-controls-row {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 6px;
-}
-
-/* Bottom row (Back | [center cluster] | Search) uses grid for exact centering */
-/* PLAYLISTS (BOTTOM ROW) — Back | [Play/Pause + Audio] | Search with absolute centering */
-.player-navigation-playlist .playlist-controls-row:last-child {
-    position: relative;               /* anchor for absolute centering */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;   /* edges left/right */
     width: 100%;
-    gap: 4px;
 }
 
-/* Middle cluster centered relative to full row */
-.player-navigation-playlist .playlist-controls-row:last-child .player-main-controls {
-    position: absolute;               /* force true geometric center */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-/* keep children from distorting layout */
-.player-navigation-playlist .playlist-controls-row:last-child > * {
+/* Make all buttons within the new playlist controls more compact */
+.player-navigation-playlist .dialog-icon-btn,
+.player-navigation-playlist .secondary {
+    padding: 4px; /* Reduce padding */
+    height: 36px; /* Reduce height */
+    min-width: 36px;
     flex-shrink: 0;
+}
+
+/* Make icons smaller */
+.player-navigation-playlist .dialog-icon-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Specific adjustments for text buttons */
+.player-navigation-playlist .secondary {
+    padding: 4px 10px; /* Give text buttons a bit more horizontal padding */
+    font-size: 14px;
 }

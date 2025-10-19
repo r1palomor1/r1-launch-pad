@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// Working state app for Song and Playlist modes
+﻿﻿﻿// Working state app for Song and Playlist modes
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
@@ -78,7 +78,6 @@ const STOP_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 2
 const AUDIO_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1a7 7 0 0 1 14 0v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 0 0-9-9z"/></svg>`;
 let isAudioOnly = false;
 let isShuffleActive = false; // Add this line
-let theaterModeTimer = null; // ADD THIS LINE
 let youtubeNextPageUrl = null;
 let isFetchingYoutubeResults = false;
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
@@ -597,36 +596,7 @@ function openPlayerView(options) {
     }
 }
 
-// ✅ FIX: Centralized function to manage the theater mode timer
-function resetTheaterModeTimer() {
-    // Always clear any existing timer first.
-    if (theaterModeTimer) {
-        clearTimeout(theaterModeTimer);
-        theaterModeTimer = null;
-    }
-    // Make sure controls are visible by default when resetting.
-    internalPlayerOverlay.classList.remove('theater-mode');
-
-    // Only set a new timer if the player exists and is currently playing.
-    if (player && typeof player.getPlayerState === 'function' && player.getPlayerState() === YT.PlayerState.PLAYING) {
-        theaterModeTimer = setTimeout(() => {
-            internalPlayerOverlay.classList.add('theater-mode');
-        }, 10000); // 10 seconds
-    }
-}
-
-// ✅ FIX: The click listener now resets the timer.
-internalPlayerOverlay.addEventListener('click', (e) => {
-    // Any click within the player overlay should reset the timer.
-    resetTheaterModeTimer();
-});
-
 function closePlayerView() {
-    // --- THEATER MODE CLEANUP START ---
-    clearTimeout(theaterModeTimer);
-    internalPlayerOverlay.classList.remove('theater-mode');
-    // --- THEATER MODE CLEANUP END ---
-
     internalPlayerOverlay.style.display = 'none';
     if (player && typeof player.destroy === 'function') {
         player.destroy();
@@ -2010,44 +1980,43 @@ function onPlayerReady(event) {
     }
 }
 
-function toggleShuffle() {
-    if (!player) return;
+function toggleShuffle() {    if (!player) return;
     isShuffleActive = !isShuffleActive;
     player.setShuffle(isShuffleActive);
     playerShuffleBtn.classList.toggle('active', isShuffleActive);
     triggerHaptic();
     sayOnRabbit(isShuffleActive ? "Shuffle enabled" : "Shuffle disabled");
 
-    // ✅ FIX: If activating shuffle, always play the new first video in the
-    // shuffled list to make the change immediate.
-    if (isShuffleActive) {
+    // If a video isn't already playing, start the playlist.
+    // The player will automatically start with a shuffled video.
+    if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
         player.playVideoAt(0);
     }
 }
 
 function onPlayerStateChange(event) {
-    const isPlaying = event.data === YT.PlayerState.PLAYING;
-    const isEnded = event.data === YT.PlayerState.ENDED;
-
-    if (isPlaying) {
+    if (event.data === YT.PlayerState.PLAYING) {
         // Update title with the full title from the API - this is the most reliable time.
         const videoData = player.getVideoData();
         if (videoData && videoData.title) {
             playerVideoTitle.textContent = videoData.title;
         }
-    }
 
-    // Update play/pause icons for both players
-    const playPauseBtnIcon = isPlaying ? PAUSE_ICON_SVG : PLAY_ICON_SVG;
-    playerPlayPauseBtn.innerHTML = playPauseBtnIcon;
-    playerPlayPauseBtn_playlist.innerHTML = playPauseBtnIcon;
-
-    // ✅ FIX: Centralize all timer logic into one call.
-    // This will start the timer if playing, and clear it for any other state.
-    resetTheaterModeTimer();
-
-    if (isEnded) {
-        // Hide the "Now Playing" bar when the video/playlist finishes.
-        nowPlayingBar.style.display = 'none';
-    }
+        // Update BOTH buttons
+        playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
+    } else if (event.data === YT.PlayerState.PAUSED ) {
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+    } else if (event.data === YT.PlayerState.ENDED ) {
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+    nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
+    } else if (event.data === YT.PlayerState.BUFFERING) {
+        // This state is unreliable for title updates, do nothing here.
+    } else if (event.data === YT.PlayerState.UNSTARTED) {
+        // Update BOTH buttons
+    playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+    playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+}
 }
