@@ -1045,20 +1045,24 @@ button.rabbit-default:hover {
     padding-top: 10px;
 }
 
+/* SONG MODE — perfectly center the middle control cluster */
 .player-navigation {
-    display: flex;
-    justify-content: space-between;
+    /* Replace flex with grid for deterministic centering */
+    display: grid;
+    grid-template-columns: auto 1fr auto; /* Back | [center cluster] | Search */
     align-items: center;
     width: 100%;
-    gap: 4px; /* Reduced gap */
+    column-gap: 4px;
 }
-/* ... */
-.player-main-controls {
+
+/* Middle cluster: center relative to full row, not just leftover space */
+.player-navigation .player-main-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px; /* Reduced gap */
-    flex-grow: 1; /* ADDED */
+    gap: 8px;                  /* use your preferred gap */
+    justify-self: center;      /* <-- the key */
+    /* Remove flex-grow tricks; grid handles spacing */
 }
 
 .player-navigation .dialog-icon-btn svg {
@@ -1332,53 +1336,31 @@ button.rabbit-default:hover {
     box-sizing: border-box;
 }
 
-.playlist-controls-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
+/* PLAYLIST MODE — two rows: keep top row flex; bottom row uses grid */
 
-/* Make all buttons within the new playlist controls more compact */
-.player-navigation-playlist .dialog-icon-btn,
-.player-navigation-playlist .secondary {
-    padding: 4px; /* Reduce padding */
-    height: 36px; /* Reduce height */
-    min-width: 36px;
-    flex-shrink: 0;
-}
-
-/* Make icons smaller */
-.player-navigation-playlist .dialog-icon-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-/* Specific adjustments for text buttons */
-.player-navigation-playlist .secondary {
-    padding: 4px 10px; /* Give text buttons a bit more horizontal padding */
-    font-size: 14px;
-}
-
-/* Theater Mode Styles */
-#internalPlayerOverlay.theater-mode .player-header,
-#internalPlayerOverlay.theater-mode .player-controls {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease-in-out;
-}
-
-#internalPlayerOverlay.theater-mode .player-container {
-    height: 100%;
-    width: 100%;
-    border-radius: 0;
-    transition: all 0.3s ease-in-out;
-}
-
-.player-navigation-playlist .player-main-controls {
+/* Top row (Prev | Shuffle | Play All | Next) remains flex-centered */
+.player-navigation-playlist .playlist-controls-row:first-child {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
-    flex-grow: 1;
+    gap: 6px;
+}
+
+/* Bottom row (Back | [center cluster] | Search) uses grid for exact centering */
+.player-navigation-playlist .playlist-controls-row:last-child {
+    display: grid;
+    grid-template-columns: auto 1fr auto;  /* Back | [center cluster] | Search */
+    align-items: center;
+    width: 100%;
+    column-gap: 4px;
+}
+
+/* Middle cluster centered relative to full row */
+.player-navigation-playlist .playlist-controls-row:last-child .player-main-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;                 /* consistent with Song mode */
+    justify-self: center;     /* <-- the key */
+    /* no flex-grow needed */
 }
