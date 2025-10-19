@@ -1359,21 +1359,8 @@ button.rabbit-default:hover {
     font-size: 14px;
 }
 
-/* Theater Mode Styles */
-#internalPlayerOverlay.theater-mode .player-header,
-#internalPlayerOverlay.theater-mode .player-controls {
-    opacity: 0;
-    visibility: hidden;
-    height: 0;
-    padding: 0;
-    margin: 0;
-    pointer-events: none;
-    transition: all 0.3s ease-in-out;
-}
-
-#internalPlayerOverlay.theater-mode .player-container {
-    flex-grow: 1; /* This tells the container to grow and fill the space */
-    width: 100%;
-    border-radius: 0;
-    transition: all 0.3s ease-in-out;
+.player-secondary-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }

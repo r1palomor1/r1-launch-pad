@@ -1,4 +1,4 @@
-﻿// Working state app for Song and Playlist modes
+﻿﻿// Working state app for Song and Playlist modes
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
@@ -58,6 +58,11 @@ const playerNextBtn = document.getElementById('playerNextBtn');
 const playerShuffleBtn = document.getElementById('playerShuffleBtn');
 const playerPlayAllBtn = document.getElementById('playerPlayAllBtn');
 
+// --- ADD THESE LINES ---
+const playerFullscreenBtn = document.getElementById('playerFullscreenBtn');
+const playerFullscreenBtn_playlist = document.getElementById('playerFullscreenBtn_playlist');
+// --- END OF ADDED LINES ---
+
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
 const searchModePlaylistsBtn = document.getElementById('searchModePlaylists');
 const youtubeSearchViewOverlay = document.getElementById('youtubeSearchViewOverlay');
@@ -76,9 +81,14 @@ const PLAY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 2
 const PAUSE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
 const STOP_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>`;
 const AUDIO_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1a7 7 0 0 1 14 0v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 0 0-9-9z"/></svg>`;
+
+// --- ADD THESE LINES ---
+const FULLSCREEN_ENTER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>`;
+const FULLSCREEN_EXIT_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>`;
+// --- END OF ADDED LINES ---
+
 let isAudioOnly = false;
 let isShuffleActive = false; // Add this line
-let theaterModeTimer = null; // ADD THIS LINE
 let youtubeNextPageUrl = null;
 let isFetchingYoutubeResults = false;
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
@@ -531,10 +541,43 @@ function getYoutubePlaylistId(url) {
     return match ? match[1] : null;
 }
 
+// --- ADD THE NEW FUNCTIONS HERE ---
+function toggleFullscreen() {
+    const iframe = player.getIframe();
+    if (!document.fullscreenElement) {
+        if (iframe.requestFullscreen) {
+            iframe.requestFullscreen();
+        } else if (iframe.webkitRequestFullscreen) { /* Safari */
+            iframe.webkitRequestFullscreen();
+        } else if (iframe.msRequestFullscreen) { /* IE11 */
+            iframe.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+function updateFullscreenIcons() {
+    if (document.fullscreenElement) {
+        playerFullscreenBtn.innerHTML = FULLSCREEN_EXIT_ICON_SVG;
+        playerFullscreenBtn_playlist.innerHTML = FULLSCREEN_EXIT_ICON_SVG;
+    } else {
+        playerFullscreenBtn.innerHTML = FULLSCREEN_ENTER_ICON_SVG;
+        playerFullscreenBtn_playlist.innerHTML = FULLSCREEN_ENTER_ICON_SVG;
+    }
+}
+// --- END OF NEW FUNCTIONS ---
+
 function openPlayerView(options) {
     nowPlayingBar.style.display = 'none';
     playerVideoTitle.textContent = options.title;
     internalPlayerOverlay.style.display = 'flex';
+
+    // --- ADD THIS LINE ---
+    updateFullscreenIcons(); // Set initial icon state
+    // --- END OF ADDED LINE ---
 
     // Show/hide the correct controls
     if (options.playlistId) {
@@ -566,7 +609,6 @@ function openPlayerView(options) {
                 playerVars: {
                     'playsinline': 1,
                     'controls': 1,
-                    'fs': 0, // ADD THIS LINE to disable the fullscreen button
                     'autoplay': options.videoId ? 1 : 0, // Autoplay for songs, not playlists
                     'rel': 0,
                     'showinfo': 0,
@@ -598,35 +640,7 @@ function openPlayerView(options) {
     }
 }
 
-// ADD THIS NEW EVENT LISTENER
-internalPlayerOverlay.addEventListener('click', (e) => {
-    // Only exit theater mode if the click is on the overlay itself, not on buttons inside it
-    if (e.target === internalPlayerOverlay && internalPlayerOverlay.classList.contains('theater-mode')) {
-        internalPlayerOverlay.classList.remove('theater-mode');
-        clearTimeout(theaterModeTimer); // Cancel timer if user exits manually
-
-        // ADD THIS: Tell player to resize back to its smaller container
-        if (player) player.setSize('100%', '100%');
-
-        // --- TIMER RESTART LOGIC START ---
-        // If the video is still playing, restart the countdown to re-enter theater mode.
-        if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
-            theaterModeTimer = setTimeout(() => {
-                internalPlayerOverlay.classList.add('theater-mode');
-                // ADD THIS: Also resize player when re-entering
-                if (player) player.setSize('100%', '100%');
-            }, 10000); // 10 seconds
-        }
-        // --- TIMER RESTART LOGIC END ---
-    }
-});
-
 function closePlayerView() {
-    // --- THEATER MODE CLEANUP START ---
-    clearTimeout(theaterModeTimer);
-    internalPlayerOverlay.classList.remove('theater-mode');
-    // --- THEATER MODE CLEANUP END ---
-
     internalPlayerOverlay.style.display = 'none';
     if (player && typeof player.destroy === 'function') {
         player.destroy();
@@ -1909,14 +1923,19 @@ playerAudioOnlyBtn_playlist.addEventListener('click', () => {
 });
 playerNextBtn.addEventListener('click', () => player.nextVideo());
 playerSearchBtn_playlist.addEventListener('click', () => {
-    internalPlayerOverlay.style.display = 'none';
-    youtubeSearchViewOverlay.style.display = 'flex';
-    youtubeSearchInput.value = '';
-    youtubeSearchInput.focus();
-    nowPlayingTitle.textContent = playerVideoTitle.textContent;
-    nowPlayingBar.style.display = 'flex';
-});
+        internalPlayerOverlay.style.display = 'none';
+        youtubeSearchViewOverlay.style.display = 'flex';
+        youtubeSearchInput.value = '';
+        youtubeSearchInput.focus();
+        nowPlayingTitle.textContent = playerVideoTitle.textContent;
+        nowPlayingBar.style.display = 'flex';
+    });
 
+    // --- ADD THESE LISTENERS ---
+    playerFullscreenBtn.addEventListener('click', toggleFullscreen);
+    playerFullscreenBtn_playlist.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', updateFullscreenIcons);
+    // --- END OF ADDED LISTENERS ---
 
     playerPlayPauseBtn.addEventListener('click', togglePlayback);
 
@@ -2035,32 +2054,13 @@ function onPlayerStateChange(event) {
         // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
-
-        // --- THEATER MODE LOGIC START ---
-        // Start a timer to enter theater mode
-        clearTimeout(theaterModeTimer); // Clear any previous timer
-        theaterModeTimer = setTimeout(() => {
-            internalPlayerOverlay.classList.add('theater-mode');
-            // ADD THIS: Tell the player to resize to its new container dimensions
-            if (player) player.setSize('100%', '100%');
-        }, 10000); // 10 seconds
-        // --- THEATER MODE LOGIC END ---
-
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
-        // --- THEATER MODE LOGIC START ---
-        clearTimeout(theaterModeTimer);
-        internalPlayerOverlay.classList.remove('theater-mode');
-        // --- THEATER MODE LOGIC END ---
     } else if (event.data === YT.PlayerState.ENDED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
     nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
-        // --- THEATER MODE LOGIC START ---
-        clearTimeout(theaterModeTimer);
-        internalPlayerOverlay.classList.remove('theater-mode');
-        // --- THEATER MODE LOGIC END ---
     } else if (event.data === YT.PlayerState.BUFFERING) {
         // This state is unreliable for title updates, do nothing here.
     } else if (event.data === YT.PlayerState.UNSTARTED) {
