@@ -647,6 +647,15 @@ function showPlayerUI() {
         controls.style.opacity = '1';
         controls.style.pointerEvents = 'auto';
     }
+    
+    // Sync audio button state when UI reappears
+    if (isAudioOnly) {
+        playerAudioOnlyBtn.classList.add('active');
+        playerAudioOnlyBtn_playlist.classList.add('active');
+    } else {
+        playerAudioOnlyBtn.classList.remove('active');
+        playerAudioOnlyBtn_playlist.classList.remove('active');
+    }
 }
 
 function startUIHideTimer() {

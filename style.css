@@ -1025,11 +1025,14 @@ button.rabbit-default:hover {
     pointer-events: none;
 }
 
-#playerAudioOnlyBtn svg {
+
+#playerAudioOnlyBtn svg,
+#playerAudioOnlyBtn_playlist svg {
     fill: var(--icon-color);
 }
 
-#playerAudioOnlyBtn.active svg {
+#playerAudioOnlyBtn.active svg,
+#playerAudioOnlyBtn_playlist.active svg {
     fill: var(--primary-color);
 }
 
