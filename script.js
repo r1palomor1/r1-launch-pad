@@ -1,4 +1,4 @@
-﻿﻿﻿// Working state app for Song and Playlist modes
+﻿﻿﻿// Working state Song/Playlist modes. 10 second fading title/rows
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
