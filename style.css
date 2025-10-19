@@ -1058,6 +1058,7 @@ button.rabbit-default:hover {
     align-items: center;
     justify-content: center;
     gap: 4px; /* Reduced gap */
+    flex-grow: 1; /* ADDED */
 }
 
 .player-navigation .dialog-icon-btn svg {
@@ -1372,4 +1373,12 @@ button.rabbit-default:hover {
     width: 100%;
     border-radius: 0;
     transition: all 0.3s ease-in-out;
+}
+
+.player-navigation-playlist .player-main-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-grow: 1;
 }
