@@ -538,18 +538,24 @@ function openPlayerView(options) {
     internalPlayerOverlay.style.display = 'flex';
 
     // Show/hide the correct controls
-    if (options.playlistId) {
+        if (options.playlistId) {
         playerSongControls.style.display = 'none';
         playerPlaylistControls.style.display = 'flex';
         // Set initial state for playlist controls
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
         playerAudioOnlyBtn_playlist.innerHTML = AUDIO_ICON_SVG;
-    } else {
+        playerAudioOnlyBtn_playlist.classList.remove('active');
+        isAudioOnly = false;
+        playerContainer.classList.remove('audio-only');
+        } else {
         playerSongControls.style.display = 'flex';
         playerPlaylistControls.style.display = 'none';
         // Set initial state for song controls
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
+        playerAudioOnlyBtn.classList.remove('active');
+        isAudioOnly = false;
+        playerContainer.classList.remove('audio-only');
     }
 
     const createPlayer = () => {
@@ -1896,7 +1902,12 @@ playerSearchBtn.addEventListener('click', () => {
 });
 
 // Event Listeners for playlist controls
-playerBackBtn_playlist.addEventListener('click', closePlayerView);
+playerBackBtn_playlist.addEventListener('click', () => {
+    internalPlayerOverlay.style.display = 'none';
+    youtubeSearchViewOverlay.style.display = 'flex';
+    nowPlayingTitle.textContent = playerVideoTitle.textContent;
+    nowPlayingBar.style.display = 'flex';
+});
 playerShuffleBtn.addEventListener('click', toggleShuffle);
 playerPlayAllBtn.addEventListener('click', () => {
     if (!player) return;
