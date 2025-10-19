@@ -1372,10 +1372,7 @@ button.rabbit-default:hover {
 }
 
 #internalPlayerOverlay.theater-mode .player-container {
-    position: absolute; /* ADD: Take player out of flex flow */
-    top: 0;             /* ADD: Position at the top */
-    left: 0;            /* ADD: Position at the left */
-    height: 100%;
+    flex-grow: 1; /* This tells the container to grow and fill the space */
     width: 100%;
     border-radius: 0;
     transition: all 0.3s ease-in-out;

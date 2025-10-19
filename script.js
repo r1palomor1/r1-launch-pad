@@ -566,6 +566,7 @@ function openPlayerView(options) {
                 playerVars: {
                     'playsinline': 1,
                     'controls': 1,
+                    'fs': 0, // ADD THIS LINE to disable the fullscreen button
                     'autoplay': options.videoId ? 1 : 0, // Autoplay for songs, not playlists
                     'rel': 0,
                     'showinfo': 0,
