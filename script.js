@@ -1,4 +1,4 @@
-﻿﻿﻿// Working app. Song/Playlist modes. Fading/shuffle. Need stop video.
+﻿﻿﻿// Working app. Song/Playlist/Fading/shuffle/Now Playing stop. Try add volume control.
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
