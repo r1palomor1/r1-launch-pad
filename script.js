@@ -1991,9 +1991,8 @@ stopPlayingBtn.addEventListener('click', (e) => {
     });
 
     // --- Scroll Wheel Navigation ---
-    // 🆕 MODIFIED: This logic now checks for the player first.
-    // Uses the correct event names found in the SDK documentation.
-    // This now handles both the main list and lists within dialogs.
+    // 🆕 REPLACED: Using the standard 'wheel' event for better reliability,
+    // as 'scrollUp'/'scrollDown' are likely intercepted by the OS media controller.
     const SCROLL_AMOUNT_MAIN = 120; // Pixels to scroll on the main page.
     const SCROLL_AMOUNT_DIALOG = 80; // A smaller scroll amount for lists in dialogs.
 
@@ -2013,31 +2012,37 @@ stopPlayingBtn.addEventListener('click', (e) => {
         return null; // No active target to scroll.
     }
 
-    window.addEventListener('scrollUp', () => {
-        // 🆕 Check if the player is active first
-        if (internalPlayerOverlay.style.display === 'flex' && player) {
-            adjustYouTubeVolume('up');
-        } else {
-            // ✅ Fallback to your existing list-scrolling logic
-            const target = getActiveScrollTarget();
-            if (target) {
-                target.scrollBy({ top: -(target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG), behavior: 'smooth' });
-            }
-        }
-    });
+    // 🆕 This single listener replaces 'scrollUp' and 'scrollDown'
+    window.addEventListener('wheel', (event) => {
+        // We must prevent the default action to stop the browser from scrolling the whole page.
+        event.preventDefault(); 
 
-    window.addEventListener('scrollDown', () => {
-        // 🆕 Check if the player is active first
+        // Check if the player is active
         if (internalPlayerOverlay.style.display === 'flex' && player) {
-            adjustYouTubeVolume('down');
+            // Player is open: Control Volume
+            if (event.deltaY < 0) {
+                // Scrolled Up (deltaY is negative)
+                adjustYouTubeVolume('up');
+            } else {
+                // Scrolled Down (deltaY is positive)
+                adjustYouTubeVolume('down');
+            }
         } else {
-            // ✅ Fallback to your existing list-scrolling logic
+            // Player is closed: Scroll Lists
             const target = getActiveScrollTarget();
             if (target) {
-                target.scrollBy({ top: (target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG), behavior: 'smooth' });
+                let scrollAmount = (target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG);
+                
+                if (event.deltaY < 0) {
+                    // Scrolled Up
+                    target.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+                } else {
+                    // Scrolled Down
+                    target.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+                }
             }
         }
-    });
+    }, { passive: false }); // 'passive: false' is required to allow 'event.preventDefault()'
     // --- End of Scroll Wheel Navigation ---
 
         // --- Player overlay tap to show UI ---
