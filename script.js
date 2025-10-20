@@ -2060,9 +2060,15 @@ function toggleShuffle() {    if (!player) return;
     triggerHaptic();
     sayOnRabbit(isShuffleActive ? "Shuffle enabled" : "Shuffle disabled");
 
-    // If a video isn't already playing, start the playlist.
-    // The player will automatically start with a shuffled video.
-    if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+    // Always start/restart playback to apply shuffle state
+    // YouTube API requires restarting to apply shuffle changes
+    const currentState = player.getPlayerState();
+    if (currentState === YT.PlayerState.PLAYING || currentState === YT.PlayerState.PAUSED) {
+        // Get current video index and restart from there
+        const currentIndex = player.getPlaylistIndex();
+        player.playVideoAt(isShuffleActive ? 0 : currentIndex);
+    } else {
+        // If not playing, start the playlist
         player.playVideoAt(0);
     }
 }
