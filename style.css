@@ -1273,6 +1273,39 @@ button.rabbit-default:hover {
 
 #nowPlayingBar .now-playing-text {
     opacity: 0.8;
+    flex-shrink: 0;
+}
+
+#nowPlayingTitle {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stop-playing-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    min-height: 24px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.stop-playing-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--button-font-color);
+    transition: opacity 0.2s ease;
+}
+
+.stop-playing-btn:hover svg {
+    opacity: 0.7;
 }
 .player-main-controls {
     display: flex;

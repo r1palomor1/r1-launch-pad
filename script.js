@@ -36,6 +36,7 @@ const genericPromptActions = document.getElementById('genericPromptActions');
 const internalPlayerOverlay = document.getElementById('internalPlayerOverlay');
 const nowPlayingBar = document.getElementById('nowPlayingBar');
 const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+const stopPlayingBtn = document.getElementById('stopPlayingBtn');
 const playerVideoTitle = document.getElementById('playerVideoTitle');
 const youtubePlayerContainer = document.getElementById('youtubePlayer');
 const playerContainer = document.querySelector('.player-container');
@@ -1966,6 +1967,17 @@ nowPlayingBar.addEventListener('click', () => {
     mainView.classList.remove('input-mode-active');
     internalPlayerOverlay.style.display = 'flex'; // Show the player again
     nowPlayingBar.style.display = 'none'; // Hide the bar
+});
+
+// Stop button listener - stops playback completely
+stopPlayingBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent triggering the bar's click event
+    if (player) {
+        player.stopVideo();
+        nowPlayingBar.style.display = 'none';
+        triggerHaptic();
+        sayOnRabbit("Playback stopped");
+    }
 });
 
     // Use the correct 'sideClick' event based on the SDK demo.
