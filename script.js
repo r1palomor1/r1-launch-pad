@@ -1,4 +1,4 @@
-﻿﻿﻿// Working state Song/Playlist modes. 10 second fading title/rows
+﻿﻿﻿// Working app. Song/Playlist modes. Fading/shuffle. Need stop video.
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
