@@ -1,4 +1,4 @@
-﻿﻿﻿// Working app. Song/Playlist/Fading/shuffle/Now Playing stop. Try add volume control.
+﻿﻿﻿﻿﻿// Working app. Song/Playlist/Fading/shuffle/Now Playing stop. Try add volume control.
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
@@ -86,7 +86,6 @@ let isUIVisible = true;
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
-let currentYouTubeVolume = 100; // 🆕 ADDED: Stores the current YouTube volume
 const GENERIC_FAVICON_SRC = 'data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23888\'%3e%3cpath d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\'/%3e%3c/svg%3e';
 
 async function launchUrlOnRabbit(url, name) {
@@ -1991,8 +1990,8 @@ stopPlayingBtn.addEventListener('click', (e) => {
     });
 
     // --- Scroll Wheel Navigation ---
-    // 🆕 REPLACED: Using the standard 'wheel' event for better reliability,
-    // as 'scrollUp'/'scrollDown' are likely intercepted by the OS media controller.
+    // Uses the correct event names found in the SDK documentation.
+    // This now handles both the main list and lists within dialogs.
     const SCROLL_AMOUNT_MAIN = 120; // Pixels to scroll on the main page.
     const SCROLL_AMOUNT_DIALOG = 80; // A smaller scroll amount for lists in dialogs.
 
@@ -2012,37 +2011,19 @@ stopPlayingBtn.addEventListener('click', (e) => {
         return null; // No active target to scroll.
     }
 
-    // 🆕 This single listener replaces 'scrollUp' and 'scrollDown'
-    window.addEventListener('wheel', (event) => {
-        // We must prevent the default action to stop the browser from scrolling the whole page.
-        event.preventDefault(); 
-
-        // Check if the player is active
-        if (internalPlayerOverlay.style.display === 'flex' && player) {
-            // Player is open: Control Volume
-            if (event.deltaY < 0) {
-                // Scrolled Up (deltaY is negative)
-                adjustYouTubeVolume('up');
-            } else {
-                // Scrolled Down (deltaY is positive)
-                adjustYouTubeVolume('down');
-            }
-        } else {
-            // Player is closed: Scroll Lists
-            const target = getActiveScrollTarget();
-            if (target) {
-                let scrollAmount = (target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG);
-                
-                if (event.deltaY < 0) {
-                    // Scrolled Up
-                    target.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
-                } else {
-                    // Scrolled Down
-                    target.scrollBy({ top: scrollAmount, behavior: 'smooth' });
-                }
-            }
+    window.addEventListener('scrollUp', () => {
+        const target = getActiveScrollTarget();
+        if (target) {
+            target.scrollBy({ top: -(target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG), behavior: 'smooth' });
         }
-    }, { passive: false }); // 'passive: false' is required to allow 'event.preventDefault()'
+    });
+
+    window.addEventListener('scrollDown', () => {
+        const target = getActiveScrollTarget();
+        if (target) {
+            target.scrollBy({ top: (target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG), behavior: 'smooth' });
+        }
+    });
     // --- End of Scroll Wheel Navigation ---
 
         // --- Player overlay tap to show UI ---
@@ -2069,23 +2050,6 @@ function togglePlayback() {
     } else {
         player.playVideo();
     }
-}
-
-/**
- * 🆕 ADDED: Adjusts the YouTube player's internal volume.
- */
-function adjustYouTubeVolume(direction) {
-    if (!player || typeof player.getVolume !== 'function') return;
-
-    if (direction === 'up') {
-        currentYouTubeVolume = Math.min(100, currentYouTubeVolume + 10);
-    } else { // 'down'
-        currentYouTubeVolume = Math.max(0, currentYouTubeVolume - 10);
-    }
-    
-    player.setVolume(currentYouTubeVolume);
-    triggerHaptic(); // Give feedback
-    // You could also add a sayOnRabbit(`Volume ${currentYouTubeVolume}`)
 }
 
 function onPlayerReady(event) {
@@ -2128,8 +2092,6 @@ function onPlayerStateChange(event) {
         if (videoData && videoData.title) {
             playerVideoTitle.textContent = videoData.title;
         }
-
-        currentYouTubeVolume = player.getVolume(); // 🆕 ADD THIS LINE
 
         // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
