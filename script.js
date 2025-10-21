@@ -1360,12 +1360,84 @@ let studioStage = 1;
 let studioBaseColor = null;
 let studioActiveModifier = null;
 
-function updateModifierSelectionUI() {
-    const listItems = themeColorList.querySelectorAll('.theme-color-item');
-    listItems.forEach(item => {
-        item.classList.toggle('selected', item.dataset.modifierName?.toLowerCase() === studioActiveModifier);
-    });
+/* ===========================
+   DYNAMIC SCROLL NAVIGATION
+   - Handles all visible lists automatically
+   - Theme Dialog, Favorites, Delete, YouTube, and future overlays
+   =========================== */
+
+const SCROLL_AMOUNT_MAIN = 120;
+const SCROLL_AMOUNT_DIALOG = 80;
+
+// Detect the most relevant scroll target currently visible
+function getActiveScrollTarget() {
+    const overlays = [
+        themeDialogOverlay,
+        deletePromptOverlay,
+        favoritesPromptOverlay,
+        youtubeSearchViewOverlay,
+        genericPromptOverlay
+    ];
+
+    // Check all known overlays
+    for (const overlay of overlays) {
+        if (overlay && overlay.style.display === 'flex') {
+            const scrollable = overlay.querySelector(
+                '.theme-color-list, .favorites-list, .delete-links-list, .scrollable-list-dialog, ul'
+            );
+            if (scrollable) return scrollable;
+        }
+    }
+
+    // Fallback: main card list when no dialogs are open
+    const onMainView =
+        internalPlayerOverlay.style.display === 'none' &&
+        genericPromptOverlay.style.display === 'none' &&
+        !mainView.classList.contains('input-mode-active');
+
+    return onMainView ? window : null;
 }
+
+// Perform scroll action
+function handleScrollEvent(direction) {
+    const target = getActiveScrollTarget();
+    if (!target) return;
+    const amount = target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG;
+    target.scrollBy({
+        top: direction === 'up' ? -amount : amount,
+        behavior: 'smooth'
+    });
+    triggerHaptic();
+}
+
+// Attach Rabbit SDK events
+(function bindDynamicScroll() {
+    if (window.__dynamicScrollBound) return;
+    window.__dynamicScrollBound = true;
+
+    if (window.rabbit && window.rabbit.events && typeof window.rabbit.events.on === 'function') {
+        window.rabbit.events.on('scrollUp', () => handleScrollEvent('up'));
+        window.rabbit.events.on('scrollDown', () => handleScrollEvent('down'));
+    }
+
+    // Desktop / test fallback
+    window.addEventListener('wheel', (e) => {
+        const anyOverlayVisible = [
+            themeDialogOverlay,
+            favoritesPromptOverlay,
+            deletePromptOverlay,
+            youtubeSearchViewOverlay,
+            genericPromptOverlay
+        ].some(o => o && o.style.display === 'flex');
+
+        if (anyOverlayVisible || document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault();
+            handleScrollEvent(e.deltaY < 0 ? 'up' : 'down');
+        }
+    }, { passive: false });
+})();
+/* === End of Dynamic Scroll Navigation === */
+
 
 // *** DEFINITIVE FIX: Central function for all Studio previews ***
 async function updateStudioPreview() {
