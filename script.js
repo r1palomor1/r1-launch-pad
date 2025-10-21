@@ -982,16 +982,49 @@ window.onPluginMessage = async (e) => {
 };
 
 
+// 🔸 Enhanced scroll handling for Songs and Playlists search results
 youtubeSearchView.addEventListener('scroll', () => {
     if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
-
     const { scrollTop, scrollHeight, clientHeight } = youtubeSearchView;
-
     if (scrollTop + clientHeight >= scrollHeight - 50) {
         const query = youtubeSearchInput.value.trim();
         handleYouTubeSearch(query, youtubeNextPageUrl);
     }
 });
+
+// 🔹 NEW: Scroll-wheel and Rabbit hardware scroll for Songs & Playlists
+function bindYouTubeScrollControl() {
+    const container = youtubeSearchResultsContainer;
+    if (!container) return;
+
+    // Rabbit hardware scroll integration
+    if (window.rabbit?.events?.on) {
+        window.rabbit.events.on('scrollUp', () => {
+            if (currentSearchMode === 'videos' || currentSearchMode === 'playlists') {
+                container.scrollBy({ top: -120, behavior: 'smooth' });
+            }
+        });
+        window.rabbit.events.on('scrollDown', () => {
+            if (currentSearchMode === 'videos' || currentSearchMode === 'playlists') {
+                container.scrollBy({ top: 120, behavior: 'smooth' });
+            }
+        });
+    }
+
+    // Desktop / dev fallback (mouse wheel)
+    container.addEventListener('wheel', (e) => {
+        if (currentSearchMode === 'videos' || currentSearchMode === 'playlists') {
+            e.preventDefault();
+            container.scrollBy({
+                top: e.deltaY < 0 ? -120 : 120,
+                behavior: 'smooth'
+            });
+        }
+    }, { passive: false });
+}
+
+// Run this once when YouTube results container is available
+if (youtubeSearchResultsContainer) bindYouTubeScrollControl();
 
 youtubeSearchInput.addEventListener('focus', () => youtubeSearchViewOverlay.classList.add('input-focused'));
 youtubeSearchInput.addEventListener('blur', () => youtubeSearchViewOverlay.classList.remove('input-focused'));
