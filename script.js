@@ -1,4 +1,4 @@
-﻿﻿// Working app. Fix scroll wheel functionality on lists.
+﻿﻿﻿﻿﻿// Working app. Song/Playlist/Fading/shuffle/Now Playing stop. Try add volume control.
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
@@ -982,49 +982,16 @@ window.onPluginMessage = async (e) => {
 };
 
 
-// 🔸 Enhanced scroll handling for Songs and Playlists search results
 youtubeSearchView.addEventListener('scroll', () => {
     if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
+
     const { scrollTop, scrollHeight, clientHeight } = youtubeSearchView;
+
     if (scrollTop + clientHeight >= scrollHeight - 50) {
         const query = youtubeSearchInput.value.trim();
         handleYouTubeSearch(query, youtubeNextPageUrl);
     }
 });
-
-// 🔹 NEW: Scroll-wheel and Rabbit hardware scroll for Songs & Playlists
-function bindYouTubeScrollControl() {
-    const container = youtubeSearchResultsContainer;
-    if (!container) return;
-
-    // Rabbit hardware scroll integration
-    if (window.rabbit?.events?.on) {
-        window.rabbit.events.on('scrollUp', () => {
-            if (currentSearchMode === 'videos' || currentSearchMode === 'playlists') {
-                container.scrollBy({ top: -120, behavior: 'smooth' });
-            }
-        });
-        window.rabbit.events.on('scrollDown', () => {
-            if (currentSearchMode === 'videos' || currentSearchMode === 'playlists') {
-                container.scrollBy({ top: 120, behavior: 'smooth' });
-            }
-        });
-    }
-
-    // Desktop / dev fallback (mouse wheel)
-    container.addEventListener('wheel', (e) => {
-        if (currentSearchMode === 'videos' || currentSearchMode === 'playlists') {
-            e.preventDefault();
-            container.scrollBy({
-                top: e.deltaY < 0 ? -120 : 120,
-                behavior: 'smooth'
-            });
-        }
-    }, { passive: false });
-}
-
-// Run this once when YouTube results container is available
-if (youtubeSearchResultsContainer) bindYouTubeScrollControl();
 
 youtubeSearchInput.addEventListener('focus', () => youtubeSearchViewOverlay.classList.add('input-focused'));
 youtubeSearchInput.addEventListener('blur', () => youtubeSearchViewOverlay.classList.remove('input-focused'));
@@ -1352,7 +1319,7 @@ function openFavoritesDialog() {
         favoritesPromptOverlay.style.display = 'none';
         scrollToTop();
     };
-        favoritesList.onclick = async (e) => {
+    favoritesList.onclick = async (e) => {
         const removeBtn = e.target.closest('.remove-favorite-btn');
         if (removeBtn) {
             const li = removeBtn.closest('.favorite-list-item');
@@ -1362,7 +1329,6 @@ function openFavoritesDialog() {
                 triggerHaptic();
                 renderFavoritesList();
                 renderLinks();
-                updateFavoritesFocus(); // keep focus accurate after re-render
             }
         } else {
             const li = e.target.closest('.favorite-list-item');
@@ -1372,34 +1338,6 @@ function openFavoritesDialog() {
             }
         }
     };
-
-    // 🔹 NEW: highlight the item closest to the vertical center while scrolling
-    function updateFavoritesFocus() {
-        const items = Array.from(favoritesList.querySelectorAll('.favorite-list-item'));
-        if (!items.length) return;
-        const bounds = favoritesList.getBoundingClientRect();
-        const midY = bounds.top + bounds.height / 2;
-
-        let best = null, bestDist = Infinity;
-        for (const el of items) {
-            const r = el.getBoundingClientRect();
-            const center = r.top + r.height / 2;
-            const dist = Math.abs(center - midY);
-            if (dist < bestDist) { best = el; bestDist = dist; }
-        }
-        items.forEach(el => el.classList.remove('focused'));
-        if (best) best.classList.add('focused');
-    }
-
-    favoritesList.addEventListener('scroll', () => {
-        // throttle via rAF for smoothness
-        if (favoritesList.__focusRAF) cancelAnimationFrame(favoritesList.__focusRAF);
-        favoritesList.__focusRAF = requestAnimationFrame(updateFavoritesFocus);
-    });
-
-    // run once initially
-    updateFavoritesFocus();
-
     favoritesPromptClose.onclick = closeDialog;
 }
 
@@ -1422,153 +1360,12 @@ let studioStage = 1;
 let studioBaseColor = null;
 let studioActiveModifier = null;
 
-// 🔹 NEW: clicking theme items updates selection + preview (same as scroll)
-if (themeColorList) {
-    themeColorList.addEventListener('click', (e) => {
-        const item = e.target.closest('.theme-color-item');
-        if (!item) return;
-
-        // maintain single selection
-        themeColorList.querySelectorAll('.theme-color-item.selected')
-            .forEach(n => n.classList.remove('selected'));
-        item.classList.add('selected');
-
-        const mod = (item.dataset.modifierName || '').toLowerCase();
-        if (mod) {
-            studioActiveModifier = mod;
-            if (typeof updateModifierSelectionUI === 'function') updateModifierSelectionUI();
-        } else {
-            studioBaseColor = item.dataset.colorName || item.textContent.trim();
-        }
-
-        if (typeof updateStudioPreview === 'function') updateStudioPreview();
-        triggerHaptic();
+function updateModifierSelectionUI() {
+    const listItems = themeColorList.querySelectorAll('.theme-color-item');
+    listItems.forEach(item => {
+        item.classList.toggle('selected', item.dataset.modifierName?.toLowerCase() === studioActiveModifier);
     });
 }
-
-/* ===========================
-   DYNAMIC SCROLL NAVIGATION
-   - Handles all visible lists automatically
-   - Theme Dialog, Favorites, Delete, YouTube, and future overlays
-   =========================== */
-
-const SCROLL_AMOUNT_MAIN = 120;
-const SCROLL_AMOUNT_DIALOG = 80;
-
-// Detect the most relevant scroll target currently visible
-function getActiveScrollTarget() {
-    const overlays = [
-        themeDialogOverlay,
-        deletePromptOverlay,
-        favoritesPromptOverlay,
-        youtubeSearchViewOverlay,
-        genericPromptOverlay
-    ];
-
-    // Check all known overlays
-    for (const overlay of overlays) {
-        if (overlay && overlay.style.display === 'flex') {
-            const scrollable = overlay.querySelector(
-                '.theme-color-list, .favorites-list, .delete-links-list, .scrollable-list-dialog, ul'
-            );
-            if (scrollable) return scrollable;
-        }
-    }
-
-    // Fallback: main card list when no dialogs are open
-    const onMainView =
-        internalPlayerOverlay.style.display === 'none' &&
-        genericPromptOverlay.style.display === 'none' &&
-        !mainView.classList.contains('input-mode-active');
-
-    return onMainView ? window : null;
-}
-
-// Perform scroll action
-function handleScrollEvent(direction) {
-    const target = getActiveScrollTarget();
-    if (!target) return;
-    const amount = target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG;
-
-    // Momentum-style glide instead of single step
-    animateScrollDelta(target, direction === 'up' ? -amount : amount, 220);
-
-    // 🔸 Centralized logic for theme list updates
-    if (themeDialogOverlay && themeDialogOverlay.style.display === 'flex') {
-        handleThemeListUpdate();
-    }
-
-    triggerHaptic();
-}
-
-// Smoothly scrolls a container by `deltaY` pixels over `durationMs`
-function animateScrollDelta(target, deltaY, durationMs = 200) {
-    const start = performance.now();
-    const initial = target === window ? window.scrollY : target.scrollTop;
-
-    // simple ease-out cubic
-    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-
-    function frame(now) {
-        const t = Math.min(1, (now - start) / durationMs);
-        const y = initial + deltaY * easeOutCubic(t);
-        if (target === window) {
-            window.scrollTo(0, y);
-        } else {
-            target.scrollTop = y;
-        }
-        if (t < 1) requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
-}
-
-/* 🔧 New helper function for modular theme updates */
-function handleThemeListUpdate() {
-    const list = themeDialogOverlay.querySelector('.theme-color-list');
-    if (!list) return;
-
-    const selected = list.querySelector('.theme-color-item.selected');
-    if (!selected) return;
-
-    const mod = (selected.dataset.modifierName || '').toLowerCase();
-    if (mod) {
-        studioActiveModifier = mod;
-        if (typeof updateModifierSelectionUI === 'function') updateModifierSelectionUI();
-    } else {
-        studioBaseColor = selected.dataset.colorName || selected.textContent.trim();
-    }
-
-    if (typeof updateStudioPreview === 'function') updateStudioPreview();
-}
-
-// Attach Rabbit SDK events
-(function bindDynamicScroll() {
-    if (window.__dynamicScrollBound) return;
-    window.__dynamicScrollBound = true;
-
-    if (window.rabbit && window.rabbit.events && typeof window.rabbit.events.on === 'function') {
-        window.rabbit.events.on('scrollUp', () => handleScrollEvent('up'));
-        window.rabbit.events.on('scrollDown', () => handleScrollEvent('down'));
-    }
-
-    // Desktop / test fallback
-    window.addEventListener('wheel', (e) => {
-        const anyOverlayVisible = [
-            themeDialogOverlay,
-            favoritesPromptOverlay,
-            deletePromptOverlay,
-            youtubeSearchViewOverlay,
-            genericPromptOverlay
-        ].some(o => o && o.style.display === 'flex');
-
-        if (anyOverlayVisible || document.activeElement.tagName !== 'INPUT') {
-            e.preventDefault();
-            handleScrollEvent(e.deltaY < 0 ? 'up' : 'down');
-        }
-    }, { passive: false });
-})();
-/* === End of Dynamic Scroll Navigation === */
-
 
 // *** DEFINITIVE FIX: Central function for all Studio previews ***
 async function updateStudioPreview() {
