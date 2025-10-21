@@ -1319,7 +1319,7 @@ function openFavoritesDialog() {
         favoritesPromptOverlay.style.display = 'none';
         scrollToTop();
     };
-    favoritesList.onclick = async (e) => {
+        favoritesList.onclick = async (e) => {
         const removeBtn = e.target.closest('.remove-favorite-btn');
         if (removeBtn) {
             const li = removeBtn.closest('.favorite-list-item');
@@ -1329,6 +1329,7 @@ function openFavoritesDialog() {
                 triggerHaptic();
                 renderFavoritesList();
                 renderLinks();
+                updateFavoritesFocus(); // keep focus accurate after re-render
             }
         } else {
             const li = e.target.closest('.favorite-list-item');
@@ -1338,6 +1339,34 @@ function openFavoritesDialog() {
             }
         }
     };
+
+    // 🔹 NEW: highlight the item closest to the vertical center while scrolling
+    function updateFavoritesFocus() {
+        const items = Array.from(favoritesList.querySelectorAll('.favorite-list-item'));
+        if (!items.length) return;
+        const bounds = favoritesList.getBoundingClientRect();
+        const midY = bounds.top + bounds.height / 2;
+
+        let best = null, bestDist = Infinity;
+        for (const el of items) {
+            const r = el.getBoundingClientRect();
+            const center = r.top + r.height / 2;
+            const dist = Math.abs(center - midY);
+            if (dist < bestDist) { best = el; bestDist = dist; }
+        }
+        items.forEach(el => el.classList.remove('focused'));
+        if (best) best.classList.add('focused');
+    }
+
+    favoritesList.addEventListener('scroll', () => {
+        // throttle via rAF for smoothness
+        if (favoritesList.__focusRAF) cancelAnimationFrame(favoritesList.__focusRAF);
+        favoritesList.__focusRAF = requestAnimationFrame(updateFavoritesFocus);
+    });
+
+    // run once initially
+    updateFavoritesFocus();
+
     favoritesPromptClose.onclick = closeDialog;
 }
 
@@ -1359,6 +1388,30 @@ let isStudioMode = false;
 let studioStage = 1;
 let studioBaseColor = null;
 let studioActiveModifier = null;
+
+// 🔹 NEW: clicking theme items updates selection + preview (same as scroll)
+if (themeColorList) {
+    themeColorList.addEventListener('click', (e) => {
+        const item = e.target.closest('.theme-color-item');
+        if (!item) return;
+
+        // maintain single selection
+        themeColorList.querySelectorAll('.theme-color-item.selected')
+            .forEach(n => n.classList.remove('selected'));
+        item.classList.add('selected');
+
+        const mod = (item.dataset.modifierName || '').toLowerCase();
+        if (mod) {
+            studioActiveModifier = mod;
+            if (typeof updateModifierSelectionUI === 'function') updateModifierSelectionUI();
+        } else {
+            studioBaseColor = item.dataset.colorName || item.textContent.trim();
+        }
+
+        if (typeof updateStudioPreview === 'function') updateStudioPreview();
+        triggerHaptic();
+    });
+}
 
 /* ===========================
    DYNAMIC SCROLL NAVIGATION
@@ -1403,11 +1456,56 @@ function handleScrollEvent(direction) {
     const target = getActiveScrollTarget();
     if (!target) return;
     const amount = target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG;
-    target.scrollBy({
-        top: direction === 'up' ? -amount : amount,
-        behavior: 'smooth'
-    });
+
+    // Momentum-style glide instead of single step
+    animateScrollDelta(target, direction === 'up' ? -amount : amount, 220);
+
+    // 🔸 Centralized logic for theme list updates
+    if (themeDialogOverlay && themeDialogOverlay.style.display === 'flex') {
+        handleThemeListUpdate();
+    }
+
     triggerHaptic();
+}
+
+// Smoothly scrolls a container by `deltaY` pixels over `durationMs`
+function animateScrollDelta(target, deltaY, durationMs = 200) {
+    const start = performance.now();
+    const initial = target === window ? window.scrollY : target.scrollTop;
+
+    // simple ease-out cubic
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+    function frame(now) {
+        const t = Math.min(1, (now - start) / durationMs);
+        const y = initial + deltaY * easeOutCubic(t);
+        if (target === window) {
+            window.scrollTo(0, y);
+        } else {
+            target.scrollTop = y;
+        }
+        if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+}
+
+/* 🔧 New helper function for modular theme updates */
+function handleThemeListUpdate() {
+    const list = themeDialogOverlay.querySelector('.theme-color-list');
+    if (!list) return;
+
+    const selected = list.querySelector('.theme-color-item.selected');
+    if (!selected) return;
+
+    const mod = (selected.dataset.modifierName || '').toLowerCase();
+    if (mod) {
+        studioActiveModifier = mod;
+        if (typeof updateModifierSelectionUI === 'function') updateModifierSelectionUI();
+    } else {
+        studioBaseColor = selected.dataset.colorName || selected.textContent.trim();
+    }
+
+    if (typeof updateStudioPreview === 'function') updateStudioPreview();
 }
 
 // Attach Rabbit SDK events
