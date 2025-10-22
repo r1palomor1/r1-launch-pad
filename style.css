@@ -1362,14 +1362,12 @@ button.rabbit-default:hover {
     height: 30px;
 }
 
-/* New Playlist Player Styles */
+/* Playlist Player Styles - Uses same layout as Song controls */
 .player-navigation-playlist {
     display: flex;
-    flex-direction: column; /* Stack the rows vertically */
+    flex-direction: column;
     width: 100%;
-    gap: 2px; /* Very small gap between the two rows */
-    padding: 4px 8px; /* Reduced vertical padding */
-    box-sizing: border-box;
+    gap: 4px;
 }
 
 .playlist-controls-row {
@@ -1377,25 +1375,17 @@ button.rabbit-default:hover {
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    gap: 4px;
 }
 
-/* Make all buttons within the new playlist controls more compact */
-.player-navigation-playlist .dialog-icon-btn,
-.player-navigation-playlist .secondary {
-    padding: 4px; /* Reduce padding */
-    height: 36px; /* Reduce height */
-    min-width: 36px;
-    flex-shrink: 0;
-}
-
-/* Make icons smaller */
+/* Apply same styling as .player-navigation to playlist controls */
 .player-navigation-playlist .dialog-icon-btn svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
 }
 
-/* Specific adjustments for text buttons */
-.player-navigation-playlist .secondary {
-    padding: 4px 10px; /* Give text buttons a bit more horizontal padding */
-    font-size: 14px;
+.player-navigation-playlist button {
+    padding: 4px 8px;
+    font-size: var(--font-size-small);
+    min-height: 32px !important;
 }
