@@ -84,8 +84,6 @@ let isFetchingYoutubeResults = false;
 let uiHideTimeout = null;
 let isUIVisible = true;
 let tapHintTimeout = null;
-let tapHintShownCount = 0;
-const MAX_TAP_HINT_SHOWS = 3; // Show hint only first 3 times
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
@@ -669,34 +667,31 @@ function showPlayerUI() {
 }
 
 function showTapHint() {
-    // Check if we've already shown it 3 times
-    const shownCount = parseInt(localStorage.getItem('tapHintShownCount') || '0', 10);
-    if (shownCount >= MAX_TAP_HINT_SHOWS) return;
+    // Check if we've already shown it this session
+    const tapHint = document.getElementById('tapHint');
+    if (tapHint && tapHint.dataset.shown === 'true') return;
     
     // Create hint element if it doesn't exist
-    let tapHint = document.getElementById('tapHint');
     if (!tapHint) {
-        tapHint = document.createElement('div');
-        tapHint.id = 'tapHint';
-        tapHint.innerHTML = `
+        const hint = document.createElement('div');
+        hint.id = 'tapHint';
+        hint.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C11.5 2 11 2.19 10.59 2.59L2.59 10.59C1.8 11.37 1.8 12.63 2.59 13.41L10.59 21.41C11.37 22.2 12.63 22.2 13.41 21.41L21.41 13.41C22.2 12.63 22.2 11.37 21.41 10.59L13.41 2.59C13 2.19 12.5 2 12 2M12 4L20 12L12 20L4 12L12 4M11 6V11H6V13H11V18H13V13H18V11H13V6H11Z"/>
+                <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m7.2 11H8a1 1 0 0 0-1 1 1 1 0 0 0 1 1h7a1 1 0 0 0 1-1 1 1 0 0 0-1-1m1-4H8a1 1 0 0 0-1 1 1 1 0 0 0 1 1h8a1 1 0 0 0 1-1 1 1 0 0 0-1-1z"/>
             </svg>
-            <span>Tap here to show controls</span>
         `;
-        internalPlayerOverlay.appendChild(tapHint);
+        internalPlayerOverlay.appendChild(hint);
     }
     
-    // Show the hint with fade-in
-    tapHint.style.display = 'flex';
-    setTimeout(() => tapHint.style.opacity = '1', 10);
+    const hintElement = document.getElementById('tapHint');
+    hintElement.dataset.shown = 'true';
+    hintElement.style.display = 'flex';
+    setTimeout(() => hintElement.style.opacity = '1', 10);
     
     // Hide after 3 seconds
     clearTimeout(tapHintTimeout);
     tapHintTimeout = setTimeout(() => {
         hideTapHint();
-        // Increment the counter
-        localStorage.setItem('tapHintShownCount', (shownCount + 1).toString());
     }, 3000);
 }
 
