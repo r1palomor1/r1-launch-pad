@@ -1339,7 +1339,10 @@ button.rabbit-default:hover {
 /* Set a standard size for the icon buttons (Shuffle, Next, and Audio Only) */
 #playerShuffleBtn,
 #playerNextBtn,
-#playerAudioOnlyBtn {
+#playerAudioOnlyBtn,
+#playerPrevBtn,
+#playerPlayAllBtn,
+#playerAudioOnlyBtn_playlist {
     width: 38px;
     height: 38px;
 }
@@ -1347,17 +1350,22 @@ button.rabbit-default:hover {
 /* Set the standard size for the icons INSIDE those buttons */
 #playerShuffleBtn svg,
 #playerNextBtn svg,
-#playerAudioOnlyBtn svg {
+#playerAudioOnlyBtn svg,
+#playerPrevBtn svg,
+#playerPlayAllBtn svg,
+#playerAudioOnlyBtn_playlist svg {
     width: 24px;
     height: 24px;
 }
 
 /* Override: Keep the main Play/Pause button and its icon the largest for emphasis */
-#playerPlayPauseBtn {
+#playerPlayPauseBtn,
+#playerPlayPauseBtn_playlist {
     width: 44px;
     height: 44px;
 }
-#playerPlayPauseBtn svg {
+#playerPlayPauseBtn svg,
+#playerPlayPauseBtn_playlist svg {
     width: 30px;
     height: 30px;
 }
