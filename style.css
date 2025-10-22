@@ -1397,3 +1397,52 @@ button.rabbit-default:hover {
     font-size: var(--font-size-small);
     min-height: 32px !important;
 }
+
+/* Tap Hint - Shows users where to tap when controls are hidden */
+#tapHint {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    color: var(--font-color);
+    font-size: 0.9em;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1002;
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(255, 112, 67, 0.4);
+}
+
+#tapHint svg {
+    width: 28px;
+    height: 28px;
+    color: var(--primary-color);
+    animation: tapPulse 2s ease-in-out infinite;
+}
+
+#tapHint span {
+    white-space: nowrap;
+    text-align: center;
+    color: var(--font-color);
+}
+
+@keyframes tapPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.8;
+    }
+}
