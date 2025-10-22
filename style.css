@@ -1398,3 +1398,8 @@ button.rabbit-default:hover {
     padding: 4px 10px; /* Give text buttons a bit more horizontal padding */
     font-size: 14px;
 }
+
+/* Hide header in playlist mode to test if video expands properly */
+.player-header {
+    display: none; 
+}
