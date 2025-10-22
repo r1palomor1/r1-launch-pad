@@ -975,7 +975,7 @@ button.rabbit-default:hover {
     z-index: 1001;
     display: flex;
     flex-direction: column;
-    padding: max(env(safe-area-inset-top), 10px) 0 max(8px, env(safe-area-inset-bottom)) 0;
+    padding: 0;
 }
 
 .player-header {
