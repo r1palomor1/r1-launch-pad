@@ -665,7 +665,7 @@ function startUIHideTimer() {
         if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
             hidePlayerUI();
         }
-    }, 10000);
+    }, 4000);
 }
 
 function openYouTubeSearchView() {
