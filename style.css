@@ -1412,6 +1412,7 @@ button.rabbit-default:hover {
     transition: opacity 0.3s ease;
     align-items: center;
     justify-content: center;
+    filter: drop-shadow(0 0 8px var(--primary-color));
 }
 
 #tapHint img {
