@@ -2113,10 +2113,24 @@ function onPlayerStateChange(event) {
         showPlayerUI();
     } else if (event.data === YT.PlayerState.BUFFERING) {
         // This state is unreliable for title updates, do nothing here.
-    } else if (event.data === YT.PlayerState.UNSTARTED) {
+        } else if (event.data === YT.PlayerState.UNSTARTED) {
         // Update BOTH buttons
-    playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
-    playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+    }
 }
+
+// === Force YouTube iframe to match container height dynamically ===
+function fixYouTubePlayerHeight() {
+  const frame = document.querySelector('#internalPlayerOverlay .player-container iframe');
+  const container = document.querySelector('#internalPlayerOverlay .player-container');
+  if (frame && container) {
+    frame.style.width = '100%';
+    frame.style.height = container.clientHeight + 'px';
+  }
 }
+
+window.addEventListener('resize', fixYouTubePlayerHeight);
+document.addEventListener('DOMContentLoaded', fixYouTubePlayerHeight);
+
 
