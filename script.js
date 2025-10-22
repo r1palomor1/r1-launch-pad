@@ -2119,3 +2119,12 @@ function onPlayerStateChange(event) {
     playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
 }
 }
+// TEMP TEST: Hide header dynamically to test expansion
+document.addEventListener('keydown', e => {
+  if (e.key === 'h') {
+    const header = document.querySelector('#internalPlayerOverlay .player-header');
+    if (header) {
+      header.style.display = (header.style.display === 'none') ? 'block' : 'none';
+    }
+  }
+});

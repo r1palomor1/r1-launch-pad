@@ -1399,7 +1399,8 @@ button.rabbit-default:hover {
     font-size: 14px;
 }
 
-/* Hide header in playlist mode to test if video expands properly */
-.player-header {
-    display: none; 
+/* TEMP TEST: Hide player header to expand video area */
+#internalPlayerOverlay .player-header {
+  display: none !important;
 }
+
