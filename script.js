@@ -648,6 +648,8 @@ function hidePlayerUI() {
     isUIVisible = false;
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
+    const container = document.querySelector('#internalPlayerOverlay .player-container');
+
     if (header) {
         header.style.opacity = '0';
         header.style.pointerEvents = 'none';
@@ -655,6 +657,15 @@ function hidePlayerUI() {
     if (controls) {
         controls.style.opacity = '0';
         controls.style.pointerEvents = 'none';
+    }
+
+    // 🔹 Option #3: visually expand the video to overlap ~¾ of header/controls
+    if (container) {
+        container.style.transition = 'transform 0.35s ease, height 0.35s ease';
+        container.style.willChange = 'transform, height';
+        container.style.transform = 'translateY(-35px)';
+        container.style.height = 'calc(100% + 70px)'; // ≈ 35px top + 35px bottom
+        container.style.zIndex = '2';
     }
     
     // Show tap hint after UI fades (only first 3 times)
@@ -665,6 +676,8 @@ function showPlayerUI() {
     isUIVisible = true;
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
+    const container = document.querySelector('#internalPlayerOverlay .player-container');
+
     if (header) {
         header.style.opacity = '1';
         header.style.pointerEvents = 'auto';
@@ -672,6 +685,15 @@ function showPlayerUI() {
     if (controls) {
         controls.style.opacity = '1';
         controls.style.pointerEvents = 'auto';
+    }
+
+    // 🔹 Restore player size/position
+    if (container) {
+        container.style.transform = '';
+        container.style.height = '';
+        container.style.zIndex = '';
+        // keep transition so it animates back smoothly
+        container.style.transition = 'transform 0.35s ease, height 0.35s ease';
     }
     
     // Hide tap hint when UI shows again
