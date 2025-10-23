@@ -224,9 +224,13 @@ async function loadLinksFromR1() {
     if (window.creationStorage) {
         try {
             const stored = await window.creationStorage.plain.get('launchPadR1Links');
+            const storedFavorites = await window.creationStorage.plain.get('launchPadR1FavoriteLinkIds');
             if (stored) {
                 links = JSON.parse(stored);
                 loadedFromR1 = true;
+            }
+            if (storedFavorites) {
+                favoriteLinkIds = new Set(JSON.parse(storedFavorites));
             }
         } catch (e) {
             console.log('Could not load from R1 storage, using localStorage fallback');
@@ -237,6 +241,10 @@ async function loadLinksFromR1() {
         const localData = localStorage.getItem('launchPadR1Links');
         if (localData) {
             links = JSON.parse(localData);
+        }
+        const localFavorites = localStorage.getItem('launchPadR1FavoriteLinkIds');
+        if (localFavorites) {
+            favoriteLinkIds = new Set(JSON.parse(localFavorites));
         }
     }
     
@@ -347,8 +355,8 @@ let currentView = localStorage.getItem('launchPadR1View') || 'list';
 let collapsedCategories = JSON.parse(localStorage.getItem('launchPadR1CollapsedCategories')) || [];
 let currentThemeName = 'rabbit'; // Will be loaded from storage in init()
 let currentLuminanceMode = 'dark'; // Will be loaded from storage in init()
-// Default customTheme to Rabbit theme so it's never null
-let customTheme = { name: 'My Custom Theme', baseColor: 'Rabbit', modifier: 'bold', mode: 'dark' };
+// Default customTheme to Rabbit's actual color (Orange) so it's never null
+let customTheme = { name: 'My Custom Theme', baseColor: 'Orange', modifier: 'bold', mode: 'dark' };
 
 function updateToggleAllLinkState() {
     if (currentView !== 'group') {
@@ -1482,15 +1490,18 @@ async function applyTheme(themeIdentifier, silent = false, isConfirmation = fals
     let friendlyName;
     let error = null;
     let themeToApply = { ...themeIdentifier }; // Make a mutable copy
+    let isCustomTheme = false; // Track if this is "My Custom Theme"
 
     // If applying "My Custom Theme", load its full definition
     if (customTheme && (themeToApply.name === `custom:My Custom Theme` || themeToApply.name === 'My Custom Theme')) {
+        isCustomTheme = true; // Mark that we're applying the custom theme
         // If a mode is saved with the custom theme, apply it first.
         if (customTheme.mode && customTheme.mode !== currentLuminanceMode) {
             await setLuminanceMode(customTheme.mode, true); // Silently set the mode
         }
         themeToApply.name = `custom:${customTheme.baseColor}`; // Use the base color for generation
         themeToApply.modifier = customTheme.modifier; // Use the saved modifier
+        friendlyName = 'My Custom Theme'; // Set friendly name for voice feedback
     }
 
     if (themeToApply.name.startsWith('custom:')) {
@@ -1505,7 +1516,7 @@ async function applyTheme(themeIdentifier, silent = false, isConfirmation = fals
             if (!themeColors) {
                 error = currentLuminanceMode === 'dark' ? "This color is too dark." : "This color is too light.";
             } else {
-                friendlyName = colorName;
+                if (!friendlyName) friendlyName = colorName; // Only set if not already set (e.g., by custom theme)
             }
         }
     } else {
@@ -1515,7 +1526,10 @@ async function applyTheme(themeIdentifier, silent = false, isConfirmation = fals
     if (error) return { success: false, error: error };
     if (!themeColors) return { success: true };
     themeDialogTitle.style.color = themeColors['--primary-color'];
-    const finalThemeName = themeToApply.modifier ? `${themeToApply.name}:${themeToApply.modifier}` : themeToApply.name;
+    
+    // Set the final theme name - use "My Custom Theme" if it's the custom theme, otherwise use the parsed name
+    const finalThemeName = isCustomTheme ? 'My Custom Theme' : (themeToApply.modifier ? `${themeToApply.name}:${themeToApply.modifier}` : themeToApply.name);
+    
     if (isConfirmation) {
         Object.entries(themeColors).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
         currentThemeName = finalThemeName;
