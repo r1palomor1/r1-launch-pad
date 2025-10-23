@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿// Working app. YT Modes/Fading/shuffle/Now Playing X/Play All icon/Tap Hint icon. Try add volume control.
+﻿﻿// Working app. YT Modes/Fading/shuffle/Now Playing X/Play All icon/Theme saved
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
