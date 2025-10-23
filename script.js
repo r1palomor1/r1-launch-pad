@@ -666,7 +666,7 @@ function showPlayerUI() {
     }
 }
 
-async function showTapHint() {
+function showTapHint() {
     // Check if we've already shown it this session
     const tapHint = document.getElementById('tapHint');
     if (tapHint && tapHint.dataset.shown === 'true') return;
@@ -675,18 +675,7 @@ async function showTapHint() {
     if (!tapHint) {
         const hint = document.createElement('div');
         hint.id = 'tapHint';
-        
-        // Fetch and embed SVG inline so CSS can style it
-        try {
-            const response = await fetch('Tap_me_here.svg');
-            const svgText = await response.text();
-            hint.innerHTML = svgText;
-        } catch (e) {
-            console.error('Failed to load tap hint SVG:', e);
-            // Fallback to PNG if SVG fails
-            hint.innerHTML = `<img src="Tap_me_here.png" alt="Tap here">`;
-        }
-        
+        hint.innerHTML = `<img src="Tap_me_here.png" alt="Tap here">`;
         internalPlayerOverlay.appendChild(hint);
     }
     

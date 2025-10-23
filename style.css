@@ -1414,13 +1414,6 @@ button.rabbit-default:hover {
     justify-content: center;
 }
 
-#tapHint svg {
-    width: 100%;
-    height: 100%;
-    fill: var(--primary-color);
-    animation: tapPulse 1.5s ease-in-out infinite;
-}
-
 #tapHint img {
     width: 100%;
     height: 100%;
