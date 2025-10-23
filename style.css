@@ -1405,8 +1405,8 @@ button.rabbit-default:hover {
     right: 8px;
     display: none;
     opacity: 0;
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
     pointer-events: none;
     z-index: 1000;
     transition: opacity 0.3s ease;
