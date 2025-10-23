@@ -250,11 +250,55 @@ async function loadLinksFromR1() {
     }
 }
 
+async function loadThemeFromR1() {
+    if (window.creationStorage) {
+        try {
+            const storedTheme = await window.creationStorage.plain.get('launchPadR1Theme');
+            const storedMode = await window.creationStorage.plain.get('launchPadR1LuminanceMode');
+            const storedCustomTheme = await window.creationStorage.plain.get('launchPadR1CustomTheme');
+            
+            if (storedTheme) {
+                currentThemeName = storedTheme;
+            }
+            if (storedMode) {
+                currentLuminanceMode = storedMode;
+            }
+            if (storedCustomTheme) {
+                customTheme = JSON.parse(storedCustomTheme);
+            }
+            return;
+        } catch (e) {
+            console.log('Could not load theme from R1 storage, using localStorage fallback');
+        }
+    }
+    
+    // Fallback to localStorage
+    const localTheme = localStorage.getItem('launchPadR1Theme');
+    const localMode = localStorage.getItem('launchPadR1LuminanceMode');
+    const localCustomTheme = localStorage.getItem('launchPadR1CustomTheme');
+    
+    if (localTheme) {
+        currentThemeName = localTheme;
+    }
+    if (localMode) {
+        currentLuminanceMode = localMode;
+    }
+    if (localCustomTheme) {
+        customTheme = JSON.parse(localCustomTheme);
+    }
+}
+
 async function saveLinksToR1() {
     if (window.creationStorage) {
         try {
             await window.creationStorage.plain.set('launchPadR1Links', JSON.stringify(links));
             await window.creationStorage.plain.set('launchPadR1FavoriteLinkIds', JSON.stringify(Array.from(favoriteLinkIds)));
+            // Save theme settings to R1 storage
+            await window.creationStorage.plain.set('launchPadR1Theme', currentThemeName);
+            await window.creationStorage.plain.set('launchPadR1LuminanceMode', currentLuminanceMode);
+            if (customTheme) {
+                await window.creationStorage.plain.set('launchPadR1CustomTheme', JSON.stringify(customTheme));
+            }
         } catch (e) {
             console.log('Using localStorage fallback');
         }
@@ -262,6 +306,11 @@ async function saveLinksToR1() {
     // Fallback to localStorage
     localStorage.setItem('launchPadR1Links', JSON.stringify(links));
     localStorage.setItem('launchPadR1FavoriteLinkIds', JSON.stringify(Array.from(favoriteLinkIds)));
+    localStorage.setItem('launchPadR1Theme', currentThemeName);
+    localStorage.setItem('launchPadR1LuminanceMode', currentLuminanceMode);
+    if (customTheme) {
+        localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
+    }
 }
 
 // URL Migration and links initialization
@@ -1139,6 +1188,7 @@ async function handleAddFromQuery(description, url) {
 
     async function init() {
         await loadLinksFromR1();
+        await loadThemeFromR1(); // Load saved theme settings
         renderLinks();
         applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
     }
@@ -1470,7 +1520,7 @@ async function applyTheme(themeIdentifier, silent = false, isConfirmation = fals
     if (isConfirmation) {
         Object.entries(themeColors).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
         currentThemeName = finalThemeName;
-        localStorage.setItem('launchPadR1Theme', currentThemeName);
+        await saveLinksToR1(); // Save theme to both localStorage and R1 storage
         if (!silent) await sayOnRabbit(`Theme set to ${friendlyName}`);
     } else {
         const dialog = themeDialogOverlay.querySelector('.custom-prompt-dialog');
@@ -1572,7 +1622,7 @@ function updateModeToggleUI() {
 async function setLuminanceMode(mode, silent = false) {
     if (currentLuminanceMode === mode) return;
     currentLuminanceMode = mode;
-    localStorage.setItem('launchPadR1LuminanceMode', mode);
+    await saveLinksToR1(); // Save mode to both localStorage and R1 storage
     updateModeToggleUI();
     updateThemeListDisabledState();
 
@@ -1699,7 +1749,7 @@ function setupThemeDialogListeners() {
                     ...themeToSave, 
                     mode: currentLuminanceMode 
                 };
-                localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
+                await saveLinksToR1(); // Save custom theme to both localStorage and R1 storage
                 await applyTheme({ name: `custom:${customTheme.baseColor}`, modifier: customTheme.modifier }, true, true);
                 await sayOnRabbit("Custom theme saved.");
                 isStudioMode = false;
