@@ -965,31 +965,6 @@ button.rabbit-default:hover {
     padding-right: 30px;
 }
 
-.custom-theme-default-wrapper {
-    padding: 8px 0;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-
-.custom-theme-default-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-size: var(--font-size-small);
-    color: var(--font-color);
-    user-select: none;
-    touch-action: manipulation;
-}
-
-.custom-theme-default-checkbox {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    accent-color: var(--primary-color);
-}
-
 #internalPlayerOverlay {
     position: fixed;
     top: 0;
