@@ -1,4 +1,4 @@
-﻿﻿// Working app. Song/Playlist/Fading/shuffle/Now Playing X/Play All icon/Tap Hint. Try add volume control.
+﻿﻿// Working app. YT Modes/Fading/shuffle/Now Playing X/Play All icon/Tap Hint icon. Try add volume control.
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
@@ -224,13 +224,9 @@ async function loadLinksFromR1() {
     if (window.creationStorage) {
         try {
             const stored = await window.creationStorage.plain.get('launchPadR1Links');
-            const storedFavorites = await window.creationStorage.plain.get('launchPadR1FavoriteLinkIds');
             if (stored) {
                 links = JSON.parse(stored);
                 loadedFromR1 = true;
-            }
-            if (storedFavorites) {
-                favoriteLinkIds = new Set(JSON.parse(storedFavorites));
             }
         } catch (e) {
             console.log('Could not load from R1 storage, using localStorage fallback');
@@ -241,10 +237,6 @@ async function loadLinksFromR1() {
         const localData = localStorage.getItem('launchPadR1Links');
         if (localData) {
             links = JSON.parse(localData);
-        }
-        const localFavorites = localStorage.getItem('launchPadR1FavoriteLinkIds');
-        if (localFavorites) {
-            favoriteLinkIds = new Set(JSON.parse(localFavorites));
         }
     }
     
@@ -258,54 +250,11 @@ async function loadLinksFromR1() {
     }
 }
 
-async function loadThemeFromR1() {
-    if (window.creationStorage) {
-        try {
-            const storedTheme = await window.creationStorage.plain.get('launchPadR1Theme');
-            const storedMode = await window.creationStorage.plain.get('launchPadR1LuminanceMode');
-            const storedCustomTheme = await window.creationStorage.plain.get('launchPadR1CustomTheme');
-            
-            if (storedTheme) {
-                currentThemeName = storedTheme;
-            }
-            if (storedMode) {
-                currentLuminanceMode = storedMode;
-            }
-            if (storedCustomTheme) {
-                customTheme = JSON.parse(storedCustomTheme);
-            }
-            return;
-        } catch (e) {
-            console.log('Could not load theme from R1 storage, using localStorage fallback');
-        }
-    }
-    
-    // Fallback to localStorage
-    const localTheme = localStorage.getItem('launchPadR1Theme');
-    const localMode = localStorage.getItem('launchPadR1LuminanceMode');
-    const localCustomTheme = localStorage.getItem('launchPadR1CustomTheme');
-    
-    if (localTheme) {
-        currentThemeName = localTheme;
-    }
-    if (localMode) {
-        currentLuminanceMode = localMode;
-    }
-    if (localCustomTheme) {
-        customTheme = JSON.parse(localCustomTheme);
-    }
-}
-
 async function saveLinksToR1() {
     if (window.creationStorage) {
         try {
             await window.creationStorage.plain.set('launchPadR1Links', JSON.stringify(links));
             await window.creationStorage.plain.set('launchPadR1FavoriteLinkIds', JSON.stringify(Array.from(favoriteLinkIds)));
-            // Save theme settings to R1 storage
-            await window.creationStorage.plain.set('launchPadR1Theme', currentThemeName);
-            await window.creationStorage.plain.set('launchPadR1LuminanceMode', currentLuminanceMode);
-            // Always save customTheme (now defaults to Rabbit, never null)
-            await window.creationStorage.plain.set('launchPadR1CustomTheme', JSON.stringify(customTheme));
         } catch (e) {
             console.log('Using localStorage fallback');
         }
@@ -313,10 +262,6 @@ async function saveLinksToR1() {
     // Fallback to localStorage
     localStorage.setItem('launchPadR1Links', JSON.stringify(links));
     localStorage.setItem('launchPadR1FavoriteLinkIds', JSON.stringify(Array.from(favoriteLinkIds)));
-    localStorage.setItem('launchPadR1Theme', currentThemeName);
-    localStorage.setItem('launchPadR1LuminanceMode', currentLuminanceMode);
-    // Always save customTheme (now defaults to Rabbit, never null)
-    localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
 }
 
 // URL Migration and links initialization
@@ -353,10 +298,9 @@ links.forEach(link => {
 
 let currentView = localStorage.getItem('launchPadR1View') || 'list';
 let collapsedCategories = JSON.parse(localStorage.getItem('launchPadR1CollapsedCategories')) || [];
-let currentThemeName = 'rabbit'; // Will be loaded from storage in init()
-let currentLuminanceMode = 'dark'; // Will be loaded from storage in init()
-// Default customTheme to Rabbit's actual color (Orange) so it's never null
-let customTheme = { name: 'My Custom Theme', baseColor: 'Orange', modifier: 'bold', mode: 'dark' };
+let currentThemeName = localStorage.getItem('launchPadR1Theme') || 'rabbit';
+let currentLuminanceMode = localStorage.getItem('launchPadR1LuminanceMode') || 'dark';
+let customTheme = JSON.parse(localStorage.getItem('launchPadR1CustomTheme')) || null;
 
 function updateToggleAllLinkState() {
     if (currentView !== 'group') {
@@ -1195,9 +1139,8 @@ async function handleAddFromQuery(description, url) {
 
     async function init() {
         await loadLinksFromR1();
-        await loadThemeFromR1(); // Load saved theme settings
         renderLinks();
-        await applyTheme({ name: currentThemeName }, true, true); // silent=true, isConfirmation=true
+        applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
     }
 
     document.addEventListener('DOMContentLoaded', init);
@@ -1490,18 +1433,15 @@ async function applyTheme(themeIdentifier, silent = false, isConfirmation = fals
     let friendlyName;
     let error = null;
     let themeToApply = { ...themeIdentifier }; // Make a mutable copy
-    let isCustomTheme = false; // Track if this is "My Custom Theme"
 
     // If applying "My Custom Theme", load its full definition
     if (customTheme && (themeToApply.name === `custom:My Custom Theme` || themeToApply.name === 'My Custom Theme')) {
-        isCustomTheme = true; // Mark that we're applying the custom theme
         // If a mode is saved with the custom theme, apply it first.
         if (customTheme.mode && customTheme.mode !== currentLuminanceMode) {
             await setLuminanceMode(customTheme.mode, true); // Silently set the mode
         }
         themeToApply.name = `custom:${customTheme.baseColor}`; // Use the base color for generation
         themeToApply.modifier = customTheme.modifier; // Use the saved modifier
-        friendlyName = 'My Custom Theme'; // Set friendly name for voice feedback
     }
 
     if (themeToApply.name.startsWith('custom:')) {
@@ -1516,7 +1456,7 @@ async function applyTheme(themeIdentifier, silent = false, isConfirmation = fals
             if (!themeColors) {
                 error = currentLuminanceMode === 'dark' ? "This color is too dark." : "This color is too light.";
             } else {
-                if (!friendlyName) friendlyName = colorName; // Only set if not already set (e.g., by custom theme)
+                friendlyName = colorName;
             }
         }
     } else {
@@ -1526,14 +1466,11 @@ async function applyTheme(themeIdentifier, silent = false, isConfirmation = fals
     if (error) return { success: false, error: error };
     if (!themeColors) return { success: true };
     themeDialogTitle.style.color = themeColors['--primary-color'];
-    
-    // Set the final theme name - use "My Custom Theme" if it's the custom theme, otherwise use the parsed name
-    const finalThemeName = isCustomTheme ? 'My Custom Theme' : (themeToApply.modifier ? `${themeToApply.name}:${themeToApply.modifier}` : themeToApply.name);
-    
+    const finalThemeName = themeToApply.modifier ? `${themeToApply.name}:${themeToApply.modifier}` : themeToApply.name;
     if (isConfirmation) {
         Object.entries(themeColors).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
         currentThemeName = finalThemeName;
-        await saveLinksToR1(); // Save theme to both localStorage and R1 storage
+        localStorage.setItem('launchPadR1Theme', currentThemeName);
         if (!silent) await sayOnRabbit(`Theme set to ${friendlyName}`);
     } else {
         const dialog = themeDialogOverlay.querySelector('.custom-prompt-dialog');
@@ -1635,7 +1572,7 @@ function updateModeToggleUI() {
 async function setLuminanceMode(mode, silent = false) {
     if (currentLuminanceMode === mode) return;
     currentLuminanceMode = mode;
-    await saveLinksToR1(); // Save mode to both localStorage and R1 storage
+    localStorage.setItem('launchPadR1LuminanceMode', mode);
     updateModeToggleUI();
     updateThemeListDisabledState();
 
@@ -1762,7 +1699,7 @@ function setupThemeDialogListeners() {
                     ...themeToSave, 
                     mode: currentLuminanceMode 
                 };
-                await saveLinksToR1(); // Save custom theme to both localStorage and R1 storage
+                localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
                 await applyTheme({ name: `custom:${customTheme.baseColor}`, modifier: customTheme.modifier }, true, true);
                 await sayOnRabbit("Custom theme saved.");
                 isStudioMode = false;
