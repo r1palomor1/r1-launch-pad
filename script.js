@@ -675,7 +675,7 @@ function showTapHint() {
     if (!tapHint) {
         const hint = document.createElement('div');
         hint.id = 'tapHint';
-        hint.innerHTML = `<img src="Tap_me_here.png" alt="Tap here">`;
+        hint.innerHTML = `<img src="Tap_me_here.svg" alt="Tap here">`;
         internalPlayerOverlay.appendChild(hint);
     }
     

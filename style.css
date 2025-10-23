@@ -1412,7 +1412,6 @@ button.rabbit-default:hover {
     transition: opacity 0.3s ease;
     align-items: center;
     justify-content: center;
-    filter: drop-shadow(0 0 8px var(--primary-color));
 }
 
 #tapHint img {
@@ -1420,6 +1419,14 @@ button.rabbit-default:hover {
     height: 100%;
     object-fit: contain;
     animation: tapPulse 1.5s ease-in-out infinite;
+    filter: brightness(0) saturate(100%) invert(1);
+    /* This filter chain converts any color to white, then we apply theme color via CSS variable */
+}
+
+#tapHint img {
+    /* SVG will inherit theme color directly */
+    fill: var(--primary-color);
+    color: var(--primary-color);
 }
 
 @keyframes tapPulse {
