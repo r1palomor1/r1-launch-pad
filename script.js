@@ -710,11 +710,10 @@ function showPlayerUI() {
 }
 
 function showTapHint() {
-    // Check if we've already shown it this session
-    let tapHint = document.getElementById('tapHint');
-    if (tapHint && tapHint.dataset.shown === 'true') return;
+    // ✅ Show only once per app session
+    if (sessionStorage.getItem('tapHintShown') === '1') return;
 
-    // Create or reuse hint element
+    let tapHint = document.getElementById('tapHint');
     if (!tapHint) {
         tapHint = document.createElement('div');
         tapHint.id = 'tapHint';
@@ -728,15 +727,17 @@ function showTapHint() {
         tapHint.style.zIndex = '5';
         tapHint.style.opacity = '0';
         tapHint.style.transition = 'opacity 0.4s ease';
-        tapHint.style.pointerEvents = 'none'; // No interference
+        tapHint.style.pointerEvents = 'none';
         tapHint.style.display = 'none';
 
         internalPlayerOverlay.appendChild(tapHint);
     }
 
-    tapHint.dataset.shown = 'true';
     tapHint.style.display = 'block';
     requestAnimationFrame(() => (tapHint.style.opacity = '1'));
+
+    // ✅ Remember we've shown it for this session only
+    sessionStorage.setItem('tapHintShown', '1');
 
     clearTimeout(tapHintTimeout);
     tapHintTimeout = setTimeout(() => hideTapHint(), 3000);
