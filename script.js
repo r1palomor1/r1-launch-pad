@@ -347,9 +347,9 @@ links.forEach(link => {
 
 let currentView = localStorage.getItem('launchPadR1View') || 'list';
 let collapsedCategories = JSON.parse(localStorage.getItem('launchPadR1CollapsedCategories')) || [];
-let currentThemeName = localStorage.getItem('launchPadR1Theme') || 'rabbit';
-let currentLuminanceMode = localStorage.getItem('launchPadR1LuminanceMode') || 'dark';
-let customTheme = JSON.parse(localStorage.getItem('launchPadR1CustomTheme')) || null;
+let currentThemeName = 'rabbit'; // Will be loaded from storage in init()
+let currentLuminanceMode = 'dark'; // Will be loaded from storage in init()
+let customTheme = null; // Will be loaded from storage in init()
 
 function updateToggleAllLinkState() {
     if (currentView !== 'group') {
@@ -1190,7 +1190,7 @@ async function handleAddFromQuery(description, url) {
         await loadLinksFromR1();
         await loadThemeFromR1(); // Load saved theme settings
         renderLinks();
-        applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
+        await applyTheme({ name: currentThemeName }, true, true); // silent=true, isConfirmation=true
     }
 
     document.addEventListener('DOMContentLoaded', init);
