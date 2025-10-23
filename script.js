@@ -302,6 +302,27 @@ let currentThemeName = localStorage.getItem('launchPadR1Theme') || 'rabbit';
 let currentLuminanceMode = localStorage.getItem('launchPadR1LuminanceMode') || 'dark';
 let customTheme = JSON.parse(localStorage.getItem('launchPadR1CustomTheme')) || null;
 
+// Prefer Creation Storage values when present; fall back to the local defaults above.
+async function loadThemeFromR1() {
+  if (!window.creationStorage?.plain?.get) return;
+
+  try {
+    const [t, m, c] = await Promise.all([
+      window.creationStorage.plain.get('launchPadR1Theme'),
+      window.creationStorage.plain.get('launchPadR1LuminanceMode'),
+      window.creationStorage.plain.get('launchPadR1CustomTheme'),
+    ]);
+
+    if (t?.value) currentThemeName = t.value;
+    if (m?.value) currentLuminanceMode = m.value;
+    if (c?.value) {
+      try { customTheme = JSON.parse(c.value); } catch { /* ignore */ }
+    }
+  } catch (e) {
+    // Silent fallback to localStorage-derived defaults
+  }
+}
+
 function updateToggleAllLinkState() {
     if (currentView !== 'group') {
         toggleAllLink.style.display = 'none';
@@ -1470,15 +1491,29 @@ async function applyTheme(themeIdentifier, silent = false, isConfirmation = fals
     if (isConfirmation) {
         Object.entries(themeColors).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
         currentThemeName = finalThemeName;
-        localStorage.setItem('launchPadR1Theme', currentThemeName);
-        if (!silent) await sayOnRabbit(`Theme set to ${friendlyName}`);
-    } else {
-        const dialog = themeDialogOverlay.querySelector('.custom-prompt-dialog');
-        dialog.style.cssText = '';
-        Object.entries(themeColors).forEach(([key, value]) => dialog.style.setProperty(key, value));
-        currentThemeName = finalThemeName;
-    }
-    return { success: true };
+
+// Persist on device (Creation Storage) when available
+if (window.creationStorage?.plain?.set) {
+  try {
+    await window.creationStorage.plain.set('launchPadR1Theme', currentThemeName);
+    await window.creationStorage.plain.set('launchPadR1LuminanceMode', currentLuminanceMode);
+  } catch (e) {
+    // fall through to localStorage
+  }
+}
+
+// Fallback for webview
+localStorage.setItem('launchPadR1Theme', currentThemeName);
+
+if (!silent) await sayOnRabbit(`Theme set to ${friendlyName}`);
+} else {
+  const dialog = themeDialogOverlay.querySelector('.custom-prompt-dialog');
+  dialog.style.cssText = '';
+  Object.entries(themeColors).forEach(([key, value]) => dialog.style.setProperty(key, value));
+  currentThemeName = finalThemeName;
+}
+return { success: true };
+
 }
 
 function openThemeEditor() {
@@ -1695,15 +1730,28 @@ function setupThemeDialogListeners() {
             if (studioBaseColor) {
                 const themeToSave = { name: 'My Custom Theme', baseColor: studioBaseColor, modifier: studioActiveModifier || 'bold' };
                 // *** FIX: Save the current luminance mode with the custom theme ***
-                customTheme = { 
-                    ...themeToSave, 
-                    mode: currentLuminanceMode 
-                };
-                localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
-                await applyTheme({ name: `custom:${customTheme.baseColor}`, modifier: customTheme.modifier }, true, true);
-                await sayOnRabbit("Custom theme saved.");
-                isStudioMode = false;
-                closeThemeDialog();
+                customTheme = {
+  ...themeToSave,
+  mode: currentLuminanceMode
+};
+
+// Persist on device first
+if (window.creationStorage?.plain?.set) {
+  try {
+    await window.creationStorage.plain.set('launchPadR1CustomTheme', JSON.stringify(customTheme));
+  } catch (e) {
+    // ignore and use localStorage fallback
+  }
+}
+
+// Webview fallback
+localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
+
+await applyTheme({ name: `custom:${customTheme.baseColor}`, modifier: customTheme.modifier }, true, true);
+await sayOnRabbit("Custom theme saved.");
+isStudioMode = false;
+closeThemeDialog();
+
             } else {
                 themeDialogError.textContent = 'Error: No base color selected.';
             }
@@ -1879,6 +1927,7 @@ logo.addEventListener('click', goHome);
 
 (async function() {
     await loadLinksFromR1();
+    await loadThemeFromR1();            // <-- NEW: pull theme from Creation Storage if available
     setupThemeDialogListeners();
     await applyTheme({ name: currentThemeName }, true);
     updateModeToggleUI();
