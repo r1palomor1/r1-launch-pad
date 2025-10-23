@@ -23,6 +23,8 @@ const themeDialogReset = document.getElementById('themeDialogReset');
 const themeModeToggleBtn = document.getElementById('themeModeToggleBtn');
 const themeLabToggle = document.getElementById('themeLabToggle');
 const labCheckbox = document.getElementById('lab-checkbox');
+const customThemeDefaultWrapper = document.getElementById('customThemeDefaultWrapper');
+const customThemeDefaultCheckbox = document.getElementById('customThemeDefaultCheckbox');
 const deletePromptOverlay = document.getElementById('deletePromptOverlay');
 const deleteLinksList = document.getElementById('deleteLinksList');
 const deletePromptCancel = document.getElementById('deletePromptCancel');
@@ -264,6 +266,20 @@ async function saveLinksToR1() {
     localStorage.setItem('launchPadR1FavoriteLinkIds', JSON.stringify(Array.from(favoriteLinkIds)));
 }
 
+async function loadThemeSettingsFromR1() {
+    if (window.creationStorage) {
+        try {
+            const storedDefault = await window.creationStorage.plain.get('launchPadR1IsCustomThemeDefault');
+            if (storedDefault) {
+                isCustomThemeDefault = storedDefault === 'true';
+                localStorage.setItem('launchPadR1IsCustomThemeDefault', storedDefault);
+            }
+        } catch (e) {
+            console.log('Could not load theme default state from R1 storage');
+        }
+    }
+}
+
 // URL Migration and links initialization
 if (!localStorage.getItem(urlMigrationFlag)) {
     localStorage.setItem(urlMigrationFlag, 'true');
@@ -301,6 +317,7 @@ let collapsedCategories = JSON.parse(localStorage.getItem('launchPadR1CollapsedC
 let currentThemeName = localStorage.getItem('launchPadR1Theme') || 'rabbit';
 let currentLuminanceMode = localStorage.getItem('launchPadR1LuminanceMode') || 'dark';
 let customTheme = JSON.parse(localStorage.getItem('launchPadR1CustomTheme')) || null;
+let isCustomThemeDefault = localStorage.getItem('launchPadR1IsCustomThemeDefault') === 'true';
 
 function updateToggleAllLinkState() {
     if (currentView !== 'group') {
@@ -1508,6 +1525,8 @@ function renderThemeDialog() {
     themeDialogInput.parentElement.style.display = 'block'; // Ensure it's visible by default
     themeDialogError.textContent = '';
     clearThemeInputBtn.style.display = 'none';
+    customThemeDefaultWrapper.style.display = 'none'; // Hide by default
+    customThemeDefaultCheckbox.checked = isCustomThemeDefault;
     themeColorList.innerHTML = '';
     themeColorList.scrollTop = 0;
     const fragment = document.createDocumentFragment();
@@ -1537,6 +1556,8 @@ function renderThemeDialog() {
             li.dataset.colorName = customTheme.baseColor;
             li.dataset.isCustom = 'true';
             fragment.appendChild(li);
+            // Show the checkbox wrapper when custom theme exists
+            customThemeDefaultWrapper.style.display = 'flex';
         }
         CSS_COLOR_NAMES.forEach(name => {
             const li = document.createElement('li');
@@ -1700,6 +1721,9 @@ function setupThemeDialogListeners() {
                     mode: currentLuminanceMode 
                 };
                 localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
+                if (window.creationStorage) {
+                    await window.creationStorage.plain.set('launchPadR1CustomTheme', JSON.stringify(customTheme));
+                }
                 await applyTheme({ name: `custom:${customTheme.baseColor}`, modifier: customTheme.modifier }, true, true);
                 await sayOnRabbit("Custom theme saved.");
                 isStudioMode = false;
@@ -1764,6 +1788,26 @@ function setupThemeDialogListeners() {
         } else {
             // Exiting Lab Mode (handled by the "Back" button logic in themeDialogCancel)
             themeDialogCancel.click();
+        }
+    });
+
+    customThemeDefaultCheckbox.addEventListener('change', async () => {
+        if (customThemeDefaultCheckbox.checked) {
+            // User is checking the box - set custom theme as default
+            isCustomThemeDefault = true;
+            localStorage.setItem('launchPadR1IsCustomThemeDefault', 'true');
+            if (window.creationStorage) {
+                await window.creationStorage.plain.set('launchPadR1IsCustomThemeDefault', 'true');
+            }
+            await showAlert('My Custom Theme will now be your application default theme.');
+        } else {
+            // User is unchecking the box - revert to Rabbit Theme as default
+            isCustomThemeDefault = false;
+            localStorage.setItem('launchPadR1IsCustomThemeDefault', 'false');
+            if (window.creationStorage) {
+                await window.creationStorage.plain.set('launchPadR1IsCustomThemeDefault', 'false');
+            }
+            await showAlert('The default will now be the Rabbit Theme.');
         }
     });
 }
@@ -1879,8 +1923,17 @@ logo.addEventListener('click', goHome);
 
 (async function() {
     await loadLinksFromR1();
+    await loadThemeSettingsFromR1();
     setupThemeDialogListeners();
-    await applyTheme({ name: currentThemeName }, true);
+    
+    // Determine the theme to apply on startup
+    let themeToApply = currentThemeName;
+    if (isCustomThemeDefault && customTheme) {
+        // If custom theme is set as default and it exists, use it
+        themeToApply = `custom:${customTheme.baseColor}`;
+    }
+    
+    await applyTheme({ name: themeToApply }, true);
     updateModeToggleUI();
     deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
     favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
