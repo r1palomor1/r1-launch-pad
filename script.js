@@ -1,4 +1,4 @@
-﻿﻿﻿﻿// Working app. YT Modes/Fading/shuffle/Now Playing X/Play All icon/Tap Hint icon. Try add volume control.
+﻿﻿﻿﻿﻿﻿// Working app. YT Modes/Fading/shuffle/Now Playing X/Play All icon/Tap Hint icon. Try add volume control.
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
@@ -1929,7 +1929,7 @@ logo.addEventListener('click', goHome);
     await loadLinksFromR1();
     await loadThemeFromR1();            // <-- NEW: pull theme from Creation Storage if available
     setupThemeDialogListeners();
-    await applyTheme({ name: currentThemeName }, true);
+    await applyTheme({ name: currentThemeName }, true, true);
     updateModeToggleUI();
     deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
     favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
