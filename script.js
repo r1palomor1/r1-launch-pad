@@ -296,9 +296,8 @@ async function saveLinksToR1() {
             // Save theme settings to R1 storage
             await window.creationStorage.plain.set('launchPadR1Theme', currentThemeName);
             await window.creationStorage.plain.set('launchPadR1LuminanceMode', currentLuminanceMode);
-            if (customTheme) {
-                await window.creationStorage.plain.set('launchPadR1CustomTheme', JSON.stringify(customTheme));
-            }
+            // Always save customTheme (now defaults to Rabbit, never null)
+            await window.creationStorage.plain.set('launchPadR1CustomTheme', JSON.stringify(customTheme));
         } catch (e) {
             console.log('Using localStorage fallback');
         }
@@ -308,9 +307,8 @@ async function saveLinksToR1() {
     localStorage.setItem('launchPadR1FavoriteLinkIds', JSON.stringify(Array.from(favoriteLinkIds)));
     localStorage.setItem('launchPadR1Theme', currentThemeName);
     localStorage.setItem('launchPadR1LuminanceMode', currentLuminanceMode);
-    if (customTheme) {
-        localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
-    }
+    // Always save customTheme (now defaults to Rabbit, never null)
+    localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
 }
 
 // URL Migration and links initialization
@@ -349,7 +347,8 @@ let currentView = localStorage.getItem('launchPadR1View') || 'list';
 let collapsedCategories = JSON.parse(localStorage.getItem('launchPadR1CollapsedCategories')) || [];
 let currentThemeName = 'rabbit'; // Will be loaded from storage in init()
 let currentLuminanceMode = 'dark'; // Will be loaded from storage in init()
-let customTheme = null; // Will be loaded from storage in init()
+// Default customTheme to Rabbit theme so it's never null
+let customTheme = { name: 'My Custom Theme', baseColor: 'Rabbit', modifier: 'bold', mode: 'dark' };
 
 function updateToggleAllLinkState() {
     if (currentView !== 'group') {
