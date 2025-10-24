@@ -710,22 +710,18 @@ function showPlayerUI() {
 }
 
 function showTapHint() {
-    // Check if we've already shown it this session
-    const tapHint = document.getElementById('tapHint');
-    if (tapHint && tapHint.dataset.shown === 'true') return;
-    
-    // Create hint element if it doesn't exist
-    if (!tapHint) {
-        const hint = document.createElement('div');
-        hint.id = 'tapHint';
-        hint.innerHTML = `<img src="Tap_me_here.png" alt="Tap here">`;
-        internalPlayerOverlay.appendChild(hint);
-    }
-    
+    // Find the permanent hint element
     const hintElement = document.getElementById('tapHint');
+    
+    // Check if it exists or has already been shown this session
+    if (!hintElement || hintElement.dataset.shown === 'true') return;
+    
+    // Mark as shown for this session
     hintElement.dataset.shown = 'true';
+    
+    // Make it visible
     hintElement.style.display = 'flex';
-    setTimeout(() => hintElement.style.opacity = '1', 10);
+    setTimeout(() => hintElement.style.opacity = '1', 10); // Fade in
     
     // Hide after 3 seconds
     clearTimeout(tapHintTimeout);
@@ -737,9 +733,9 @@ function showTapHint() {
 function hideTapHint() {
     const tapHint = document.getElementById('tapHint');
     if (tapHint) {
-        tapHint.style.opacity = '0';
+        tapHint.style.opacity = '0'; // Fade out
         setTimeout(() => {
-            tapHint.style.display = 'none';
+            tapHint.style.display = 'none'; // Hide completely after fade
         }, 300);
     }
     clearTimeout(tapHintTimeout);
