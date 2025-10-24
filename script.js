@@ -1,4 +1,4 @@
-﻿﻿// Working app. YT Modes/Fading/shuffle/Now Playing X/Play All icon/Theme saved
+﻿﻿﻿﻿// Working app. YT Modes/Fading/shuffle/Now Playing X/Play All icon/Theme saved
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
@@ -710,37 +710,28 @@ function showPlayerUI() {
 }
 
 function showTapHint() {
-    // ✅ Show only once per app session
-    if (sessionStorage.getItem('tapHintShown') === '1') return;
-
-    let tapHint = document.getElementById('tapHint');
+    // Check if we've already shown it this session
+    const tapHint = document.getElementById('tapHint');
+    if (tapHint && tapHint.dataset.shown === 'true') return;
+    
+    // Create hint element if it doesn't exist
     if (!tapHint) {
-        tapHint = document.createElement('div');
-        tapHint.id = 'tapHint';
-        tapHint.innerHTML = `<img src="Tap_me_here.png" alt="Tap here">`;
-
-        // 🔹 Absolutely position so it never affects layout
-        tapHint.style.position = 'absolute';
-        tapHint.style.bottom = '10px';
-        tapHint.style.left = '50%';
-        tapHint.style.transform = 'translateX(-50%)';
-        tapHint.style.zIndex = '5';
-        tapHint.style.opacity = '0';
-        tapHint.style.transition = 'opacity 0.4s ease';
-        tapHint.style.pointerEvents = 'none';
-        tapHint.style.display = 'none';
-
-        internalPlayerOverlay.appendChild(tapHint);
+        const hint = document.createElement('div');
+        hint.id = 'tapHint';
+        hint.innerHTML = `<img src="Tap_me_here.png" alt="Tap here">`;
+        internalPlayerOverlay.appendChild(hint);
     }
-
-    tapHint.style.display = 'block';
-    requestAnimationFrame(() => (tapHint.style.opacity = '1'));
-
-    // ✅ Remember we've shown it for this session only
-    sessionStorage.setItem('tapHintShown', '1');
-
+    
+    const hintElement = document.getElementById('tapHint');
+    hintElement.dataset.shown = 'true';
+    hintElement.style.display = 'flex';
+    setTimeout(() => hintElement.style.opacity = '1', 10);
+    
+    // Hide after 3 seconds
     clearTimeout(tapHintTimeout);
-    tapHintTimeout = setTimeout(() => hideTapHint(), 3000);
+    tapHintTimeout = setTimeout(() => {
+        hideTapHint();
+    }, 3000);
 }
 
 function hideTapHint() {
@@ -748,8 +739,8 @@ function hideTapHint() {
     if (tapHint) {
         tapHint.style.opacity = '0';
         setTimeout(() => {
-            tapHint.style.display = 'none'; // 🔹 Now truly removed from layout
-        }, 400);
+            tapHint.style.display = 'none';
+        }, 300);
     }
     clearTimeout(tapHintTimeout);
 }
