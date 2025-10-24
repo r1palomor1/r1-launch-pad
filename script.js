@@ -720,7 +720,7 @@ function showTapHint() {
     hintElement.dataset.shown = 'true';
     
     // Make it visible
-    hintElement.style.display = 'flex';
+    // hintElement.style.display = 'flex'; // <-- REMOVED
     setTimeout(() => hintElement.style.opacity = '1', 10); // Fade in
     
     // Hide after 3 seconds
@@ -734,9 +734,9 @@ function hideTapHint() {
     const tapHint = document.getElementById('tapHint');
     if (tapHint) {
         tapHint.style.opacity = '0'; // Fade out
-        setTimeout(() => {
-            tapHint.style.display = 'none'; // Hide completely after fade
-        }, 300);
+        // setTimeout(() => {
+        //     tapHint.style.display = 'none'; // <-- REMOVED
+        // }, 300);
     }
     clearTimeout(tapHintTimeout);
 }
@@ -2208,7 +2208,7 @@ function onPlayerStateChange(event) {
         playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
         
         // Show UI and start hide timer
-        showPlayerUI();
+        // showPlayerUI(); // <-- THIS WAS THE BUG. DO NOT SHOW UI WHEN PLAYING.
         startUIHideTimer();
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
