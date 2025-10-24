@@ -651,8 +651,9 @@ function hidePlayerUI() {
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
     // const container = document.querySelector('#internalPlayerOverlay .player-container'); // NO LONGER NEEDED
 
-    // --- THIS IS THE NEW LOGIC ---
-    // We collapse the header and controls, and flex-grow on the container does the expansion.
+    // --- THIS IS THE FINAL LOGIC ---
+    
+    // 1. Collapse the header COMPLETELY.
     if (header) {
         // Add transitions for the properties we are changing
         header.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
@@ -662,20 +663,19 @@ function hidePlayerUI() {
         header.style.visibility = 'hidden';
         header.style.pointerEvents = 'none';
     }
+    
+    // 2. Collapse the controls PARTIALLY to leave a tap area.
     if (controls) {
         // Add transitions for the properties we are changing
         controls.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         controls.style.opacity = '0';
-        controls.style.height = '0';
+        controls.style.height = '20px'; // <-- LEAVES A 20px TAP AREA
         controls.style.padding = '0'; // Assumes controls have padding, remove if not
         controls.style.visibility = 'hidden';
         controls.style.pointerEvents = 'none';
     }
 
     // --- WE NO LONGER TOUCH THE CONTAINER ---
-    // if (container) {
-    //     ... ALL LINES REMOVED ...
-    // }
     
     // Show tap hint after UI fades
     showTapHint();
@@ -687,7 +687,7 @@ function showPlayerUI() {
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
     // const container = document.querySelector('#internalPlayerOverlay .player-container'); // NO LONGER NEEDED
 
-    // --- THIS IS THE NEW LOGIC ---
+    // --- THIS IS THE FINAL LOGIC ---
     // We restore the header and controls, and flex-grow on the container shrinks it.
     if (header) {
         // We must reset the styles so they go back to the stylesheet defaults
@@ -707,9 +707,6 @@ function showPlayerUI() {
     }
 
     // --- WE NO LONGER TOUCH THE CONTAINER ---
-    // if (container) {
-    //     ... ALL LINES REMOVED ...
-    // }
     
     // Hide tap hint when UI shows again
     hideTapHint();    
