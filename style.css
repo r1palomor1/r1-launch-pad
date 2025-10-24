@@ -1006,6 +1006,14 @@ button.rabbit-default:hover {
     justify-content: center;
     background-color: #000;
     overflow: hidden;
+    transition: all 0.4s ease-in-out;
+}
+
+/* Expanded visual overlap mode */
+.player-container.expanded {
+    transform: translateY(-35px);
+    height: calc(100% + 70px); /* 35px top + 35px bottom = ~3/4 coverage */
+    z-index: 2;
 }
 
 .player-container.audio-only #youtubePlayer {
