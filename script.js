@@ -84,6 +84,7 @@ let isFetchingYoutubeResults = false;
 let uiHideTimeout = null;
 let isUIVisible = true;
 let tapHintTimeout = null;
+let isIntentionalPause = false; // <-- ADD THIS FLAG
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
@@ -2156,6 +2157,7 @@ function togglePlayback() {
     triggerHaptic();
     const playerState = player.getPlayerState();
     if (playerState === YT.PlayerState.PLAYING) {
+        isIntentionalPause = true; // <-- ADD THIS
         player.pauseVideo();
     } else {
         player.playVideo();
@@ -2214,7 +2216,17 @@ function onPlayerStateChange(event) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
         clearTimeout(uiHideTimeout);
-        showPlayerUI();
+        
+        // --- THIS IS THE FIX ---
+        // Only show the UI if the user *meant* to pause.
+        if (isIntentionalPause) {
+            showPlayerUI();
+            isIntentionalPause = false; // Reset the flag
+        }
+        // If the flag is false, it was a buffer/system pause,
+        // so we do NOTHING and the video stays expanded.
+        // --- END OF FIX ---
+
     } else if (event.data === YT.PlayerState.ENDED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
