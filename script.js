@@ -649,27 +649,35 @@ function hidePlayerUI() {
     isUIVisible = false;
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
-    const container = document.querySelector('#internalPlayerOverlay .player-container');
+    // const container = document.querySelector('#internalPlayerOverlay .player-container'); // NO LONGER NEEDED
 
+    // --- THIS IS THE NEW LOGIC ---
+    // We collapse the header and controls, and flex-grow on the container does the expansion.
     if (header) {
+        // Add transitions for the properties we are changing
+        header.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         header.style.opacity = '0';
+        header.style.height = '0';
+        header.style.padding = '0'; // Assumes header has padding, remove if not
+        header.style.visibility = 'hidden';
         header.style.pointerEvents = 'none';
     }
     if (controls) {
+        // Add transitions for the properties we are changing
+        controls.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         controls.style.opacity = '0';
+        controls.style.height = '0';
+        controls.style.padding = '0'; // Assumes controls have padding, remove if not
+        controls.style.visibility = 'hidden';
         controls.style.pointerEvents = 'none';
     }
 
-    // 🔹 Option #3: visually expand the video to overlap ~¾ of header/controls
-    if (container) {
-        container.style.transition = 'transform 0.35s ease, height 0.35s ease';
-        container.style.willChange = 'transform, height';
-        container.style.transform = 'translateY(-35px)';
-        container.style.height = 'calc(100% + 70px)'; // ≈ 35px top + 35px bottom
-        container.style.zIndex = '2';
-    }
+    // --- WE NO LONGER TOUCH THE CONTAINER ---
+    // if (container) {
+    //     ... ALL LINES REMOVED ...
+    // }
     
-    // Show tap hint after UI fades (only first 3 times)
+    // Show tap hint after UI fades
     showTapHint();
 }
 
@@ -677,29 +685,34 @@ function showPlayerUI() {
     isUIVisible = true;
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
-    const container = document.querySelector('#internalPlayerOverlay .player-container');
+    // const container = document.querySelector('#internalPlayerOverlay .player-container'); // NO LONGER NEEDED
 
+    // --- THIS IS THE NEW LOGIC ---
+    // We restore the header and controls, and flex-grow on the container shrinks it.
     if (header) {
+        // We must reset the styles so they go back to the stylesheet defaults
         header.style.opacity = '1';
+        header.style.height = ''; // Reset to default
+        header.style.padding = ''; // Reset to default
+        header.style.visibility = ''; // Reset to default
         header.style.pointerEvents = 'auto';
     }
     if (controls) {
+        // We must reset the styles so they go back to the stylesheet defaults
         controls.style.opacity = '1';
+        controls.style.height = ''; // Reset to default
+        controls.style.padding = ''; // Reset to default
+        controls.style.visibility = ''; // Reset to default
         controls.style.pointerEvents = 'auto';
     }
 
-    // 🔹 Restore player size/position
-    if (container) {
-        container.style.transform = '';
-        container.style.height = '';
-        container.style.zIndex = '';
-        // keep transition so it animates back smoothly
-        container.style.transition = 'transform 0.35s ease, height 0.35s ease';
-    }
+    // --- WE NO LONGER TOUCH THE CONTAINER ---
+    // if (container) {
+    //     ... ALL LINES REMOVED ...
+    // }
     
     // Hide tap hint when UI shows again
-    hideTapHint();
-    
+    hideTapHint();    
     // Sync audio button state when UI reappears
     if (isAudioOnly) {
         playerAudioOnlyBtn.classList.add('active');
