@@ -669,7 +669,7 @@ function hidePlayerUI() {
         // Add transitions for the properties we are changing
         controls.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         controls.style.opacity = '0';
-        controls.style.height = '20px'; // <-- LEAVES A 20px TAP AREA
+        controls.style.height = '40px'; // <-- LEAVES A 20px TAP AREA
         controls.style.padding = '0'; // Assumes controls have padding, remove if not
         controls.style.visibility = 'hidden';
         controls.style.pointerEvents = 'none';
