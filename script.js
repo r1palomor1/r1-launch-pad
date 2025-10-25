@@ -1,4 +1,4 @@
-﻿﻿// Working app. YT Modes/Fading/ShufflePlayAll/Now Playing X/Theme saved/YT Expansion/Need PL controls fixed
+﻿﻿// Working app. YT Modes/Fading/ShufflePlayAll/Now Playing X/Theme saved/YT Expansion
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
