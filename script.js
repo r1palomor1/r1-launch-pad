@@ -1956,6 +1956,12 @@ logo.addEventListener('click', goHome);
 
 (async function() {
     await loadLinksFromR1();
+
+    // --- THIS IS THE FIX ---
+    // Force all categories to be collapsed on every app load.
+    collapsedCategories = [...new Set(links.map(link => link.category || 'Other'))];
+    // --- END OF FIX ---
+
     await loadThemeFromR1();            // <-- NEW: pull theme from Creation Storage if available
     setupThemeDialogListeners();
     await applyTheme({ name: currentThemeName }, true, true);
