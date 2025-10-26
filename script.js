@@ -670,8 +670,10 @@ async function fetchManualPlaylist(playlistId) {
             originalPlaylist = [...videos]; // Save an unshuffled copy
             currentPlaylistIndex = 0;
             
-            // We have the list, now load the FIRST video
-            loadVideoFromPlaylist(0); 
+            // --- ⬇️ REMOVED ⬇️ ---
+            // loadVideoFromPlaylist(0); // This is now called by onPlayerReady
+            // --- ⬆️ END OF REMOVED ⬆️ ---
+
         } else {
             playerVideoTitle.textContent = 'Empty or invalid playlist.';
         }
@@ -683,7 +685,7 @@ async function fetchManualPlaylist(playlistId) {
 }
 // --- ⬆️ END OF ADDED CODE ⬆️ ---
 
-function openPlayerView(options) {
+async function openPlayerView(options) {
     nowPlayingBar.style.display = 'none';
     // playerVideoTitle.textContent = options.title; // We set this later
     internalPlayerOverlay.style.display = 'flex';
@@ -707,9 +709,9 @@ function openPlayerView(options) {
         playerShuffleBtn.classList.remove('active'); // Ensure shuffle UI is reset
         isShuffleActive = false;
         
-        // --- ⬇️ MODIFIED: CALL OUR NEW FETCH FUNCTION ⬇️ ---
-        // We call our new function directly, just like your small app
-        fetchManualPlaylist(options.playlistId);
+        // --- ⬇️ MODIFIED: AWAIT THE FETCH FUNCTION ⬇️ ---
+        // We wait for the fetch to finish before creating the player
+        await fetchManualPlaylist(options.playlistId);
         // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
     } else {
@@ -2320,18 +2322,17 @@ function onPlayerReady(event) {
     // This function fires as soon as the player has loaded the video/playlist data.
     
     // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
-    // In manual mode, we do nothing here. The player is often empty.
     if (isManualPlaylist) {
-        // If we are in manual mode, we start playback only AFTER
-        // the onPluginMessage callback gives us the video list.
-        return; 
-    }
+        // The player is ready and the fetch is complete.
+        // NOW it's safe to load the first video.
+        loadVideoFromPlaylist(0); 
+    } else {
     // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
-
-    // For SINGLE songs, this logic is still fine.
-    const videoData = player.getVideoData();
-    if (videoData && videoData.title) {
-        playerVideoTitle.textContent = videoData.title;
+        // For SINGLE songs, this logic is still fine.
+        const videoData = player.getVideoData();
+        if (videoData && videoData.title) {
+            playerVideoTitle.textContent = videoData.title;
+        }
     }
 }
 
@@ -2377,7 +2378,11 @@ function onPlayerStateChange(event) {
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
         
+        // --- ⬇️ ADDED TO FIX UI FADING BUG ⬇️ ---
+        showPlayerUI(); // Always show UI when a new video starts
+        // --- ⬆️ END OF ADDED CODE ⬆️ ---
         startUIHideTimer();
+
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
