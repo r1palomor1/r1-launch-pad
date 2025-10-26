@@ -690,13 +690,14 @@ async function openPlayerView(options) {
     // playerVideoTitle.textContent = options.title; // We set this later
     internalPlayerOverlay.style.display = 'flex';
 
-    // --- ⬇️ ADDED: RESET TAP HINT ICON SESSION ⬇️ ---
+    // --- ⬇️ MODIFIED: RESET TAP HINT ICON SESSION ⬇️ ---
     const hintIcon = document.querySelector('#tapHint img');
     if (hintIcon) {
         hintIcon.dataset.shown = 'false';
         hintIcon.style.opacity = '0'; // Ensure it's hidden
+        hintIcon.style.animationPlayState = 'paused'; // Also pause animation
     }
-    // --- ⬆️ END OF ADDED CODE ⬆️ ---
+    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
     // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
     // isManualPlaylist = false; // <-- THIS LINE IS NOW GONE FROM HERE
@@ -894,13 +895,15 @@ function showTapHint() {
         // Mark as shown
         hintIcon.dataset.shown = 'true';
         
-        // Fade in the icon
+        // Fade in the icon AND start its animation
         hintIcon.style.opacity = '1';
+        hintIcon.style.animationPlayState = 'running';
         
-        // Set timer to fade *only the icon* out
+        // Set timer to fade *only the icon* out and pause its animation
         clearTimeout(tapHintTimeout);
         tapHintTimeout = setTimeout(() => {
             hintIcon.style.opacity = '0';
+            hintIcon.style.animationPlayState = 'paused';
         }, 3000);
     }
 }
@@ -911,10 +914,11 @@ function hideTapHint() {
         // Fade out the entire bar (text)
         hintElement.style.opacity = '0'; 
         
-        // Also ensure the icon is faded out
+        // Also ensure the icon is faded out and its animation is paused
         const hintIcon = hintElement.querySelector('img');
         if (hintIcon) {
             hintIcon.style.opacity = '0';
+            hintIcon.style.animationPlayState = 'paused';
         }
     }
     clearTimeout(tapHintTimeout);
@@ -2252,6 +2256,15 @@ nowPlayingBar.addEventListener('click', () => {
     mainView.classList.remove('input-mode-active');
     internalPlayerOverlay.style.display = 'flex'; // Show the player again
     nowPlayingBar.style.display = 'none'; // Hide the bar
+
+    // --- ⬇️ ADDED TO FIX RE-ENTRY BUG ⬇️ ---
+    showPlayerUI(); // Always show controls when re-entering
+    
+    // Restart the hide timer if it's currently playing
+    if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+        startUIHideTimer();
+    }
+    // --- ⬆️ END OF ADDED CODE ⬆️ ---
 });
 
 // Stop button listener - stops playback completely
