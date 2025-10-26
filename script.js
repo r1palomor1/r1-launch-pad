@@ -35,6 +35,7 @@ const genericPromptMessage = document.getElementById('genericPromptMessage');
 const genericPromptActions = document.getElementById('genericPromptActions');
 const internalPlayerOverlay = document.getElementById('internalPlayerOverlay');
 const nowPlayingBar = document.getElementById('nowPlayingBar');
+const nowPlayingIcon = document.getElementById('nowPlayingIcon'); // <-- ADD THIS
 const nowPlayingTitle = document.getElementById('nowPlayingTitle');
 const stopPlayingBtn = document.getElementById('stopPlayingBtn');
 const playerVideoTitle = document.getElementById('playerVideoTitle');
@@ -934,6 +935,43 @@ function hideTapHint() {
     }
     clearTimeout(tapHintTimeout);
 }
+
+// --- ⬇️ ADD THIS NEW FUNCTION ⬇️ ---
+/**
+ * Controls the visibility of all "Now Playing" UI elements
+ * based on player state and current view.
+ * @param {'playing' | 'paused' | 'stopped'} state 
+ */
+function updateNowPlayingUI(state) {
+    // Check which view is active
+    const isMainView = (mainView.style.display !== 'none' || mainView.classList.contains('input-mode-active')) &&
+                       youtubeSearchViewOverlay.style.display === 'none';
+    
+    if (state === 'stopped') {
+        nowPlayingBar.style.display = 'none';
+        nowPlayingIcon.style.display = 'none';
+        nowPlayingIcon.classList.remove('pulsating');
+    } else if (state === 'paused') {
+        nowPlayingIcon.classList.remove('pulsating');
+        if (isMainView) {
+            nowPlayingIcon.style.display = 'flex';
+            nowPlayingBar.style.display = 'none';
+        } else {
+            nowPlayingIcon.style.display = 'none';
+            nowPlayingBar.style.display = 'flex';
+        }
+    } else if (state === 'playing') {
+        nowPlayingIcon.classList.add('pulsating');
+        if (isMainView) {
+            nowPlayingIcon.style.display = 'flex';
+            nowPlayingBar.style.display = 'none';
+        } else {
+            nowPlayingIcon.style.display = 'none';
+            nowPlayingBar.style.display = 'flex';
+        }
+    }
+}
+// --- ⬆️ END OF ADDED FUNCTION ⬆️ ---
 
 function startUIHideTimer() {
     clearTimeout(uiHideTimeout);
@@ -2140,9 +2178,9 @@ logo.addEventListener('click', goHome);
     playerBackBtn.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none'; // Hide player
     youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
-    hideTapHint(); // <-- ADD THIS LINE
-    nowPlayingTitle.textContent = playerVideoTitle.textContent; // ADD THIS
-    nowPlayingBar.style.display = 'flex'; // ADD THIS
+    hideTapHint();
+    nowPlayingTitle.textContent = playerVideoTitle.textContent;
+    updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
 });
 
     // Use a more specific listener on the container for result clicks
@@ -2201,20 +2239,20 @@ searchModePlaylistsBtn.addEventListener('click', () => {
 playerSearchBtn.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none'; // Hide player
     youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
-    hideTapHint(); // <-- ADD THIS LINE
+    hideTapHint();
     youtubeSearchInput.value = ''; // ADDED: Clear previous search term
     youtubeSearchInput.focus(); // Set focus on the search bar
-    nowPlayingTitle.textContent = playerVideoTitle.textContent; // ADD THIS
-    nowPlayingBar.style.display = 'flex'; // ADD THIS
+    nowPlayingTitle.textContent = playerVideoTitle.textContent;
+    updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
 });
 
 // Event Listeners for playlist controls
 playerBackBtn_playlist.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none';
-    hideTapHint(); // <-- ADD THIS LINE
+    hideTapHint();
     youtubeSearchViewOverlay.style.display = 'flex';
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
-    nowPlayingBar.style.display = 'flex';
+    updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
 });
 playerShuffleBtn.addEventListener('click', toggleShuffle); // This now calls our modified toggleShuffle
 playerPlayAllBtn.addEventListener('click', () => {
@@ -2242,13 +2280,12 @@ playerNextBtn.addEventListener('click', playNextVideoInList); // Use our new fun
 playerSearchBtn_playlist.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none';
     youtubeSearchViewOverlay.style.display = 'flex';
-    hideTapHint(); // <-- ADD THIS LINE
+    hideTapHint();
     youtubeSearchInput.value = '';
     youtubeSearchInput.focus();
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
-    nowPlayingBar.style.display = 'flex';
+    updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
 });
-
 
     playerPlayPauseBtn.addEventListener('click', togglePlayback);
 
@@ -2261,29 +2298,43 @@ playerAudioOnlyBtn.addEventListener('click', () => {
     sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
 });
 
-// This is the listener for the Now Playing bar, now in the correct place
+// --- ⬇️ ADD THIS NEW LISTENER ⬇️ ---
+nowPlayingIcon.addEventListener('click', () => {
+    // This function will be shared by the icon and the bar
+    openPlayerFromNowPlaying();
+});
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
+
+// This is the listener for the Now Playing bar
 nowPlayingBar.addEventListener('click', () => {
+    openPlayerFromNowPlaying();
+});
+
+// --- ⬇️ ADD THIS NEW HELPER FUNCTION ⬇️ ---
+function openPlayerFromNowPlaying() {
     youtubeSearchViewOverlay.style.display = 'none';
     mainView.classList.remove('input-mode-active');
     internalPlayerOverlay.style.display = 'flex'; // Show the player again
-    nowPlayingBar.style.display = 'none'; // Hide the bar
+    
+    // Hide both elements
+    nowPlayingBar.style.display = 'none';
+    nowPlayingIcon.style.display = 'none';
 
-    // --- ⬇️ ADDED TO FIX RE-ENTRY BUG ⬇️ ---
     showPlayerUI(); // Always show controls when re-entering
     
     // Restart the hide timer if it's currently playing
     if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
         startUIHideTimer();
     }
-    // --- ⬆️ END OF ADDED CODE ⬆️ ---
-});
+}
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
 
 // Stop button listener - stops playback completely
 stopPlayingBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent triggering the bar's click event
     if (player) {
         player.stopVideo();
-        nowPlayingBar.style.display = 'none';
+        updateNowPlayingUI('stopped'); // <-- USE NEW FUNCTION
         triggerHaptic();
         sayOnRabbit("Playback stopped");
     }
@@ -2434,6 +2485,8 @@ function onPlayerStateChange(event) {
         showPlayerUI(); // Always show UI when a new video starts
         // --- ⬆️ END OF ADDED CODE ⬆️ ---
         startUIHideTimer();
+        
+        updateNowPlayingUI('playing'); // <-- USE NEW FUNCTION
 
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
@@ -2444,11 +2497,13 @@ function onPlayerStateChange(event) {
             showPlayerUI();
             isIntentionalPause = false; 
         }
+        
+        updateNowPlayingUI('paused'); // <-- USE NEW FUNCTION
 
     } else if (event.data === YT.PlayerState.ENDED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; 
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
-        nowPlayingBar.style.display = 'none'; 
+        // nowPlayingBar.style.display = 'none'; // <-- REMOVED
         clearTimeout(uiHideTimeout);
         
         // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
@@ -2459,6 +2514,7 @@ function onPlayerStateChange(event) {
         } else {
             // Original logic for single songs
             showPlayerUI();
+            updateNowPlayingUI('stopped'); // <-- USE NEW FUNCTION
         }
         // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
