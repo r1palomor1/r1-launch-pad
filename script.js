@@ -690,6 +690,8 @@ async function openPlayerView(options) {
     // playerVideoTitle.textContent = options.title; // We set this later
     internalPlayerOverlay.style.display = 'flex';
 
+    showPlayerUI(); // <-- ADD THIS LINE
+
     // --- ⬇️ MODIFIED: RESET TAP HINT ICON SESSION ⬇️ ---
     const hintElement = document.getElementById('tapHint');
     const hintIcon = document.querySelector('#tapHint img');
