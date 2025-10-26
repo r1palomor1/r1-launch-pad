@@ -85,6 +85,14 @@ let uiHideTimeout = null;
 let isUIVisible = true;
 let tapHintTimeout = null;
 let isIntentionalPause = false; // <-- ADD THIS FLAG
+
+// --- ⬇️ ADDED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+let currentPlaylist = [];       // The active playlist (can be shuffled)
+let originalPlaylist = [];      // A copy of the original, unshuffled playlist
+let currentPlaylistIndex = 0;   // The index of the video currently playing
+let isManualPlaylist = false;   // Flag to check if we are in manual mode
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
+
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
@@ -556,48 +564,169 @@ function getYoutubePlaylistId(url) {
     return match ? match[1] : null;
 }
 
+// --- ⬇️ ADDED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+
+/**
+ * Loads a specific video from the currentPlaylist array into the player.
+ * @param {number} index - The index of the video to load.
+ */
+function loadVideoFromPlaylist(index) {
+    if (!player || !currentPlaylist[index]) return;
+    
+    currentPlaylistIndex = index;
+    const video = currentPlaylist[index];
+    
+    player.loadVideoById(video.id);
+    playerVideoTitle.textContent = video.title; // Set title manually
+    
+    // Update the "Now Playing" bar if it's visible
+    if (nowPlayingBar.style.display === 'flex') {
+        nowPlayingTitle.textContent = video.title;
+    }
+}
+
+/**
+ * Plays the next video in the list, looping to the start if at the end.
+ */
+function playNextVideoInList() {
+    let nextIndex = currentPlaylistIndex + 1;
+    if (nextIndex >= currentPlaylist.length) {
+        nextIndex = 0; // Loop to the beginning
+    }
+    loadVideoFromPlaylist(nextIndex);
+}
+
+/**
+ * Plays the previous video in the list, looping to the end if at the start.
+ */
+function playPreviousVideoInList() {
+    let prevIndex = currentPlaylistIndex - 1;
+    if (prevIndex < 0) {
+        prevIndex = currentPlaylist.length - 1; // Loop to the end
+    }
+    loadVideoFromPlaylist(prevIndex);
+}
+
+/**
+ * Shuffles an array in place using the Fisher-Yates algorithm.
+ * @param {Array} array - The array to shuffle.
+ */
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
+
+// --- ⬇️ ADDED FROM YOUR WORKING SMALL APP ⬇️ ---
+
+/**
+ * Parses the XML feed from YouTube.
+ */
+function parseXMLPlaylist(xmlText) {
+    const videos = [];
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+    const entries = xmlDoc.getElementsByTagName('entry');
+
+    for (const entry of entries) {
+        const videoId = entry.getElementsByTagName('yt:videoId')[0]?.textContent;
+        const title = entry.getElementsByTagName('media:title')[0]?.textContent;
+        const thumb = entry.getElementsByTagName('media:thumbnail')[0]?.getAttribute('url');
+        
+        if (videoId && title) {
+            videos.push({ id: videoId, title: title, thumb: thumb });
+        }
+    }
+    return videos;
+}
+
+/**
+ * Fetches the playlist data directly, just like your small app.
+ * This is called by openPlayerView.
+ */
+async function fetchManualPlaylist(playlistId) {
+    // We use the CORS proxy, just like your working small app
+    const url = `https://corsproxy.io/?https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const xmlText = await response.text();
+        const videos = parseXMLPlaylist(xmlText);
+        
+        if (videos.length > 0) {
+            // SUCCESS! We got the list.
+            console.log(`[Manual Playlist] Fetched ${videos.length} videos.`);
+            currentPlaylist = videos;
+            originalPlaylist = [...videos]; // Save an unshuffled copy
+            currentPlaylistIndex = 0;
+            
+            // We have the list, now load the FIRST video
+            loadVideoFromPlaylist(0); 
+        } else {
+            playerVideoTitle.textContent = 'Empty or invalid playlist.';
+        }
+        
+    } catch (error) {
+        console.error('Error fetching manual playlist:', error);
+        playerVideoTitle.textContent = 'Failed to load playlist.';
+    }
+}
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
+
 function openPlayerView(options) {
     nowPlayingBar.style.display = 'none';
-    playerVideoTitle.textContent = options.title;
+    // playerVideoTitle.textContent = options.title; // We set this later
     internalPlayerOverlay.style.display = 'flex';
 
-    // Show/hide the correct controls
-        if (options.playlistId) {
-        playerSongControls.style.display = 'none';
-        playerPlaylistControls.style.display = 'flex';
-        // Set initial state for playlist controls
-        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
-        playerAudioOnlyBtn_playlist.innerHTML = AUDIO_ICON_SVG;
-        playerAudioOnlyBtn_playlist.classList.remove('active');
-        isAudioOnly = false;
-        playerContainer.classList.remove('audio-only');
-        } else {
+    // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+    isManualPlaylist = false; // Reset flag
+// ... (rest of isManualPlaylist setup) ...
+    
+    if (options.playlistId) {
+        // --- THIS IS A MANUAL PLAYLIST ---
+        isManualPlaylist = true;
+// ... (rest of playlistId setup) ...
+        isShuffleActive = false;
+        
+        // --- ⬇️ MODIFIED: CALL OUR NEW FETCH FUNCTION ⬇️ ---
+        // We call our new function directly, just like your small app
+        fetchManualPlaylist(options.playlistId);
+        // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+
+    } else {
+        // --- THIS IS A SINGLE SONG ---
+        isManualPlaylist = false;
+        playerVideoTitle.textContent = options.title;
         playerSongControls.style.display = 'flex';
         playerPlaylistControls.style.display = 'none';
-        // Set initial state for song controls
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
         playerAudioOnlyBtn.classList.remove('active');
-        isAudioOnly = false;
-        playerContainer.classList.remove('audio-only');
     }
+    
+    isAudioOnly = false;
+    playerContainer.classList.remove('audio-only');
+    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
     const createPlayer = () => {
-    if (player) {
-        player.destroy();
-    }
-    try {
-        // existing player config
-
-            // This is the core change: It now creates the player differently
-            // based on whether it receives a videoId or a playlistId.
+        if (player) {
+            player.destroy();
+        }
+        try {
             let playerConfig = {
                 height: '100%',
                 width: '100%',
                 playerVars: {
                     'playsinline': 1,
                     'controls': 1,
-                    'autoplay': options.videoId ? 1 : 0, // Autoplay for songs, not playlists
+                    // Autoplay single songs, but wait for manual playlists
+                    'autoplay': options.videoId && !isManualPlaylist ? 1 : 0, 
                     'rel': 0,
                     'showinfo': 0,
                     'modestbranding': 1
@@ -608,12 +737,14 @@ function openPlayerView(options) {
                 }
             };
 
-            if (options.videoId) {
+            // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+            if (options.videoId && !isManualPlaylist) {
                 playerConfig.videoId = options.videoId;
-            } else if (options.playlistId) {
-                playerConfig.playerVars.listType = 'playlist';
-                playerConfig.playerVars.list = options.playlistId;
-            }
+            } 
+            // --- We NO LONGER pass listType or list ---
+            // The player is created EMPTY in manual playlist mode,
+            // waiting for the onPluginMessage response.
+            // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
             player = new YT.Player('youtubePlayer', playerConfig);
 
@@ -984,49 +1115,34 @@ async function fetchNextPlaylistPages(query, firstData) {
 // ✅  Option B: Auto-scan for Playlists
 window.onPluginMessage = async (e) => {
     try {
-        // --- 🎯 Step 1: Detect and parse HTML fallback (Playlist mode only) ---
+        // --- ⬇️ MODIFIED: WE REMOVED THE 'playlistItems' BLOCK ⬇️ ---
+        // We still need to parse the data for other messages.
+        const data = e.data
+            ? typeof e.data === "string"
+                ? JSON.parse(e.data)
+                : e.data
+            : null;
+        // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+
+
+        // --- 🎯 Step 1 (WAS 2): Detect and parse HTML fallback (Playlist mode only) ---
         if (
             currentSearchMode === "playlists" &&
-            typeof e.data === "string" &&
+            typeof e.data === "string" && // Check e.data (raw) not data (parsed)
             e.data.includes("<a") &&
             e.data.includes("list=")
         ) {
             console.log("[YouTubeSearch] HTML fallback detected — extracting playlists...");
 
             const html = e.data;
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = html;
-
-            const links = [...tempDiv.querySelectorAll('a[href*="list="]')];
-            const playlistResults = links.map((a) => {
-                const href = a.getAttribute("href");
-                const title = a.textContent.trim() || "Untitled Playlist";
-                const match = href.match(/list=([^&]+)/);
-                const playlist_id = match ? match[1] : null;
-
-                return {
-                    title,
-                    link: href.startsWith("http")
-                        ? href
-                        : `https://www.youtube.com${href}`,
-                    playlist_id,
-                    video_count: "?",
-                    thumbnail: null,
-                };
-            });
-
-            console.log(`[YouTubeSearch] Extracted ${playlistResults.length} playlist(s) from HTML`);
+// ... (rest of HTML parsing logic is unchanged) ...
             renderYouTubeResults(playlistResults, "playlists");
             isFetchingYoutubeResults = false;
             return; // ✅ Stop here — we handled this message fully
         }
 
-        // --- 🎯 Step 2: Normal JSON handling continues below ---
-        const data = e.data
-            ? typeof e.data === "string"
-                ? JSON.parse(e.data)
-                : e.data
-            : null;
+        // --- 🎯 Step 3 (WAS 2): Normal JSON handling continues below ---
+        // const data = e.data ... (This line was MOVED to the top)
 
         if (youtubeSearchResultsContainer.innerHTML.includes("Searching...")) {
             youtubeSearchResultsContainer.innerHTML = "";
@@ -2045,28 +2161,28 @@ playerBackBtn_playlist.addEventListener('click', () => {
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
     nowPlayingBar.style.display = 'flex';
 });
-playerShuffleBtn.addEventListener('click', toggleShuffle);
+playerShuffleBtn.addEventListener('click', toggleShuffle); // This now calls our modified toggleShuffle
 playerPlayAllBtn.addEventListener('click', () => {
-    if (!player) return;
+    if (!player || !isManualPlaylist) return;
+    
+    // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
     // Ensure shuffle is off and the button UI is correct
     if (isShuffleActive) {
         isShuffleActive = false;
-        player.setShuffle(false);
         playerShuffleBtn.classList.remove('active');
     }
-    // Play the very first video in the original playlist order
-    player.playVideoAt(0);
+    // Restore the original, unshuffled playlist
+    currentPlaylist = [...originalPlaylist];
+    // Play the very first video
+    loadVideoFromPlaylist(0);
+    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 });
-playerPrevBtn.addEventListener('click', () => player.previousVideo());
+playerPrevBtn.addEventListener('click', playPreviousVideoInList); // Use our new function
 playerPlayPauseBtn_playlist.addEventListener('click', togglePlayback);
 playerAudioOnlyBtn_playlist.addEventListener('click', () => {
-    isAudioOnly = !isAudioOnly;
-    playerContainer.classList.toggle('audio-only', isAudioOnly);
-    playerAudioOnlyBtn_playlist.classList.toggle('active', isAudioOnly);
-    triggerHaptic();
-    sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
+// ... (audio only logic is unchanged) ...
 });
-playerNextBtn.addEventListener('click', () => player.nextVideo());
+playerNextBtn.addEventListener('click', playNextVideoInList); // Use our new function
 playerSearchBtn_playlist.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none';
     youtubeSearchViewOverlay.style.display = 'flex';
@@ -2182,78 +2298,96 @@ function togglePlayback() {
 
 function onPlayerReady(event) {
     // This function fires as soon as the player has loaded the video/playlist data.
-    const videoData = player.getVideoData();
+    
+    // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+    // In manual mode, we do nothing here. The player is often empty.
+    if (isManualPlaylist) {
+        // If we are in manual mode, we start playback only AFTER
+        // the onPluginMessage callback gives us the video list.
+        return; 
+    }
+    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
-    // Check if we are in a playlist context. The `videoData` object will have a `list` property.
-    if (videoData && videoData.list) {
-        // The playlist title is available in the `videoData.title` field at this stage.
-        if (videoData.title) {
-            playerVideoTitle.textContent = videoData.title;
-        }
+    // For SINGLE songs, this logic is still fine.
+    const videoData = player.getVideoData();
+    if (videoData && videoData.title) {
+        playerVideoTitle.textContent = videoData.title;
     }
 }
 
-function toggleShuffle() {    if (!player) return;
+function toggleShuffle() {
+    if (!player || !isManualPlaylist) return; // Only works in manual mode
     isShuffleActive = !isShuffleActive;
-    player.setShuffle(isShuffleActive);
     playerShuffleBtn.classList.toggle('active', isShuffleActive);
     triggerHaptic();
     sayOnRabbit(isShuffleActive ? "Shuffle enabled" : "Shuffle disabled");
 
-    // Always start/restart playback to apply shuffle state
-    // YouTube API requires restarting to apply shuffle changes
-    const currentState = player.getPlayerState();
-    if (currentState === YT.PlayerState.PLAYING || currentState === YT.PlayerState.PAUSED) {
-        // Get current video index and restart from there
-        const currentIndex = player.getPlaylistIndex();
-        player.playVideoAt(isShuffleActive ? 0 : currentIndex);
+    // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+    if (isShuffleActive) {
+        // Shuffle the current playlist
+        shuffleArray(currentPlaylist);
     } else {
-        // If not playing, start the playlist
-        player.playVideoAt(0);
+        // Restore the original, unshuffled playlist
+        currentPlaylist = [...originalPlaylist];
     }
+    // Always start playback from the beginning of the (newly shuffled or unshuffled) list
+    loadVideoFromPlaylist(0);
+    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 }
 
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
-        // Update title with the full title from the API - this is the most reliable time.
-        const videoData = player.getVideoData();
-        if (videoData && videoData.title) {
-            playerVideoTitle.textContent = videoData.title;
+        // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+        if (isManualPlaylist) {
+            // In manual mode, get title from our array
+            if (currentPlaylist[currentPlaylistIndex]) {
+                playerVideoTitle.textContent = currentPlaylist[currentPlaylistIndex].title;
+            }
+        } else {
+            // Original logic for single songs
+            const videoData = player.getVideoData();
+            if (videoData && videoData.title) {
+                playerVideoTitle.textContent = videoData.title;
+            }
         }
+        // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
         // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
         
-        // Show UI and start hide timer
-        // showPlayerUI(); // <-- THIS WAS THE BUG. DO NOT SHOW UI WHEN PLAYING.
         startUIHideTimer();
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
         clearTimeout(uiHideTimeout);
         
-        // --- THIS IS THE FIX ---
-        // Only show the UI if the user *meant* to pause.
         if (isIntentionalPause) {
             showPlayerUI();
-            isIntentionalPause = false; // Reset the flag
+            isIntentionalPause = false; 
         }
-        // If the flag is false, it was a buffer/system pause,
-        // so we do NOTHING and the video stays expanded.
-        // --- END OF FIX ---
 
     } else if (event.data === YT.PlayerState.ENDED ) {
-        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; // Show play icon to allow replay
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; 
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
-    nowPlayingBar.style.display = 'none'; // ADD THIS LINE to hide the bar
+        nowPlayingBar.style.display = 'none'; 
         clearTimeout(uiHideTimeout);
-        showPlayerUI();
+        
+        // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+        if (isManualPlaylist) {
+            // When a video ends, automatically play the next one.
+            playNextVideoInList();
+            // Don't show UI, let the next video start playing.
+        } else {
+            // Original logic for single songs
+            showPlayerUI();
+        }
+        // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+
     } else if (event.data === YT.PlayerState.BUFFERING) {
         // This state is unreliable for title updates, do nothing here.
     } else if (event.data === YT.PlayerState.UNSTARTED) {
-        // Update BOTH buttons
-    playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
-    playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
-}
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+    }
 }
