@@ -873,33 +873,41 @@ function showPlayerUI() {
 }
 
 function showTapHint() {
-    // Find the permanent hint element
     const hintElement = document.getElementById('tapHint');
-    
-    // Check if it exists or has already been shown this session
-    if (!hintElement || hintElement.dataset.shown === 'true') return;
-    
-    // Mark as shown for this session
-    hintElement.dataset.shown = 'true';
-    
-    // Make it visible
-    // hintElement.style.display = 'flex'; // <-- REMOVED
-    setTimeout(() => hintElement.style.opacity = '1', 10); // Fade in
-    
-    // Hide after 3 seconds
-    clearTimeout(tapHintTimeout);
-    tapHintTimeout = setTimeout(() => {
-        hideTapHint();
-    }, 3000);
+    if (!hintElement) return;
+    const hintIcon = hintElement.querySelector('img');
+    if (!hintIcon) return;
+
+    // Fade in the whole hint bar (which contains the text)
+    hintElement.style.opacity = '1'; 
+
+    // Check if the icon has been shown this session
+    if (hintIcon.dataset.shown !== 'true') {
+        // Mark as shown
+        hintIcon.dataset.shown = 'true';
+        
+        // Fade in the icon
+        hintIcon.style.opacity = '1';
+        
+        // Set timer to fade *only the icon* out
+        clearTimeout(tapHintTimeout);
+        tapHintTimeout = setTimeout(() => {
+            hintIcon.style.opacity = '0';
+        }, 3000);
+    }
 }
 
 function hideTapHint() {
-    const tapHint = document.getElementById('tapHint');
-    if (tapHint) {
-        tapHint.style.opacity = '0'; // Fade out
-        // setTimeout(() => {
-        //     tapHint.style.display = 'none'; // <-- REMOVED
-        // }, 300);
+    const hintElement = document.getElementById('tapHint');
+    if (hintElement) {
+        // Fade out the entire bar (text)
+        hintElement.style.opacity = '0'; 
+        
+        // Also ensure the icon is faded out
+        const hintIcon = hintElement.querySelector('img');
+        if (hintIcon) {
+            hintIcon.style.opacity = '0';
+        }
     }
     clearTimeout(tapHintTimeout);
 }
@@ -2324,8 +2332,11 @@ function onPlayerReady(event) {
     // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
     if (isManualPlaylist) {
         // The player is ready and the fetch is complete.
-        // NOW it's safe to load the first video.
-        loadVideoFromPlaylist(0); 
+        // We CUE the first video, which loads it without playing.
+        if (player && currentPlaylist[0]) {
+            player.cueVideoById(currentPlaylist[0].id);
+            playerVideoTitle.textContent = currentPlaylist[0].title;
+        }
     } else {
     // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
         // For SINGLE songs, this logic is still fine.
