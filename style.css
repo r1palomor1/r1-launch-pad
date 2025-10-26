@@ -1437,7 +1437,7 @@ button.rabbit-default:hover {
 .hint-text {
     font-size: var(--font-size-small);
     color: var(--icon-color); /* Dimmed color */
-    opacity: 0.7; /* Further dim it */
+    opacity: 0.5; /* Further dim it */
     font-weight: bold;
 }
 

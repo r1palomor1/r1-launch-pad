@@ -690,6 +690,14 @@ async function openPlayerView(options) {
     // playerVideoTitle.textContent = options.title; // We set this later
     internalPlayerOverlay.style.display = 'flex';
 
+    // --- ⬇️ ADDED: RESET TAP HINT ICON SESSION ⬇️ ---
+    const hintIcon = document.querySelector('#tapHint img');
+    if (hintIcon) {
+        hintIcon.dataset.shown = 'false';
+        hintIcon.style.opacity = '0'; // Ensure it's hidden
+    }
+    // --- ⬆️ END OF ADDED CODE ⬆️ ---
+
     // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
     // isManualPlaylist = false; // <-- THIS LINE IS NOW GONE FROM HERE
     currentPlaylist = [];
@@ -2117,6 +2125,7 @@ logo.addEventListener('click', goHome);
     playerBackBtn.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none'; // Hide player
     youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
+    hideTapHint(); // <-- ADD THIS LINE
     nowPlayingTitle.textContent = playerVideoTitle.textContent; // ADD THIS
     nowPlayingBar.style.display = 'flex'; // ADD THIS
 });
@@ -2177,6 +2186,7 @@ searchModePlaylistsBtn.addEventListener('click', () => {
 playerSearchBtn.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none'; // Hide player
     youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
+    hideTapHint(); // <-- ADD THIS LINE
     youtubeSearchInput.value = ''; // ADDED: Clear previous search term
     youtubeSearchInput.focus(); // Set focus on the search bar
     nowPlayingTitle.textContent = playerVideoTitle.textContent; // ADD THIS
@@ -2186,6 +2196,7 @@ playerSearchBtn.addEventListener('click', () => {
 // Event Listeners for playlist controls
 playerBackBtn_playlist.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none';
+    hideTapHint(); // <-- ADD THIS LINE
     youtubeSearchViewOverlay.style.display = 'flex';
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
     nowPlayingBar.style.display = 'flex';
@@ -2216,6 +2227,7 @@ playerNextBtn.addEventListener('click', playNextVideoInList); // Use our new fun
 playerSearchBtn_playlist.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none';
     youtubeSearchViewOverlay.style.display = 'flex';
+    hideTapHint(); // <-- ADD THIS LINE
     youtubeSearchInput.value = '';
     youtubeSearchInput.focus();
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
