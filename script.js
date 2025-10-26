@@ -62,6 +62,7 @@ const playerPrevBtn = document.getElementById('playerPrevBtn');
 const playerNextBtn = document.getElementById('playerNextBtn');
 const playerShuffleBtn = document.getElementById('playerShuffleBtn');
 const playerPlayAllBtn = document.getElementById('playerPlayAllBtn');
+const playerHomeIcon = document.getElementById('playerHomeIcon');
 
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
 const searchModePlaylistsBtn = document.getElementById('searchModePlaylists');
@@ -830,33 +831,33 @@ function hidePlayerUI() {
     isUIVisible = false;
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
-    // const container = document.querySelector('#internalPlayerOverlay .player-container'); // NO LONGER NEEDED
-
-    // --- THIS IS THE FINAL LOGIC ---
     
-    // 1. Collapse the header COMPLETELY.
+    // 1. Collapse header
     if (header) {
-        // Add transitions for the properties we are changing
         header.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         header.style.opacity = '0';
         header.style.height = '0';
-        header.style.padding = '0'; // Assumes header has padding, remove if not
+        header.style.padding = '0'; 
         header.style.visibility = 'hidden';
         header.style.pointerEvents = 'none';
     }
     
-    // 2. Collapse the controls PARTIALLY to leave a tap area.
+    // 2. Collapse controls partially
     if (controls) {
-        // Add transitions for the properties we are changing
         controls.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         controls.style.opacity = '0';
-        controls.style.height = '35px'; // <-- LEAVES A ##px TAP AREA
-        controls.style.padding = '0'; // Assumes controls have padding, remove if not
+        controls.style.height = '35px'; 
+        controls.style.padding = '0'; 
         controls.style.visibility = 'hidden';
         controls.style.pointerEvents = 'none';
     }
 
-    // --- WE NO LONGER TOUCH THE CONTAINER ---
+    // --- ⬇️ ADDED: Show Home Icon ⬇️ ---
+    if (playerHomeIcon) {
+        playerHomeIcon.style.opacity = '1';
+        playerHomeIcon.style.pointerEvents = 'auto';
+    }
+    // --- ⬆️ END OF ADDED CODE ⬆️ ---
     
     // Show tap hint after UI fades
     showTapHint();
@@ -866,28 +867,30 @@ function showPlayerUI() {
     isUIVisible = true;
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
-    // const container = document.querySelector('#internalPlayerOverlay .player-container'); // NO LONGER NEEDED
-
-    // --- THIS IS THE FINAL LOGIC ---
-    // We restore the header and controls, and flex-grow on the container shrinks it.
+    
+    // Restore header
     if (header) {
-        // We must reset the styles so they go back to the stylesheet defaults
         header.style.opacity = '1';
-        header.style.height = ''; // Reset to default
-        header.style.padding = ''; // Reset to default
-        header.style.visibility = ''; // Reset to default
+        header.style.height = ''; 
+        header.style.padding = ''; 
+        header.style.visibility = ''; 
         header.style.pointerEvents = 'auto';
     }
+    // Restore controls
     if (controls) {
-        // We must reset the styles so they go back to the stylesheet defaults
         controls.style.opacity = '1';
-        controls.style.height = ''; // Reset to default
-        controls.style.padding = ''; // Reset to default
-        controls.style.visibility = ''; // Reset to default
+        controls.style.height = ''; 
+        controls.style.padding = ''; 
+        controls.style.visibility = ''; 
         controls.style.pointerEvents = 'auto';
     }
 
-    // --- WE NO LONGER TOUCH THE CONTAINER ---
+    // --- ⬇️ ADDED: Hide Home Icon ⬇️ ---
+    if (playerHomeIcon) {
+        playerHomeIcon.style.opacity = '0';
+        playerHomeIcon.style.pointerEvents = 'none';
+    }
+    // --- ⬆️ END OF ADDED CODE ⬆️ ---
     
     // Hide tap hint when UI shows again
     hideTapHint();    
@@ -2364,6 +2367,19 @@ stopPlayingBtn.addEventListener('click', (e) => {
         sayOnRabbit("Playback stopped");
     }
 });
+
+// --- ⬇️ ADD THIS NEW LISTENER ⬇️ ---
+playerHomeIcon.addEventListener('click', () => {
+    if (player) {
+        player.stopVideo(); // Stop playback
+    }
+    internalPlayerOverlay.style.display = 'none'; // Hide player overlay
+    hideTapHint(); // Ensure hint is hidden
+    updateNowPlayingUI('stopped'); // Update the main UI icon/bar
+    goHome(); // Navigate home
+    triggerHaptic();
+});
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
 
     // Use the correct 'sideClick' event based on the SDK demo.
     window.addEventListener('sideClick', (event) => {
