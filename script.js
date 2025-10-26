@@ -1,4 +1,4 @@
-﻿﻿// Working app. YT Modes/Fading/ShufflePlayAll/Theme saved/YT Expansion/PL Fetch
+﻿﻿﻿﻿// Working app. YT Modes/Fading/ShufflePlayAll/Theme saved/YT Expansion/PL Fetch
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
