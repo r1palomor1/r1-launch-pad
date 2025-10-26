@@ -691,11 +691,14 @@ async function openPlayerView(options) {
     internalPlayerOverlay.style.display = 'flex';
 
     // --- ⬇️ MODIFIED: RESET TAP HINT ICON SESSION ⬇️ ---
+    const hintElement = document.getElementById('tapHint');
     const hintIcon = document.querySelector('#tapHint img');
-    if (hintIcon) {
+    if (hintIcon && hintElement) {
         hintIcon.dataset.shown = 'false';
         hintIcon.style.opacity = '0'; // Ensure it's hidden
+        hintIcon.style.width = '0px'; // Ensure it's shrunk
         hintIcon.style.animationPlayState = 'paused'; // Also pause animation
+        hintElement.style.gap = '0px'; // Ensure gap is 0
     }
     // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
@@ -889,20 +892,24 @@ function showTapHint() {
 
     // Fade in the whole hint bar (which contains the text)
     hintElement.style.opacity = '1'; 
+    hintElement.style.gap = '8px'; // Set the gap
 
-    // Check if the icon has been shown this session
+    // Check if the icon has been shown this session (it's reset on openPlayerView)
     if (hintIcon.dataset.shown !== 'true') {
         // Mark as shown
         hintIcon.dataset.shown = 'true';
         
-        // Fade in the icon AND start its animation
+        // Fade in the icon, set its width, AND start its animation
         hintIcon.style.opacity = '1';
+        hintIcon.style.width = '20px';
         hintIcon.style.animationPlayState = 'running';
         
-        // Set timer to fade *only the icon* out and pause its animation
+        // Set timer to fade *only the icon* out, shrink it, and pause its animation
         clearTimeout(tapHintTimeout);
         tapHintTimeout = setTimeout(() => {
             hintIcon.style.opacity = '0';
+            hintIcon.style.width = '0px';
+            hintElement.style.gap = '0px';
             hintIcon.style.animationPlayState = 'paused';
         }, 3000);
     }
@@ -911,13 +918,15 @@ function showTapHint() {
 function hideTapHint() {
     const hintElement = document.getElementById('tapHint');
     if (hintElement) {
-        // Fade out the entire bar (text)
+        // Fade out the entire bar (text) and shrink the gap
         hintElement.style.opacity = '0'; 
+        hintElement.style.gap = '0px';
         
-        // Also ensure the icon is faded out and its animation is paused
+        // Also ensure the icon is faded out, shrunk, and its animation is paused
         const hintIcon = hintElement.querySelector('img');
         if (hintIcon) {
             hintIcon.style.opacity = '0';
+            hintIcon.style.width = '0px';
             hintIcon.style.animationPlayState = 'paused';
         }
     }

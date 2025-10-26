@@ -1418,28 +1418,27 @@ button.rabbit-default:hover {
     opacity: 0; /* The whole bar fades in/out */
     pointer-events: none;
     z-index: 1000;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, gap 0.3s ease 0.3s;
     align-items: center;
     justify-content: center;
-    gap: 8px; /* Space between icon and text */
+    gap: 0px; /* Default gap to 0 */
 }
 
 #tapHint img {
-    width: 20px; /* Make icon smaller */
+    width: 0px; /* Default width to 0 */
     height: 20px;
     object-fit: contain;
     animation: tapPulse 1.5s ease-in-out infinite;
-    animation-play-state: paused; /* <-- ADD THIS LINE */
+    animation-play-state: paused;
     flex-shrink: 0; /* Prevent icon from shrinking */
     opacity: 0; /* Icon is hidden by default */
-    transition: opacity 0.3s ease; /* Icon has its own fade */
+    transition: opacity 0.3s ease, width 0.3s ease 0.3s; /* Add width transition */
 }
 
 .hint-text {
     font-size: var(--font-size-small);
     color: var(--icon-color); /* Dimmed color */
     opacity: 0.5; /* Further dim it */
-    font-weight: bold;
 }
 
 @keyframes tapPulse {
