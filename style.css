@@ -1429,6 +1429,7 @@ button.rabbit-default:hover {
     height: 20px;
     object-fit: contain;
     animation: tapPulse 1.5s ease-in-out infinite;
+    animation-play-state: paused; /* <-- ADD THIS LINE */
     flex-shrink: 0; /* Prevent icon from shrinking */
     opacity: 0; /* Icon is hidden by default */
     transition: opacity 0.3s ease; /* Icon has its own fade */
@@ -1444,10 +1445,8 @@ button.rabbit-default:hover {
 @keyframes tapPulse {
     0%, 100% {
         transform: scale(1);
-        opacity: 1;
     }
     50% {
         transform: scale(1.15);
-        opacity: 0.8;
     }
 }
