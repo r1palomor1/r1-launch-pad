@@ -594,6 +594,7 @@ function playNextVideoInList() {
         nextIndex = 0; // Loop to the beginning
     }
     loadVideoFromPlaylist(nextIndex);
+    if (player) player.playVideo(); // <-- ADD THIS
 }
 
 /**
@@ -605,6 +606,7 @@ function playPreviousVideoInList() {
         prevIndex = currentPlaylist.length - 1; // Loop to the end
     }
     loadVideoFromPlaylist(prevIndex);
+    if (player) player.playVideo(); // <-- ADD THIS
 }
 
 /**
@@ -2175,6 +2177,7 @@ playerPlayAllBtn.addEventListener('click', () => {
     currentPlaylist = [...originalPlaylist];
     // Play the very first video
     loadVideoFromPlaylist(0);
+    if (player) player.playVideo(); // <-- ADD THIS
     // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 });
 playerPrevBtn.addEventListener('click', playPreviousVideoInList); // Use our new function
@@ -2332,6 +2335,7 @@ function toggleShuffle() {
     }
     // Always start playback from the beginning of the (newly shuffled or unshuffled) list
     loadVideoFromPlaylist(0);
+    if (player) player.playVideo(); // <-- ADD THIS
     // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 }
 
