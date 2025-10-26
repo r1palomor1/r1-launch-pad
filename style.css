@@ -51,16 +51,18 @@ body {
 }
 
 header {
-    display: flex;
-    justify-content: center; /* Revert to center for the logo */
+    display: flex; /* Keep flex for vertical alignment */
+    /* justify-content: center; REMOVE this - centering handled by logo's absolute position */
     align-items: center;
     padding-top: max(env(safe-area-inset-top), 10px);
     padding-bottom: 3px;
     background-color: var(--header-bg-color);
     margin-bottom: 0;
-    position: relative; /* Add this: Make it a positioning context */
-    padding-left: 32px; /* Add padding to prevent logo overlap */
-    padding-right: 32px; /* Add padding to keep logo centered */
+    position: relative; /* Keep as positioning context */
+    /* padding-left: 32px; REMOVE padding */
+    /* padding-right: 32px; REMOVE padding */
+    /* Ensure header has a defined height for vertical centering of absolute children */
+    min-height: 40px; /* Adjust as needed based on logo/icon size */
 }
 
 #logo {
@@ -68,6 +70,10 @@ header {
     align-items: center;
     gap: 8px;
     cursor: pointer;
+    position: absolute; /* Add absolute positioning */
+    left: 50%; /* Position the left edge at the center */
+    top: 50%; /* Position the top edge at the center */
+    transform: translate(-50%, -50%); /* Shift back by half its own width/height to center it */
 }
 
 .logo-text {
@@ -1468,7 +1474,7 @@ button.rabbit-default:hover {
     cursor: pointer;
     width: 24px;
     height: 24px;
-    position: absolute; /* Add this */
+    position: absolute; /* Keep absolute */
     left: max(8px, env(safe-area-inset-left)); /* Position to the far left + padding/safe area */
     top: 50%; /* Position vertically */
     transform: translateY(-50%); /* Center vertically */
