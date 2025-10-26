@@ -52,12 +52,15 @@ body {
 
 header {
     display: flex;
-    justify-content: space-between; /* Change this line */
+    justify-content: center; /* Revert to center for the logo */
     align-items: center;
     padding-top: max(env(safe-area-inset-top), 10px);
     padding-bottom: 3px;
     background-color: var(--header-bg-color);
     margin-bottom: 0;
+    position: relative; /* Add this: Make it a positioning context */
+    padding-left: 32px; /* Add padding to prevent logo overlap */
+    padding-right: 32px; /* Add padding to keep logo centered */
 }
 
 #logo {
@@ -1457,7 +1460,7 @@ button.rabbit-default:hover {
 #nowPlayingIcon {
     background: transparent;
     border: none;
-    padding: 0 4px 0 0;
+    padding: 0; /* Remove padding */
     margin: 0;
     display: none; /* Hidden by default */
     align-items: center;
@@ -1465,6 +1468,10 @@ button.rabbit-default:hover {
     cursor: pointer;
     width: 24px;
     height: 24px;
+    position: absolute; /* Add this */
+    left: max(8px, env(safe-area-inset-left)); /* Position to the far left + padding/safe area */
+    top: 50%; /* Position vertically */
+    transform: translateY(-50%); /* Center vertically */
 }
 
 #nowPlayingIcon svg {
