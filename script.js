@@ -649,8 +649,10 @@ function parseXMLPlaylist(xmlText) {
  * This is called by openPlayerView.
  */
 async function fetchManualPlaylist(playlistId) {
-    // We use the CORS proxy, just like your working small app
-    const url = `https://corsproxy.io/?https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
+    // --- ⬇️ MODIFIED: ADDED ENCODEURICOMPONENT (FROM SMALL APP) ⬇️ ---
+    const feed = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
+    const url = `https://corsproxy.io/?${encodeURIComponent(feed)}`;
+    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
     
     try {
         const response = await fetch(url);
@@ -687,13 +689,22 @@ function openPlayerView(options) {
     internalPlayerOverlay.style.display = 'flex';
 
     // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
-    isManualPlaylist = false; // Reset flag
-// ... (rest of isManualPlaylist setup) ...
+    // isManualPlaylist = false; // <-- THIS LINE IS NOW GONE FROM HERE
+    currentPlaylist = [];
+    originalPlaylist = [];
+    currentPlaylistIndex = 0;
     
     if (options.playlistId) {
         // --- THIS IS A MANUAL PLAYLIST ---
         isManualPlaylist = true;
-// ... (rest of playlistId setup) ...
+        playerVideoTitle.textContent = 'Loading Playlist...'; // Show loading state
+        
+        playerSongControls.style.display = 'none';
+        playerPlaylistControls.style.display = 'flex';
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+        playerAudioOnlyBtn_playlist.innerHTML = AUDIO_ICON_SVG;
+        playerAudioOnlyBtn_playlist.classList.remove('active');
+        playerShuffleBtn.classList.remove('active'); // Ensure shuffle UI is reset
         isShuffleActive = false;
         
         // --- ⬇️ MODIFIED: CALL OUR NEW FETCH FUNCTION ⬇️ ---
@@ -703,10 +714,11 @@ function openPlayerView(options) {
 
     } else {
         // --- THIS IS A SINGLE SONG ---
-        isManualPlaylist = false;
+        isManualPlaylist = false; // <-- IT IS NOW PASTED HERE
         playerVideoTitle.textContent = options.title;
         playerSongControls.style.display = 'flex';
         playerPlaylistControls.style.display = 'none';
+        // Set initial state for song controls
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
         playerAudioOnlyBtn.innerHTML = AUDIO_ICON_SVG;
         playerAudioOnlyBtn.classList.remove('active');
@@ -721,6 +733,10 @@ function openPlayerView(options) {
             player.destroy();
         }
         try {
+            // existing player config
+
+            // This is the core change: It now creates the player differently
+            // based on whether it receives a videoId or a playlistId.
             let playerConfig = {
                 height: '100%',
                 width: '100%',
@@ -755,9 +771,10 @@ function openPlayerView(options) {
         }
     };
 
-    window.onYouTubeIframeAPIReady = createPlayer;
     if (window.YT && window.YT.Player) {
         createPlayer();
+    } else {
+        window.onYouTubeIframeAPIReady = createPlayer;
     }
 }
 
