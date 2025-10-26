@@ -1267,8 +1267,8 @@ button.rabbit-default:hover {
     right: 0;
     background-color: var(--primary-color);
     color: var(--button-font-color);
-    padding: 2px 10px; /* Slimmer padding */
-    height: 28px; /* Set fixed slim height */
+    padding: 1px 5px; /* Slimmer padding */
+    height: 20px; /* Set fixed slim height */
     display: flex;
     align-items: center;
     gap: 6px; /* Reduced gap */
