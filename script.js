@@ -2385,23 +2385,28 @@ function onPlayerReady(event) {
 
 function toggleShuffle() {
     if (!player || !isManualPlaylist) return; // Only works in manual mode
-    isShuffleActive = !isShuffleActive;
-    playerShuffleBtn.classList.toggle('active', isShuffleActive);
-    triggerHaptic();
-    sayOnRabbit(isShuffleActive ? "Shuffle enabled" : "Shuffle disabled");
 
-    // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
-    if (isShuffleActive) {
-        // Shuffle the current playlist
-        shuffleArray(currentPlaylist);
+    // --- ⬇️ NEW "TRUE SHUFFLE" LOGIC ⬇️ ---
+
+    // 1. If shuffle isn't already active, turn it on and announce it.
+    if (!isShuffleActive) {
+        isShuffleActive = true;
+        playerShuffleBtn.classList.add('active');
+        triggerHaptic();
+        sayOnRabbit("Shuffle enabled");
     } else {
-        // Restore the original, unshuffled playlist
-        currentPlaylist = [...originalPlaylist];
+        // If already active, just give a haptic for the new shuffle
+        triggerHaptic();
     }
-    // Always start playback from the beginning of the (newly shuffled or unshuffled) list
-    loadVideoFromPlaylist(0);
-    if (player) player.playVideo(); // <-- ADD THIS
-    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+    
+    // 2. ALWAYS shuffle the current playlist.
+    shuffleArray(currentPlaylist); 
+    
+    // 3. ALWAYS play the first video of the *newly shuffled* list.
+    loadVideoFromPlaylist(0); 
+    if (player) player.playVideo(); 
+    
+    // --- ⬆️ END OF NEW LOGIC ⬆️ ---
 }
 
 function onPlayerStateChange(event) {
