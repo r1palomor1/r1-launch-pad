@@ -1287,6 +1287,7 @@ button.rabbit-default:hover {
 }
 
 #nowPlayingTitle {
+    opacity: 0.5;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
