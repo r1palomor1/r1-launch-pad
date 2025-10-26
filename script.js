@@ -135,6 +135,17 @@ function goHome() {
     mainView.classList.remove('input-mode-active');
     renderLinks();
     scrollToTop();
+
+    // ⬇️ ADD THIS ⬇️
+    // Tell the UI to update when we return to the main view
+    if (player && player.getPlayerState) {
+        const state = player.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+            updateNowPlayingUI('playing');
+        } else if (state === YT.PlayerState.PAUSED) {
+            updateNowPlayingUI('paused');
+        }
+    }
 }
 
 function debounce(func, delay) {
@@ -993,6 +1004,17 @@ function closeYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'none';
     youtubeSearchInput.value = '';
     youtubeSearchResultsContainer.innerHTML = '';
+
+    // ⬇️ ADD THIS ⬇️
+    // Tell the UI to update when we return to the main view
+    if (player && player.getPlayerState) {
+        const state = player.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+            updateNowPlayingUI('playing');
+        } else if (state === YT.PlayerState.PAUSED) {
+            updateNowPlayingUI('paused');
+        }
+    }
 }
 
 function hideYouTubeSearchView() {
@@ -2486,7 +2508,7 @@ function onPlayerStateChange(event) {
         // --- ⬆️ END OF ADDED CODE ⬆️ ---
         startUIHideTimer();
         
-        updateNowPlayingUI('playing'); // <-- USE NEW FUNCTION
+        // updateNowPlayingUI('playing'); // <-- REMOVED (This was the bug)
 
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
@@ -2498,7 +2520,7 @@ function onPlayerStateChange(event) {
             isIntentionalPause = false; 
         }
         
-        updateNowPlayingUI('paused'); // <-- USE NEW FUNCTION
+        // updateNowPlayingUI('paused'); // <-- REMOVED (This was the bug)
 
     } else if (event.data === YT.PlayerState.ENDED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; 
@@ -2514,7 +2536,7 @@ function onPlayerStateChange(event) {
         } else {
             // Original logic for single songs
             showPlayerUI();
-            updateNowPlayingUI('stopped'); // <-- USE NEW FUNCTION
+            updateNowPlayingUI('stopped'); // <-- KEPT (This is correct)
         }
         // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
