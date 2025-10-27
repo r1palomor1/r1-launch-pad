@@ -1460,10 +1460,9 @@ button.rabbit-default:hover {
 /* ⬇️ ADD THESE NEW STYLES ⬇️ */
 #playerHomeIcon {
     position: absolute;
-    /* top: 13px;  Remove this */
-    top: 50%; /* Position relative to header's vertical center */
-    transform: translateY(-50%); /* Adjust to true center */
-    left: max(8px, env(safe-area-inset-left));
+    top: max(8px, env(safe-area-inset-top)); /* Align top edge like header padding */
+    left: max(8px, env(safe-area-inset-left)); /* Align left edge */
+    /* transform: translateY(-50%); Remove vertical transform */
     background: transparent;
     border: none;
     padding: 0;
