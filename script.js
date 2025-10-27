@@ -1,6 +1,6 @@
 ﻿﻿/*
  Working app. YT Modes/Fading/Congrols/Theme saved/YT Player expansion
- PL Fetch/Speaker Now Playing Icon/
+ PL Fetch/Speaker Now Playing Icon/Home icon on player
 */
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
