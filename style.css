@@ -984,8 +984,13 @@ button.rabbit-default:hover {
     align-items: center;
     justify-content: center;
     text-align: center;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.5s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease; /* Ensure transition includes height/padding */
     opacity: 1;
+    position: relative; /* Add this line */
+    /* Add back some default padding for alignment */
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-bottom: 8px;
+    min-height: 40px; /* Ensure it has a minimum height for centering */
 }
 
 #playerVideoTitle {
@@ -1455,22 +1460,23 @@ button.rabbit-default:hover {
 /* ⬇️ ADD THESE NEW STYLES ⬇️ */
 #playerHomeIcon {
     position: absolute;
-    /* Adjust top value to align better with the header text's vertical center */
-    top: 13px; /* You might need to tweak this value (e.g., 12px, 14px) */
+    /* top: 13px;  Remove this */
+    top: 50%; /* Position relative to header's vertical center */
+    transform: translateY(-50%); /* Adjust to true center */
     left: max(8px, env(safe-area-inset-left));
     background: transparent;
     border: none;
     padding: 0;
     margin: 0;
-    width: 28px; /* Subtle size */
+    width: 28px;
     height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 1100; /* Above player, below controls */
-    opacity: 0; /* Hidden by default */
-    pointer-events: none; /* Not clickable when hidden */
+    z-index: 1100;
+    opacity: 0;
+    pointer-events: none;
     transition: opacity 0.3s ease;
 }
 
