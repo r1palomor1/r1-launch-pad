@@ -988,9 +988,9 @@ button.rabbit-default:hover {
     opacity: 1;
     position: relative; /* Add this line */
     /* Add back some default padding for alignment */
-    padding-top: max(8px, env(safe-area-inset-top));
-    padding-bottom: 8px;
-    min-height: 40px; /* Ensure it has a minimum height for centering */
+    padding-top: max(5px, env(safe-area-inset-top));
+    padding-bottom: 5px;
+    /* min-height: 40px; REMOVED THIS LINE */
 }
 
 #playerVideoTitle {
