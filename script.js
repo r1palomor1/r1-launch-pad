@@ -2370,13 +2370,10 @@ stopPlayingBtn.addEventListener('click', (e) => {
 
 // --- ⬇️ ADD THIS NEW LISTENER ⬇️ ---
 playerHomeIcon.addEventListener('click', () => {
-    if (player) {
-        player.stopVideo(); // Stop playback
-    }
+    // We REMOVED player.stopVideo() and updateNowPlayingUI('stopped')
     internalPlayerOverlay.style.display = 'none'; // Hide player overlay
     hideTapHint(); // Ensure hint is hidden
-    updateNowPlayingUI('stopped'); // Update the main UI icon/bar
-    goHome(); // Navigate home
+    goHome(); // Navigate home (goHome will call updateNowPlayingUI based on the current state)
     triggerHaptic();
 });
 // --- ⬆️ END OF ADDED CODE ⬆️ ---

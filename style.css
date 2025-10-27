@@ -1455,7 +1455,8 @@ button.rabbit-default:hover {
 /* ⬇️ ADD THESE NEW STYLES ⬇️ */
 #playerHomeIcon {
     position: absolute;
-    top: max(8px, env(safe-area-inset-top)); /* Position near top-left */
+    /* Adjust top value to align better with the header text's vertical center */
+    top: 13px; /* You might need to tweak this value (e.g., 12px, 14px) */
     left: max(8px, env(safe-area-inset-left));
     background: transparent;
     border: none;
