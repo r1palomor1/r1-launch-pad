@@ -1132,12 +1132,15 @@ function openYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'flex';
     youtubeSearchInput.value = '';
     youtubeSearchInput.placeholder = 'Search YouTube...'; // Reset placeholder
+    
     // Clear previous results and don't auto-focus.
     // We check the mode to decide what to render
     if (currentSearchMode === 'isGd') {
         renderSavedPlaylists();
+        youtubeSearchGoBtn.textContent = 'Load'; // <-- ADD THIS
     } else {
         youtubeSearchResultsContainer.innerHTML = '';
+        youtubeSearchGoBtn.textContent = 'Search'; // <-- ADD THIS
     }
 }
 
@@ -2339,19 +2342,29 @@ searchModeVideosBtn.addEventListener('click', () => {
     currentSearchMode = 'videos';
     youtubeSearchInput.placeholder = 'Search YouTube...';
     youtubeSearchResultsContainer.innerHTML = ''; // Clear results
+    youtubeSearchGoBtn.textContent = 'Search'; // <-- ADD THIS
 });
 
 searchModeIsGdBtn.addEventListener('click', () => {
     currentSearchMode = 'isGd';
-    youtubeSearchInput.placeholder = 'Enter is.gd code to add...';
+    youtubeSearchInput.placeholder = 'Enter is.gd code...';
     renderSavedPlaylists(); // Show saved playlists
+    youtubeSearchGoBtn.textContent = 'Load';
 });
 
 // --- ⬇️ ADDED: Info Button Listener ⬇️ ---
 isGdInfoBtn.addEventListener('click', (e) => {
     e.preventDefault(); // Prevent label from firing
     e.stopPropagation(); // Stop bubbling
-    showAlert("To use this, go to https://is.gd, paste your full YouTube playlist URL to get a short code, then enter that code here.");
+    
+    // Create the multi-line message
+    const message = "1. On another device, copy your YouTube playlist link.\n" +
+                    "2. Go to is.gd and paste the link.\n" +
+                    "3. Tap “Shorten” to get a short code (after is.gd/).\n" +
+                    "4. Enter that code here and tap “Load.”\n" +
+                    "5. Wait about 1 minute while the playlist loads.";
+                    
+    showAlert(message);
 });
 // --- ⬆️ END OF ADDED/MODIFIED CODE ⬆️ ---
 

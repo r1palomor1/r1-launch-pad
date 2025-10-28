@@ -783,6 +783,16 @@ button.rabbit-default:hover {
     transition: padding-top 0.2s ease-in-out;
 }
 
+/* ⬇️ ADD THIS NEW RULE ⬇️ */
+/* Ensure prompts appear ON TOP of other overlays (like the search view) */
+#genericPromptOverlay,
+#deletePromptOverlay,
+#favoritesPromptOverlay,
+#themeDialogOverlay {
+    z-index: 1002;
+}
+/* ⬆️ END OF ADDED RULE ⬆️ */
+
 .custom-prompt-overlay.input-focused {
     padding-top: max(2px, env(safe-area-inset-top));
 }
@@ -848,7 +858,8 @@ button.rabbit-default:hover {
 }
 
 #genericPromptMessage {
-    font-size: 0.75em;
+    font-size: 0.7em; /* <-- REDUCED FROM 0.75em */
+    line-height: 1.4; /* <-- ADDED FOR READABILITY */
     text-align: left;
     word-break: break-all;
     white-space: pre-wrap;
