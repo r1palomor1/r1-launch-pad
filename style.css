@@ -861,7 +861,8 @@ button.rabbit-default:hover {
     font-size: 0.7em; /* <-- REDUCED FROM 0.75em */
     line-height: 1.4; /* <-- ADDED FOR READABILITY */
     text-align: left;
-    word-break: break-all;
+    /* word-break: break-all; */ /* <-- REMOVED */
+    overflow-wrap: break-word; /* <-- ADDED */
     white-space: pre-wrap;
     max-height: 60vh;
     overflow-y: auto;
@@ -1554,6 +1555,12 @@ button.rabbit-default:hover {
     margin-left: 6px;
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.info-icon svg {
+    width: 10px;
+    height: 10px;
+    fill: currentColor;
 }
 
 .info-icon:hover {
