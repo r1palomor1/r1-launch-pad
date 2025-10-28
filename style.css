@@ -1190,7 +1190,7 @@ button.rabbit-default:hover {
 /* Main container for the radio options */
 .search-mode-selector {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start; /* <-- CHANGED 'center' to 'flex-start' */
     gap: 5px;
     margin: 0;
 }
@@ -1542,7 +1542,7 @@ button.rabbit-default:hover {
 
 /* Style for the 'is.gd' info button */
 .info-icon {
-    display: inline-flex;
+    display: none; /* <-- REPLACED 'inline-flex' with 'none' */
     align-items: center;
     justify-content: center;
     font-style: normal;
