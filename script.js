@@ -662,43 +662,43 @@ function getYoutubePlaylistId(url) {
 
 /**
  * Tries to resolve a short URL to its final destination URL.
- * Uses an external API proxy to bypass browser restrictions.
+ * Uses allorigins.win and parses the HTML 'contents' it returns.
  */
 async function resolveShortUrl(shortUrl) {
-    logToDebug(`[Resolve] Attempting to resolve: ${shortUrl}`);
+    console.log(`[Resolve] Attempting to resolve: ${shortUrl}`);
     const proxyApiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(shortUrl)}`;
-    logToDebug(`[Resolve] Proxy URL: ${proxyApiUrl}`);
     
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-            logToDebug('[Resolve] ERROR: Request timed out after 7 seconds.');
-            controller.abort();
-        }, 7000);
-        
-        logToDebug('[Resolve] Sending fetch request to proxy...');
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
         const response = await fetch(proxyApiUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
-        logToDebug(`[Resolve] Proxy fetch complete. Status: ${response.status} ${response.statusText}`);
-        
-        if (!response.ok) {
-            logToDebug(`[Resolve] ERROR: Proxy response not OK.`);
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        logToDebug('[Resolve] Parsing proxy response as JSON...');
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
         const data = await response.json();
-        logToDebug(`[Resolve] Proxy data received: ${JSON.stringify(data, null, 2)}`);
-        
-        if (data && data.status && data.status.url && data.status.http_code >= 200 && data.status.http_code < 400) {
-            logToDebug(`[Resolve] SUCCESS: Final URL found: ${data.status.url}`);
-            return data.status.url; // This is the final URL!
+
+        // THIS IS THE FIX: We are now searching data.contents
+        if (data && data.contents) {
+            // Regex to find the first full YouTube playlist URL in the HTML
+            const match = data.contents.match(/"(https:\/\/youtube\.com\/playlist\?list=[^"&]+)/);
+            
+            if (match && match[1]) {
+                const resolved = match[1].replace(/&amp;/g, '&');
+                console.log(`[Resolve] Parsed from contents: ${resolved}`);
+                return resolved;
+            }
         }
         
-        logToDebug('[Resolve] ERROR: Proxy data format unexpected or did not contain a valid URL.');
+        // Fallback check (the original logic) just in case
+        if (data && data.status && data.status.url && data.status.http_code >= 200 && data.status.http_code < 400) {
+            console.log(`[Resolve] Resolved from status.url: ${data.status.url}`);
+            return data.status.url;
+        }
+
+        console.warn('[Resolve] Could not find YouTube URL in proxy response.');
         return null;
     } catch (error) {
-        logToDebug(`[Resolve] FATAL ERROR during fetch: ${error.message}`);
         console.error('[Resolve] Error resolving short URL:', error);
         return null;
     }
