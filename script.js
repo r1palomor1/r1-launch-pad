@@ -211,6 +211,80 @@ async function sayOnRabbit(message) {
     } catch (e) { console.error("Say feedback failed:", e); }
 }
 
+// --- ⬇️ ADDED FOR DEBUG PANEL ⬇️ ---
+let debugOverlay = null;
+let debugContent = null;
+
+function setupDebugPanel() {
+    if (document.getElementById('r1DebugOverlay')) {
+         debugOverlay = document.getElementById('r1DebugOverlay');
+         debugContent = document.getElementById('r1DebugContent');
+         debugOverlay.style.display = 'flex';
+         debugContent.innerHTML = ''; // Clear old content
+         return;
+    }
+
+    debugOverlay = document.createElement('div');
+    debugOverlay.id = 'r1DebugOverlay';
+    Object.assign(debugOverlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        background: 'rgba(0,0,0,0.92)',
+        color: '#00ff00',
+        fontSize: '11px',
+        zIndex: '9999',
+        padding: '8px',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: 'monospace'
+    });
+
+    const closeBtn = document.createElement('div');
+    closeBtn.textContent = '✕';
+    Object.assign(closeBtn.style, {
+        alignSelf: 'flex-end',
+        color: '#ff5555',
+        fontSize: '18px',
+        cursor: 'pointer',
+        marginBottom: '4px'
+    });
+    closeBtn.onclick = () => { debugOverlay.style.display = 'none'; };
+
+    debugContent = document.createElement('div');
+    debugContent.id = 'r1DebugContent';
+    Object.assign(debugContent.style, {
+        flex: '1',
+        overflowY: 'auto',
+        whiteSpace: 'pre-wrap',
+        border: '1px solid #444',
+        padding: '4px',
+        wordBreak: 'break-all'
+    });
+
+    debugOverlay.appendChild(closeBtn);
+    debugOverlay.appendChild(debugContent);
+    document.body.appendChild(debugOverlay);
+}
+
+function logToDebug(msg) {
+    if (!debugContent) {
+        console.log(msg); // Fallback
+        return;
+    }
+    console.log(msg); // Also log to console
+    
+    const ts = new Date().toISOString().split('T')[1].replace('Z','');
+    const logMsg = `[${ts}] ${msg}\n`;
+
+    debugContent.innerText += logMsg;
+    debugContent.scrollTop = debugContent.scrollHeight;
+}
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
+
 function normalizeUrl(url) {
     if (!url || typeof url !== 'string') return '';
     let trimmedUrl = url.trim();
@@ -591,25 +665,40 @@ function getYoutubePlaylistId(url) {
  * Uses an external API proxy to bypass browser restrictions.
  */
 async function resolveShortUrl(shortUrl) {
-    console.log(`[Resolve] Attempting to resolve: ${shortUrl}`);
+    logToDebug(`[Resolve] Attempting to resolve: ${shortUrl}`);
     const proxyApiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(shortUrl)}`;
+    logToDebug(`[Resolve] Proxy URL: ${proxyApiUrl}`);
     
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        const timeoutId = setTimeout(() => {
+            logToDebug('[Resolve] ERROR: Request timed out after 7 seconds.');
+            controller.abort();
+        }, 7000);
+        
+        logToDebug('[Resolve] Sending fetch request to proxy...');
         const response = await fetch(proxyApiUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
+        logToDebug(`[Resolve] Proxy fetch complete. Status: ${response.status} ${response.statusText}`);
         
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+            logToDebug(`[Resolve] ERROR: Proxy response not OK.`);
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         
+        logToDebug('[Resolve] Parsing proxy response as JSON...');
         const data = await response.json();
+        logToDebug(`[Resolve] Proxy data received: ${JSON.stringify(data, null, 2)}`);
         
         if (data && data.status && data.status.url && data.status.http_code >= 200 && data.status.http_code < 400) {
-            console.log(`[Resolve] Resolved to: ${data.status.url}`);
+            logToDebug(`[Resolve] SUCCESS: Final URL found: ${data.status.url}`);
             return data.status.url; // This is the final URL!
         }
+        
+        logToDebug('[Resolve] ERROR: Proxy data format unexpected or did not contain a valid URL.');
         return null;
     } catch (error) {
+        logToDebug(`[Resolve] FATAL ERROR during fetch: ${error.message}`);
         console.error('[Resolve] Error resolving short URL:', error);
         return null;
     }
@@ -2247,46 +2336,64 @@ deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
         if (currentSearchMode === 'videos') {
             triggerYoutubeSearch();
         } else if (currentSearchMode === 'isGd') {
+            // 1. SETUP DEBUG PANEL
+            setupDebugPanel();
+            logToDebug('--- New is.gd Request ---');
+            logToDebug(`Code entered: ${query}`);
+
             youtubeSearchResultsContainer.innerHTML = '<p>Resolving link...</p>';
             const fullUrl = `https://is.gd/${query}`;
+            logToDebug(`Full URL: ${fullUrl}`);
+            
+            logToDebug('Calling resolveShortUrl...');
             const resolvedUrl = await resolveShortUrl(fullUrl);
+            logToDebug(`Resolved URL: ${resolvedUrl}`);
     
             if (!resolvedUrl) {
+                logToDebug('ERROR: Resolution returned null.');
                 youtubeSearchResultsContainer.innerHTML = '<p>Failed to resolve link. Check the code and try again.</p>';
                 return;
             }
             
             const host = getHostname(resolvedUrl);
+            logToDebug(`Resolved host: ${host}`);
             if (!host.includes('youtube.com') && !host.includes('youtu.be')) {
+                logToDebug('ERROR: Host is not YouTube.');
                 youtubeSearchResultsContainer.innerHTML = "<p>This link does not lead to YouTube.</p>";
                 return;
             }
 
             const playlistId = getYoutubePlaylistId(resolvedUrl);
+            logToDebug(`Extracted Playlist ID: ${playlistId}`);
             if (!playlistId) {
+                logToDebug('ERROR: Not a valid playlist link (no list= param).');
                 youtubeSearchResultsContainer.innerHTML = "<p>This link is not a valid playlist. Please use 'Songs' mode for single videos.</p>";
                 return;
             }
             
-            // Check if already saved
+            logToDebug(`Checking if playlist ID ${playlistId} is already saved...`);
             if (savedPlaylists.some(p => p.id === playlistId)) {
+                logToDebug('INFO: Playlist is already in library.');
                 youtubeSearchResultsContainer.innerHTML = '<p>This playlist is already in your library.</p>';
                 setTimeout(renderSavedPlaylists, 2000); // Show existing list
                 youtubeSearchInput.value = '';
                 return;
             }
 
-            // Not saved, so let's fetch, save, and render
+            logToDebug('INFO: New playlist. Fetching metadata...');
             youtubeSearchResultsContainer.innerHTML = '<p>Fetching playlist info...</p>';
             const metadata = await fetchPlaylistMetadata(playlistId);
             
             if (!metadata) {
+                logToDebug('ERROR: fetchPlaylistMetadata returned null.');
                 youtubeSearchResultsContainer.innerHTML = '<p>Could not fetch playlist info. Please try again.</p>';
                 return;
             }
-
+            
+            logToDebug(`SUCCESS: Metadata found. Title: ${metadata.title}`);
             savedPlaylists.push({ id: playlistId, title: metadata.title, thumb: metadata.thumb });
             await savePlaylistsToStorage();
+            logToDebug('Playlist saved. Rendering new list.');
             renderSavedPlaylists(); // Re-render the list with the new item
             youtubeSearchInput.value = ''; // Clear input on success
         }
