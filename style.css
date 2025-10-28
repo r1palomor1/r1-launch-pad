@@ -1197,19 +1197,16 @@ button.rabbit-default:hover {
 
 /* The label is the new clickable area */
 .radio-label {
-    display: flex;
-    align-items: flex-start; /* <-- CHANGED FROM 'center' */
-    padding-top: 2px; /* <-- ADDED to align text with the top of the bubble */
+    display: inline-flex; /* Makes labels sit side-by-side */
+    flex-direction: column; /* Stacks children vertically */
+    align-items: center; /* Centers the bubble and text */
     cursor: pointer;
     font-size: 0.8em;
     color: var(--icon-color);
     -webkit-tap-highlight-color: transparent; /* Removes flash on tap */
 }
 
-/* The text next to the bubble */
-.radio-label span {
-    padding-left: 8px;
-}
+
 
 #searchModeIsGd + span {
     display: inline-flex;
@@ -1221,10 +1218,8 @@ button.rabbit-default:hover {
     display: none;
 }
 
-/* Create our custom bubble using the space before the text */
-.radio-label span::before {
-    content: '';
-    display: block;
+/* Create our custom bubble */
+.radio-bubble {
     width: 16px;
     height: 16px;
     border: 2px solid var(--border-color);
@@ -1233,9 +1228,15 @@ button.rabbit-default:hover {
 }
 
 /* Style for when the bubble is selected (checked) */
-.radio-label input[type="radio"]:checked + span::before {
+.radio-label input[type="radio"]:checked + .radio-bubble {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
+}
+
+.radio-text {
+    padding-top: 4px; /* Space below the bubble */
+    display: inline-flex; /* Aligns text and icon */
+    align-items: center; /* Aligns text and icon */
 }
 
 .search-controls-row {
@@ -1565,7 +1566,7 @@ button.rabbit-default:hover {
 
 /* ⬇️ ADD THIS NEW RULE ⬇️ */
 /* Show the icon only when its radio button is checked */
-#searchModeIsGd:checked + span .info-icon {
+#searchModeIsGd:checked ~ .radio-text .info-icon {
     display: inline-flex;
 }
 /* ⬆️ END OF ADDED RULE ⬆️ */
