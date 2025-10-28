@@ -1,3 +1,4 @@
+﻿﻿
 ﻿﻿/*
  Working app: YT Modes, Controls & Fading, Playlist Fetch, Player expansion
  Now Playing Icon, Player Home Icon, Saved Theme
