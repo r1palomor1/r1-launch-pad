@@ -681,7 +681,8 @@ async function resolveShortUrl(shortUrl) {
         // THIS IS THE FIX: We are now searching data.contents
         if (data && data.contents) {
             // Regex to find the first full YouTube playlist URL in the HTML
-            const match = data.contents.match(/"(https:\/\/youtube\.com\/playlist\?list=[^"&]+)/);
+            // This pattern handles http/https, www, escaped chars, and dirty endings.
+            const match = data.contents.match(/(https?:\/\/(?:www\.)?youtube\.com\/playlist\?list=[a-zA-Z0-9_-]+)/);
             
             if (match && match[1]) {
                 const resolved = match[1].replace(/&amp;/g, '&');
