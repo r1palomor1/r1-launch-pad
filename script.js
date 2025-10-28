@@ -212,77 +212,7 @@ async function sayOnRabbit(message) {
 }
 
 // --- ⬇️ ADDED FOR DEBUG PANEL ⬇️ ---
-let debugOverlay = null;
-let debugContent = null;
-
-function setupDebugPanel() {
-    if (document.getElementById('r1DebugOverlay')) {
-         debugOverlay = document.getElementById('r1DebugOverlay');
-         debugContent = document.getElementById('r1DebugContent');
-         debugOverlay.style.display = 'flex';
-         debugContent.innerHTML = ''; // Clear old content
-         return;
-    }
-
-    debugOverlay = document.createElement('div');
-    debugOverlay.id = 'r1DebugOverlay';
-    Object.assign(debugOverlay.style, {
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        background: 'rgba(0,0,0,0.92)',
-        color: '#00ff00',
-        fontSize: '11px',
-        zIndex: '9999',
-        padding: '8px',
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'monospace'
-    });
-
-    const closeBtn = document.createElement('div');
-    closeBtn.textContent = '✕';
-    Object.assign(closeBtn.style, {
-        alignSelf: 'flex-end',
-        color: '#ff5555',
-        fontSize: '18px',
-        cursor: 'pointer',
-        marginBottom: '4px'
-    });
-    closeBtn.onclick = () => { debugOverlay.style.display = 'none'; };
-
-    debugContent = document.createElement('div');
-    debugContent.id = 'r1DebugContent';
-    Object.assign(debugContent.style, {
-        flex: '1',
-        overflowY: 'auto',
-        whiteSpace: 'pre-wrap',
-        border: '1px solid #444',
-        padding: '4px',
-        wordBreak: 'break-all'
-    });
-
-    debugOverlay.appendChild(closeBtn);
-    debugOverlay.appendChild(debugContent);
-    document.body.appendChild(debugOverlay);
-}
-
-function logToDebug(msg) {
-    if (!debugContent) {
-        console.log(msg); // Fallback
-        return;
-    }
-    console.log(msg); // Also log to console
-    
-    const ts = new Date().toISOString().split('T')[1].replace('Z','');
-    const logMsg = `[${ts}] ${msg}\n`;
-
-    debugContent.innerText += logMsg;
-    debugContent.scrollTop = debugContent.scrollHeight;
-}
+// Debug functions removed
 // --- ⬆️ END OF ADDED CODE ⬆️ ---
 
 function normalizeUrl(url) {
@@ -2337,64 +2267,46 @@ deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
         if (currentSearchMode === 'videos') {
             triggerYoutubeSearch();
         } else if (currentSearchMode === 'isGd') {
-            // 1. SETUP DEBUG PANEL
-            setupDebugPanel();
-            logToDebug('--- New is.gd Request ---');
-            logToDebug(`Code entered: ${query}`);
-
             youtubeSearchResultsContainer.innerHTML = '<p>Resolving link...</p>';
             const fullUrl = `https://is.gd/${query}`;
-            logToDebug(`Full URL: ${fullUrl}`);
-            
-            logToDebug('Calling resolveShortUrl...');
             const resolvedUrl = await resolveShortUrl(fullUrl);
-            logToDebug(`Resolved URL: ${resolvedUrl}`);
     
             if (!resolvedUrl) {
-                logToDebug('ERROR: Resolution returned null.');
                 youtubeSearchResultsContainer.innerHTML = '<p>Failed to resolve link. Check the code and try again.</p>';
                 return;
             }
             
             const host = getHostname(resolvedUrl);
-            logToDebug(`Resolved host: ${host}`);
             if (!host.includes('youtube.com') && !host.includes('youtu.be')) {
-                logToDebug('ERROR: Host is not YouTube.');
                 youtubeSearchResultsContainer.innerHTML = "<p>This link does not lead to YouTube.</p>";
                 return;
             }
 
             const playlistId = getYoutubePlaylistId(resolvedUrl);
-            logToDebug(`Extracted Playlist ID: ${playlistId}`);
             if (!playlistId) {
-                logToDebug('ERROR: Not a valid playlist link (no list= param).');
                 youtubeSearchResultsContainer.innerHTML = "<p>This link is not a valid playlist. Please use 'Songs' mode for single videos.</p>";
                 return;
             }
             
-            logToDebug(`Checking if playlist ID ${playlistId} is already saved...`);
+            // Check if already saved
             if (savedPlaylists.some(p => p.id === playlistId)) {
-                logToDebug('INFO: Playlist is already in library.');
                 youtubeSearchResultsContainer.innerHTML = '<p>This playlist is already in your library.</p>';
                 setTimeout(renderSavedPlaylists, 2000); // Show existing list
                 youtubeSearchInput.value = '';
                 return;
             }
 
-            logToDebug('INFO: New playlist. Fetching metadata...');
+            // Not saved, so let's fetch, save, and render
             youtubeSearchResultsContainer.innerHTML = '<p>Fetching playlist info...</p>';
             const metadata = await fetchPlaylistMetadata(playlistId);
             
             if (!metadata) {
-                logToDebug('ERROR: fetchPlaylistMetadata returned null.');
                 youtubeSearchResultsContainer.innerHTML = '<p>Could not fetch playlist info. Please try again.</p>';
                 return;
             }
-            
-            logToDebug(`SUCCESS: Metadata found. Title: ${metadata.title}`);
+
             savedPlaylists.push({ id: playlistId, title: metadata.title, thumb: metadata.thumb });
             await savePlaylistsToStorage();
-            logToDebug('Playlist saved. Rendering new list.');
             renderSavedPlaylists(); // Re-render the list with the new item
             youtubeSearchInput.value = ''; // Clear input on success
         }
