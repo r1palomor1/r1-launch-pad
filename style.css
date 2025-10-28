@@ -1198,7 +1198,8 @@ button.rabbit-default:hover {
 /* The label is the new clickable area */
 .radio-label {
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* <-- CHANGED FROM 'center' */
+    padding-top: 2px; /* <-- ADDED to align text with the top of the bubble */
     cursor: pointer;
     font-size: 0.8em;
     color: var(--icon-color);
@@ -1556,6 +1557,13 @@ button.rabbit-default:hover {
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* ⬇️ ADD THIS NEW RULE ⬇️ */
+/* Show the icon only when its radio button is checked */
+#searchModeIsGd:checked ~ .info-icon {
+    display: inline-flex;
+}
+/* ⬆️ END OF ADDED RULE ⬆️ */
 
 .info-icon svg {
     width: 10px;
