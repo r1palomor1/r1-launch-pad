@@ -1526,3 +1526,60 @@ button.rabbit-default:hover {
     }
 }
 /* ⬆️ END OF ADDED STYLES ⬆️ */
+
+/* Style for the 'is.gd' info button */
+.info-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-style: normal;
+    font-weight: bold;
+    width: 14px;
+    height: 14px;
+    font-size: 10px;
+    background-color: var(--border-color);
+    color: var(--icon-color);
+    border-radius: 50%;
+    margin-left: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.info-icon:hover {
+    background-color: var(--primary-color);
+    color: var(--button-font-color);
+}
+
+/* Add relative positioning to card for the delete button */
+.youtube-result-card {
+    position: relative;
+}
+
+/* Style for the delete button on saved playlist cards */
+.delete-playlist-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    background-color: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.delete-playlist-btn:hover {
+    opacity: 1;
+    background-color: #e74c3c;
+}
+
+.delete-playlist-btn svg {
+    width: 12px;
+    height: 12px;
+    fill: #fff;
+}
+/* ⬆️ END OF ADDED STYLES ⬆️ */

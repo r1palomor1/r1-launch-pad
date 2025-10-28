@@ -1,7 +1,7 @@
 ﻿﻿/*
- Working app. YT Modes/Fading/Congrols/Theme saved/YT Player expansion
- PL Fetch/Speaker Now Playing Icon/Home icon on player
-*/
+ Working app: YT Modes, Controls & Fading, Playlist Fetch, Player expansion
+ Now Playing Icon, Player Home Icon, Saved Theme
+ */
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
@@ -65,7 +65,8 @@ const playerPlayAllBtn = document.getElementById('playerPlayAllBtn');
 const playerHomeIcon = document.getElementById('playerHomeIcon');
 
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
-const searchModePlaylistsBtn = document.getElementById('searchModePlaylists');
+const searchModeIsGdBtn = document.getElementById('searchModeIsGd');
+const isGdInfoBtn = document.getElementById('isGdInfoBtn');
 const youtubeSearchViewOverlay = document.getElementById('youtubeSearchViewOverlay');
 const youtubeSearchInput = document.getElementById('youtubeSearchInput');
 const youtubeSearchCancelBtn = document.getElementById('youtubeSearchCancelBtn');
@@ -101,6 +102,8 @@ let isManualPlaylist = false;   // Flag to check if we are in manual mode
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
+const SAVED_PLAYLISTS_KEY = 'launchPadR1SavedPlaylists';
+let savedPlaylists = [];
 const GENERIC_FAVICON_SRC = 'data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23888\'%3e%3cpath d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\'/%3e%3c/svg%3e';
 
 async function launchUrlOnRabbit(url, name) {
@@ -580,6 +583,111 @@ function getYoutubePlaylistId(url) {
     return match ? match[1] : null;
 }
 
+// --- ⬇️ ADDED FOR is.gd LINK RESOLVING & SAVING ⬇️ ---
+
+/**
+ * Tries to resolve a short URL to its final destination URL.
+ * Uses an external API proxy to bypass browser restrictions.
+ */
+async function resolveShortUrl(shortUrl) {
+    console.log(`[Resolve] Attempting to resolve: ${shortUrl}`);
+    const proxyApiUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(shortUrl)}`;
+    
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        const response = await fetch(proxyApiUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const data = await response.json();
+        
+        if (data && data.status && data.status.url && data.status.http_code >= 200 && data.status.http_code < 400) {
+            console.log(`[Resolve] Resolved to: ${data.status.url}`);
+            return data.status.url; // This is the final URL!
+        }
+        return null;
+    } catch (error) {
+        console.error('[Resolve] Error resolving short URL:', error);
+        return null;
+    }
+}
+
+/**
+ * Fetches metadata for a playlist (title and first video thumbnail).
+ */
+async function fetchPlaylistMetadata(playlistId) {
+    const feed = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
+    const url = `https://corsproxy.io/?${encodeURIComponent(feed)}`;
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const xmlText = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        
+        const title = xmlDoc.getElementsByTagName('title')[0]?.textContent || 'YouTube Playlist';
+        const firstEntry = xmlDoc.getElementsByTagName('entry')[0];
+        const thumb = firstEntry?.getElementsByTagName('media:thumbnail')[0]?.getAttribute('url') || GENERIC_FAVICON_SRC;
+        
+        return { title, thumb };
+    } catch (error) {
+        console.error('Error fetching playlist metadata:', error);
+        return null;
+    }
+}
+
+/**
+ * Renders the list of saved playlists in the search results container.
+ */
+function renderSavedPlaylists() {
+    youtubeSearchResultsContainer.innerHTML = '';
+    if (savedPlaylists.length === 0) {
+        youtubeSearchResultsContainer.innerHTML = '<p>Your saved playlists will appear here. Add one using the input above.</p>';
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    savedPlaylists.forEach(playlist => {
+        const itemCard = document.createElement('div');
+        itemCard.className = 'card youtube-result-card';
+        itemCard.dataset.playlistId = playlist.id;
+        itemCard.dataset.title = playlist.title;
+        
+        itemCard.innerHTML = `
+            <img src="${playlist.thumb}" class="link-favicon" alt="Playlist thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
+            <div class="link-description">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width:1em; height:1em; vertical-align:-0.15em; margin-right:4px; opacity:0.7;"><path d="M3 10h11v2H3zm0-4h11v2H3zm0 8h7v2H3zm13-1v8l6-4z"></path></svg>
+                ${playlist.title}
+            </div>
+            <div class="delete-playlist-btn" title="Delete Playlist">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"></path></svg>
+            </div>`;
+        fragment.appendChild(itemCard);
+    });
+    youtubeSearchResultsContainer.appendChild(fragment);
+}
+
+/**
+ * Saves the playlist array to local and creation storage.
+ */
+async function savePlaylistsToStorage() {
+    const data = JSON.stringify(savedPlaylists);
+    if (window.creationStorage) {
+        try {
+            await window.creationStorage.plain.set(SAVED_PLAYLISTS_KEY, data);
+        } catch (e) {
+            console.log('Using localStorage fallback for playlists');
+        }
+    }
+    localStorage.setItem(SAVED_PLAYLISTS_KEY, data);
+}
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
+
+
 // --- ⬇️ ADDED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
 
 /**
@@ -1002,13 +1110,20 @@ function startUIHideTimer() {
 function openYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'flex';
     youtubeSearchInput.value = '';
+    youtubeSearchInput.placeholder = 'Search YouTube...'; // Reset placeholder
     // Clear previous results and don't auto-focus.
-    youtubeSearchResultsContainer.innerHTML = '';
+    // We check the mode to decide what to render
+    if (currentSearchMode === 'isGd') {
+        renderSavedPlaylists();
+    } else {
+        youtubeSearchResultsContainer.innerHTML = '';
+    }
 }
 
 function closeYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'none';
     youtubeSearchInput.value = '';
+    youtubeSearchInput.placeholder = 'Search YouTube...'; // Reset placeholder
     youtubeSearchResultsContainer.innerHTML = '';
 
     // ⬇️ ADD THIS ⬇️
@@ -1066,7 +1181,7 @@ function renderYouTubeResults(results, mode) {
 }
 
 function handleYouTubeSearch(query, nextPageUrl = null) {
-    // --- ADDED: Guard clause to handle empty searches ---
+    // --- Guard clause to handle empty searches ---
     if (!query && !nextPageUrl) {
         youtubeSearchResultsContainer.innerHTML = ''; // Clear any "Searching..." message
         return; // Stop the function immediately
@@ -1090,88 +1205,21 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     }
 
     if (typeof PluginMessageHandler !== "undefined") {
-        const isPlaylistMode = currentSearchMode === 'playlists';
+        // This function is now ONLY for 'videos' mode
         const baseParams = { engine: "youtube", search_query: query, num: 50 };
 
-        // --- Handle pagination (same for all modes) ---
+        // --- Handle pagination ---
         if (nextPageUrl) {
             const url = new URL(nextPageUrl);
             const spToken = url.searchParams.get('sp');
             baseParams.sp = spToken || undefined;
         }
 
-        // --- SONGS MODE (Unchanged) ---
-        if (currentSearchMode === 'videos') {
-            PluginMessageHandler.postMessage(JSON.stringify({
-                message: JSON.stringify({ query_params: baseParams }),
-                useSerpAPI: true
-            }));
-            return;
-        }
-
-        // --- PLAYLIST MODE (Multi-Tier Fallback: JSON + HTML with optional hints) ---
-if (isPlaylistMode) {
-    console.log("[YouTubeSearch] ▶ Starting Playlist multi-mode query sequence...");
-
-    // 🔹 1️⃣ First: JSON with SP (official playlists)
-    const withSpJSON = { ...baseParams, sp: "EgIQAw==" };
-    PluginMessageHandler.postMessage(JSON.stringify({
-        message: JSON.stringify({ query_params: withSpJSON }),
-        useSerpAPI: true
-    }));
-    console.log("[YouTubeSearch] Sent JSON (SP) request");
-
-    // 🔹 2️⃣ Second: HTML with SP (optional fallback)
-    setTimeout(() => {
-        const withSpHTML = {
-            ...baseParams,
-            sp: "EgIQAw==",
-            output: "html",
-            json_restrictor: "playlist_results,video_results"
-        };
         PluginMessageHandler.postMessage(JSON.stringify({
-            message: JSON.stringify({ query_params: withSpHTML }),
+            message: JSON.stringify({ query_params: baseParams }),
             useSerpAPI: true
         }));
-        console.log("[YouTubeSearch] Sent HTML (SP) request");
-    }, 600);
-
-    // 🔹 3️⃣ Third: JSON without SP (broader derived playlists)
-    setTimeout(() => {
-        const withoutSpJSON = { ...baseParams };
-        delete withoutSpJSON.sp;
-        PluginMessageHandler.postMessage(JSON.stringify({
-            message: JSON.stringify({ query_params: withoutSpJSON }),
-            useSerpAPI: true
-        }));
-        console.log("[YouTubeSearch] Sent JSON (no SP) request");
-    }, 1200);
-
-    // 🔹 4️⃣ Fourth: HTML without SP (last-chance fallback)
-    setTimeout(() => {
-        const withoutSpHTML = {
-            ...baseParams,
-            output: "html",
-            json_restrictor: "playlist_results,video_results"
-        };
-        delete withoutSpHTML.sp;
-        PluginMessageHandler.postMessage(JSON.stringify({
-            message: JSON.stringify({ query_params: withoutSpHTML }),
-            useSerpAPI: true
-        }));
-        console.log("[YouTubeSearch] Sent HTML (no SP) request");
-    }, 1800);
-
-    // ⏳ Safety timeout to end "Searching..." if none respond
-    setTimeout(() => {
-        if (isFetchingYoutubeResults) {
-            youtubeSearchResultsContainer.innerHTML =
-                "<p>No playlists detected from any source.</p>";
-            isFetchingYoutubeResults = false;
-        }
-    }, 9000);
-}
-
+        return;
 
     } else {
         // Mock data for browser testing remains unchanged
@@ -1188,79 +1236,15 @@ if (isPlaylistMode) {
     }
 }
 
-// Helper: fetch up to 1 more page (2 total) looking for playlist-like results
-async function fetchNextPlaylistPages(query, firstData) {
-    let playlists = [];
-
-    // ✅ Step 1: Check first page for playlists or playlist-like video_results
-    if (Array.isArray(firstData.playlist_results)) {
-        playlists = firstData.playlist_results;
-    }
-    if (playlists.length === 0 && Array.isArray(firstData.video_results)) {
-        playlists = firstData.video_results.filter(
-            v => v.playlist_id || (v.link && v.link.includes("list="))
-        );
-    }
-
-    // ✅ Step 2: Prepare pagination if needed
-    let nextUrl = firstData.serpapi_pagination?.next || null;
-    let attempts = 0;
-
-    // ✅ Step 3: Only allow 1 retry (so total = 2 pages)
-    while (playlists.length === 0 && nextUrl && attempts < 1) {
-        attempts++;
-        youtubeSearchResultsContainer.innerHTML =
-            `<p>Searching playlists… (page ${attempts + 1})</p>`;
-
-        if (typeof PluginMessageHandler !== "undefined") {
-            PluginMessageHandler.postMessage(JSON.stringify({
-                message: JSON.stringify({
-                    query_params: { next_page_token: nextUrl },
-                    useSerpAPI: true
-                }),
-                useSerpAPI: true
-            }));
-
-            // ⏳ Reduced delay: was 2500 ms → now 1500 ms
-            await new Promise(r => setTimeout(r, 1500));
-        } else break;
-    }
-
-    return playlists;
-}
-
 
 // ✅  Option B: Auto-scan for Playlists
 window.onPluginMessage = async (e) => {
     try {
-        // --- ⬇️ MODIFIED: WE REMOVED THE 'playlistItems' BLOCK ⬇️ ---
-        // We still need to parse the data for other messages.
         const data = e.data
             ? typeof e.data === "string"
                 ? JSON.parse(e.data)
                 : e.data
             : null;
-        // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
-
-
-        // --- 🎯 Step 1 (WAS 2): Detect and parse HTML fallback (Playlist mode only) ---
-        if (
-            currentSearchMode === "playlists" &&
-            typeof e.data === "string" && // Check e.data (raw) not data (parsed)
-            e.data.includes("<a") &&
-            e.data.includes("list=")
-        ) {
-            console.log("[YouTubeSearch] HTML fallback detected — extracting playlists...");
-
-            const html = e.data;
-// ... (rest of HTML parsing logic is unchanged) ...
-            renderYouTubeResults(playlistResults, "playlists");
-            isFetchingYoutubeResults = false;
-            return; // ✅ Stop here — we handled this message fully
-        }
-
-        // --- 🎯 Step 3 (WAS 2): Normal JSON handling continues below ---
-        // const data = e.data ... (This line was MOVED to the top)
 
         if (youtubeSearchResultsContainer.innerHTML.includes("Searching...")) {
             youtubeSearchResultsContainer.innerHTML = "";
@@ -1271,31 +1255,15 @@ window.onPluginMessage = async (e) => {
             return;
         }
 
+        // This function now ONLY handles 'videos' mode
         if (currentSearchMode === "videos") {
-            // SONGS mode (unchanged)
             if (Array.isArray(data.video_results) && data.video_results.length > 0) {
                 renderYouTubeResults(data.video_results, "videos");
             } else {
                 youtubeSearchResultsContainer.innerHTML = "<p>No results found.</p>";
             }
-        } else if (currentSearchMode === "playlists") {
-            // PLAYLISTS mode (JSON normal path)
-            let playlists = Array.isArray(data.playlist_results)
-                ? data.playlist_results
-                : [];
-            if (playlists.length === 0) {
-                playlists = await fetchNextPlaylistPages(
-                    youtubeSearchInput.value.trim(),
-                    data
-                );
-            }
-            if (playlists && playlists.length > 0) {
-                renderYouTubeResults(playlists, "playlists");
-            } else {
-                youtubeSearchResultsContainer.innerHTML =
-                    "<p>No playlists found.</p>";
-            }
         }
+        // No 'else if' for playlists is needed anymore
 
         youtubeNextPageUrl = data.serpapi_pagination?.next || null;
     } catch (err) {
@@ -2191,6 +2159,22 @@ logo.addEventListener('click', goHome);
 (async function() {
     await loadLinksFromR1();
 
+    // --- ⬇️ ADDED: Load Saved Playlists ⬇️ ---
+    try {
+        let storedPlaylists = localStorage.getItem(SAVED_PLAYLISTS_KEY);
+        if (window.creationStorage) {
+            const r1Playlists = await window.creationStorage.plain.get(SAVED_PLAYLISTS_KEY);
+            if (r1Playlists) storedPlaylists = r1Playlists;
+        }
+        if (storedPlaylists) {
+            savedPlaylists = JSON.parse(storedPlaylists);
+        }
+    } catch (e) {
+        console.error("Could not load saved playlists:", e);
+        savedPlaylists = [];
+    }
+    // --- ⬆️ END OF ADDED CODE ⬆️ ---
+
     // --- THIS IS THE FIX ---
     // Force all categories to be collapsed on every app load.
     collapsedCategories = [...new Set(links.map(link => link.category || 'Other'))];
@@ -2200,7 +2184,7 @@ logo.addEventListener('click', goHome);
     setupThemeDialogListeners();
     await applyTheme({ name: currentThemeName }, true, true);
     updateModeToggleUI();
-    deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
+deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
     favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
     genericPromptOverlay.addEventListener('click', e => e.stopPropagation());
     playerBackBtn.addEventListener('click', () => {
@@ -2212,8 +2196,25 @@ logo.addEventListener('click', goHome);
 });
 
     // Use a more specific listener on the container for result clicks
-    youtubeSearchResultsContainer.addEventListener('click', (e) => {
+    youtubeSearchResultsContainer.addEventListener('click', async (e) => {
     const card = e.target.closest('.youtube-result-card');
+    
+    // --- ⬇️ ADDED: Handle Playlist Delete Button ⬇️ ---
+    const deleteBtn = e.target.closest('.delete-playlist-btn');
+    if (deleteBtn && card) {
+        e.stopPropagation(); // Stop the click from launching the player
+        const playlistId = card.dataset.playlistId;
+        const playlistTitle = card.dataset.title;
+        if (await showConfirm(`Are you sure you want to delete "${playlistTitle}"?`)) {
+            savedPlaylists = savedPlaylists.filter(p => p.id !== playlistId);
+            await savePlaylistsToStorage();
+            renderSavedPlaylists(); // Re-render the list
+            triggerHaptic();
+        }
+        return; // Stop further execution
+    }
+    // --- ⬆️ END OF ADDED CODE ⬆️ ---
+    
     if (card) {
         hideYouTubeSearchView();
         const title = card.dataset.title;
@@ -2236,12 +2237,68 @@ logo.addEventListener('click', goHome);
 
     const triggerYoutubeSearch = () => handleYouTubeSearch(youtubeSearchInput.value);
     youtubeSearchCancelBtn.addEventListener('click', closeYouTubeSearchView);
-    youtubeSearchGoBtn.addEventListener('click', triggerYoutubeSearch);
+    
+    // --- ⬇️ MODIFIED: New Go Button Logic ⬇️ ---
+    youtubeSearchGoBtn.addEventListener('click', async () => {
+        const query = youtubeSearchInput.value.trim();
+        if (!query) return; // Do nothing if input is empty
+    
+        if (currentSearchMode === 'videos') {
+            triggerYoutubeSearch();
+        } else if (currentSearchMode === 'isGd') {
+            youtubeSearchResultsContainer.innerHTML = '<p>Resolving link...</p>';
+            const fullUrl = `https://is.gd/${query}`;
+            const resolvedUrl = await resolveShortUrl(fullUrl);
+    
+            if (!resolvedUrl) {
+                youtubeSearchResultsContainer.innerHTML = '<p>Failed to resolve link. Check the code and try again.</p>';
+                return;
+            }
+            
+            const host = getHostname(resolvedUrl);
+            if (!host.includes('youtube.com') && !host.includes('youtu.be')) {
+                youtubeSearchResultsContainer.innerHTML = "<p>This link does not lead to YouTube.</p>";
+                return;
+            }
+
+            const playlistId = getYoutubePlaylistId(resolvedUrl);
+            if (!playlistId) {
+                youtubeSearchResultsContainer.innerHTML = "<p>This link is not a valid playlist. Please use 'Songs' mode for single videos.</p>";
+                return;
+            }
+            
+            // Check if already saved
+            if (savedPlaylists.some(p => p.id === playlistId)) {
+                youtubeSearchResultsContainer.innerHTML = '<p>This playlist is already in your library.</p>';
+                setTimeout(renderSavedPlaylists, 2000); // Show existing list
+                youtubeSearchInput.value = '';
+                return;
+            }
+
+            // Not saved, so let's fetch, save, and render
+            youtubeSearchResultsContainer.innerHTML = '<p>Fetching playlist info...</p>';
+            const metadata = await fetchPlaylistMetadata(playlistId);
+            
+            if (!metadata) {
+                youtubeSearchResultsContainer.innerHTML = '<p>Could not fetch playlist info. Please try again.</p>';
+                return;
+            }
+
+            savedPlaylists.push({ id: playlistId, title: metadata.title, thumb: metadata.thumb });
+            await savePlaylistsToStorage();
+            renderSavedPlaylists(); // Re-render the list with the new item
+            youtubeSearchInput.value = ''; // Clear input on success
+        }
+    });
+    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+    
     youtubeSearchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             // Prevent form submission if it's in a form
             e.preventDefault();
-            handleYouTubeSearch(youtubeSearchInput.value);
+            // --- ⬇️ MODIFIED: Trigger the new Go button logic ⬇️ ---
+            youtubeSearchGoBtn.click();
+            // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
         }
     });
 
@@ -2256,13 +2313,26 @@ clearYoutubeSearchBtn.addEventListener('click', () => {
         youtubeSearchResultsContainer.innerHTML = ''; // Optional: Clear results when clearing text
 });
 
+// --- ⬇️ MODIFIED: Radio Button Logic ⬇️ ---
 searchModeVideosBtn.addEventListener('click', () => {
     currentSearchMode = 'videos';
+    youtubeSearchInput.placeholder = 'Search YouTube...';
+    youtubeSearchResultsContainer.innerHTML = ''; // Clear results
 });
 
-searchModePlaylistsBtn.addEventListener('click', () => {
-    currentSearchMode = 'playlists';
+searchModeIsGdBtn.addEventListener('click', () => {
+    currentSearchMode = 'isGd';
+    youtubeSearchInput.placeholder = 'Enter is.gd code to add...';
+    renderSavedPlaylists(); // Show saved playlists
 });
+
+// --- ⬇️ ADDED: Info Button Listener ⬇️ ---
+isGdInfoBtn.addEventListener('click', (e) => {
+    e.preventDefault(); // Prevent label from firing
+    e.stopPropagation(); // Stop bubbling
+    showAlert("To use this, go to https://is.gd, paste your full YouTube playlist URL to get a short code, then enter that code here.");
+});
+// --- ⬆️ END OF ADDED/MODIFIED CODE ⬆️ ---
 
 playerSearchBtn.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none'; // Hide player
