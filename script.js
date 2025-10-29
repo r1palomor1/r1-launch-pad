@@ -924,22 +924,24 @@ async function openPlayerView(options) {
             // This is the core change: It now creates the player differently
             // based on whether it receives a videoId or a playlistId.
             let playerConfig = {
-                height: '100%',
-                width: '100%',
-                playerVars: {
-                    'playsinline': 1,
-                    'controls': 1,
-                    // Autoplay single songs, but wait for manual playlists
-                    'autoplay': options.videoId && !isManualPlaylist ? 1 : 0, 
-                    'rel': 0,
-                    'showinfo': 0,
-                    'modestbranding': 1
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
-                }
-            };
+    height: '100%',
+    width: '100%',
+    playerVars: {
+        'playsinline': 1,
+        'controls': 1,
+        // Autoplay single songs, but wait for manual playlists
+        'autoplay': options.videoId && !isManualPlaylist ? 1 : 0,
+
+        // === 🧩 Added for cleaner YouTube embeds ===
+        'rel': 0,              // Limit related videos to same channel
+        'modestbranding': 1,   // Reduce YouTube logo visibility
+        'showinfo': 0          // (Deprecated, harmless to leave in)
+    },
+    events: {
+        'onReady': onPlayerReady,
+        'onStateChange': onPlayerStateChange
+    }
+};
 
             // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
             if (options.videoId && !isManualPlaylist) {
