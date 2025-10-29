@@ -1687,25 +1687,59 @@ function openFavoritesDialog() {
         scrollToTop();
     };
     favoritesList.onclick = async (e) => {
-        const removeBtn = e.target.closest('.remove-favorite-btn');
-        if (removeBtn) {
-            const li = removeBtn.closest('.favorite-list-item');
-            if (await showConfirm(`Remove "${li.dataset.name}" from favorites?`)) {
-                favoriteLinkIds.delete(li.dataset.id);
-                saveLinks();
+    const removeBtn = e.target.closest('.remove-favorite-btn');
+    if (removeBtn) {
+        const li = removeBtn.closest('.favorite-list-item');
+        if (await showConfirm(`Remove "${li.dataset.name}" from favorites?`)) {
+            favoriteLinkIds.delete(li.dataset.id);
+            saveLinks();
+            triggerHaptic();
+            renderFavoritesList();
+            renderLinks();
+        }
+    } else {
+        const li = e.target.closest('.favorite-list-item');
+        if (li) {
+            closeDialog();
+
+            const url = li.dataset.url;
+            const name = li.dataset.name;
+            const hostname = getHostname(url);
+            const isYouTube = hostname.includes('youtube.com') || hostname.includes('youtu.be');
+
+            if (isYouTube) {
+                const choice = await showGenericPrompt({
+                    message: `How would you like to launch "${name}"?`,
+                    buttons: [
+                        { text: 'Internally', value: 'internal', class: '', order: 2 },
+                        { text: 'Externally', value: 'external', class: 'secondary', order: 1 }
+                    ]
+                });
+
+                if (choice === 'internal') {
+                    const videoId = getYoutubeVideoId(url);
+                    const playlistId = getYoutubePlaylistId(url);
+                    if (playlistId) {
+                        openPlayerView({ playlistId, title: name });
+                    } else if (videoId) {
+                        openPlayerView({ videoId, title: name });
+                    } else {
+                        openYouTubeSearchView();
+                    }
+                } else if (choice === 'external') {
+                    triggerHaptic();
+                    launchUrlOnRabbit(url, name);
+                }
+            } else {
+                // Default behavior for non-YouTube favorites
                 triggerHaptic();
-                renderFavoritesList();
-                renderLinks();
-            }
-        } else {
-            const li = e.target.closest('.favorite-list-item');
-            if (li) {
-                closeDialog();
-                launchUrlOnRabbit(li.dataset.url, li.dataset.name);
+                launchUrlOnRabbit(url, name);
             }
         }
-    };
-    favoritesPromptClose.onclick = closeDialog;
+    }
+};
+favoritesPromptClose.onclick = closeDialog;
+
 }
 
 quickLaunchBtn.addEventListener('click', async () => {
