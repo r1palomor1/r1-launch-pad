@@ -1,7 +1,7 @@
 ﻿﻿﻿﻿/*
  Working app: 
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
-    Saved Theme, is.gd Code, Shuffle, Fav YT Fix
+    Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, 
     
  */
 const mainView = document.getElementById('mainView');
@@ -2739,20 +2739,29 @@ function toggleShuffle() {
 
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
+        let currentTitle = ''; // <-- ADD THIS
+
         // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
         if (isManualPlaylist) {
             // In manual mode, get title from our array
             if (currentPlaylist[currentPlaylistIndex]) {
-                playerVideoTitle.textContent = currentPlaylist[currentPlaylistIndex].title;
+                currentTitle = currentPlaylist[currentPlaylistIndex].title; // <-- SET VARIABLE
+                playerVideoTitle.textContent = currentTitle;
             }
         } else {
             // Original logic for single songs
             const videoData = player.getVideoData();
             if (videoData && videoData.title) {
-                playerVideoTitle.textContent = videoData.title;
+                currentTitle = videoData.title; // <-- SET VARIABLE
+                playerVideoTitle.textContent = currentTitle;
             }
         }
         // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+
+        // --- ⬇️ THIS IS THE FIX ⬇️ ---
+        nowPlayingTitle.textContent = currentTitle; // <-- UPDATE THE BAR'S TITLE
+        updateNowPlayingUI('playing'); // <-- UPDATE THE BAR'S VISIBILITY
+        // --- ⬆️ END OF FIX ⬆️ ---
 
         // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
@@ -2762,8 +2771,6 @@ function onPlayerStateChange(event) {
         showPlayerUI(); // Always show UI when a new video starts
         // --- ⬆️ END OF ADDED CODE ⬆️ ---
         startUIHideTimer();
-        
-        // updateNowPlayingUI('playing'); // <-- REMOVED (This was the bug)
 
     } else if (event.data === YT.PlayerState.PAUSED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
@@ -2775,7 +2782,7 @@ function onPlayerStateChange(event) {
             isIntentionalPause = false; 
         }
         
-        // updateNowPlayingUI('paused'); // <-- REMOVED (This was the bug)
+        updateNowPlayingUI('paused'); // <-- ADD THIS BACK
 
     } else if (event.data === YT.PlayerState.ENDED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; 
