@@ -93,6 +93,7 @@ let uiHideTimeout = null;
 let isUIVisible = true;
 let tapHintTimeout = null;
 let isIntentionalPause = false; // <-- ADD THIS FLAG
+let currentlyPlayingPlaylistId = null; // <-- ADD THIS
 
 // --- ⬇️ ADDED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
 let currentPlaylist = [];       // The active playlist (can be shuffled)
@@ -677,6 +678,10 @@ function renderSavedPlaylists() {
         const itemCard = document.createElement('div');
         itemCard.className = 'card youtube-result-card';
         itemCard.dataset.playlistId = playlist.id;
+        
+        if (playlist.id === currentlyPlayingPlaylistId) { // <-- ADD THIS
+            itemCard.classList.add('currently-playing'); // <-- ADD THIS
+        } // <-- ADD THIS
         itemCard.dataset.title = playlist.title;
         
         itemCard.innerHTML = `
@@ -882,6 +887,7 @@ async function openPlayerView(options) {
     
     if (options.playlistId) {
         // --- THIS IS A MANUAL PLAYLIST ---
+        currentlyPlayingPlaylistId = options.playlistId; // <-- ADD THIS
         isManualPlaylist = true;
         playerVideoTitle.textContent = 'Loading Playlist...'; // Show loading state
         
@@ -900,6 +906,7 @@ async function openPlayerView(options) {
 
     } else {
         // --- THIS IS A SINGLE SONG ---
+        currentlyPlayingPlaylistId = null; // <-- ADD THIS
         isManualPlaylist = false; // <-- IT IS NOW PASTED HERE
         playerVideoTitle.textContent = options.title;
         playerSongControls.style.display = 'flex';
@@ -968,6 +975,7 @@ async function openPlayerView(options) {
 
 function closePlayerView() {
     internalPlayerOverlay.style.display = 'none';
+    currentlyPlayingPlaylistId = null; // <-- ADD THIS
     if (player && typeof player.destroy === 'function') {
         player.destroy();
     }
@@ -2310,15 +2318,21 @@ logo.addEventListener('click', goHome);
     await applyTheme({ name: currentThemeName }, true, true);
     updateModeToggleUI();
 deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
-    favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
-    genericPromptOverlay.addEventListener('click', e => e.stopPropagation());
-    playerBackBtn.addEventListener('click', () => {
-    internalPlayerOverlay.style.display = 'none'; // Hide player
-    youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
+function returnToSearchFromPlayer(focusInput = false) {
+    internalPlayerOverlay.style.display = 'none';
     hideTapHint();
+    openYouTubeSearchView(); // This will re-render the list
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
     updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
-});
+    if (focusInput) {
+        youtubeSearchInput.value = ''; // Clear search term
+        youtubeSearchInput.focus(); // Set focus
+    }
+}
+    favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
+    genericPromptOverlay.addEventListener('click', e => e.stopPropagation());
+    
+playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
 
     // Use a more specific listener on the container for result clicks
     youtubeSearchResultsContainer.addEventListener('click', async (e) => {
@@ -2469,24 +2483,11 @@ isGdInfoBtn.addEventListener('click', (e) => {
 });
 // --- ⬆️ END OF ADDED/MODIFIED CODE ⬆️ ---
 
-playerSearchBtn.addEventListener('click', () => {
-    internalPlayerOverlay.style.display = 'none'; // Hide player
-    youtubeSearchViewOverlay.style.display = 'flex'; // Show search list
-    hideTapHint();
-    youtubeSearchInput.value = ''; // ADDED: Clear previous search term
-    youtubeSearchInput.focus(); // Set focus on the search bar
-    nowPlayingTitle.textContent = playerVideoTitle.textContent;
-    updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
-});
+playerSearchBtn.addEventListener('click', () => returnToSearchFromPlayer(true));
 
 // Event Listeners for playlist controls
-playerBackBtn_playlist.addEventListener('click', () => {
-    internalPlayerOverlay.style.display = 'none';
-    hideTapHint();
-    youtubeSearchViewOverlay.style.display = 'flex';
-    nowPlayingTitle.textContent = playerVideoTitle.textContent;
-    updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
-});
+playerBackBtn_playlist.addEventListener('click', () => returnToSearchFromPlayer(false));
+
 playerShuffleBtn.addEventListener('click', toggleShuffle); // uses fixed toggleShuffle()
 
 // --- Play All Button with Active Highlight ---
@@ -2528,15 +2529,8 @@ playerAudioOnlyBtn_playlist.addEventListener('click', () => {
 });
 
 playerNextBtn.addEventListener('click', playNextVideoInList); // Use our new function
-playerSearchBtn_playlist.addEventListener('click', () => {
-    internalPlayerOverlay.style.display = 'none';
-    youtubeSearchViewOverlay.style.display = 'flex';
-    hideTapHint();
-    youtubeSearchInput.value = '';
-    youtubeSearchInput.focus();
-    nowPlayingTitle.textContent = playerVideoTitle.textContent;
-    updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
-});
+
+playerSearchBtn_playlist.addEventListener('click', () => returnToSearchFromPlayer(true));
 
     playerPlayPauseBtn.addEventListener('click', togglePlayback);
 
@@ -2584,6 +2578,7 @@ function openPlayerFromNowPlaying() {
 stopPlayingBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // Prevent triggering the bar's click event
     if (player) {
+        currentlyPlayingPlaylistId = null; // <-- ADD THIS
         player.stopVideo();
         updateNowPlayingUI('stopped'); // <-- USE NEW FUNCTION
         triggerHaptic();

@@ -1146,6 +1146,13 @@ button.rabbit-default:hover {
     border-color: var(--primary-color);
 }
 
+/* ⬇️ ADD THIS RULE ⬇️ */
+.youtube-result-card.currently-playing {
+    border-color: var(--primary-color);
+    background-color: var(--selection-bg-color);
+}
+/* ⬆️ END OF ADDED RULE ⬆️ */
+
 .youtube-result-card .link-favicon {
     width: clamp(64px, 18vw, 72px);
     height: clamp(36px, 10vw, 40.5px);
