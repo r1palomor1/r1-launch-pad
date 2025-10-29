@@ -2436,23 +2436,18 @@ playerPlayAllBtn.addEventListener('click', () => {
 playerPrevBtn.addEventListener('click', playPreviousVideoInList); // Use our new function
 playerPlayPauseBtn_playlist.addEventListener('click', togglePlayback);
 
-// --- Audio-Only Toggle for Playlist Mode ---
+// --- Audio-Only (Playlist mode) — mirror Songs mode (no mute/unmute) ---
 playerAudioOnlyBtn_playlist.addEventListener('click', () => {
-    if (!player) return;
-    triggerHaptic();
-
     isAudioOnly = !isAudioOnly;
+
+    // Hide/show video layer; overlay shows "Audio Only" per CSS
+    playerContainer.classList.toggle('audio-only', isAudioOnly);
+
+    // Button highlight to theme
     playerAudioOnlyBtn_playlist.classList.toggle('active', isAudioOnly);
 
-    if (isAudioOnly) {
-        player.mute();
-        playerContainer.classList.add('audio-only');
-        sayOnRabbit("Audio only enabled");
-    } else {
-        player.unMute();
-        playerContainer.classList.remove('audio-only');
-        sayOnRabbit("Audio only disabled");
-    }
+    triggerHaptic();
+    sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
 });
 
 playerNextBtn.addEventListener('click', playNextVideoInList); // Use our new function
