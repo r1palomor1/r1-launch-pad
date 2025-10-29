@@ -1211,11 +1211,6 @@ button.rabbit-default:hover {
     padding-left: 8px;
 }
 
-#searchModeIsGd + span {
-    display: inline-flex;
-    align-items: center;
-}
-
 /* Hide the default radio button that comes with the browser */
 .radio-label input[type="radio"] {
     display: none;
@@ -1565,7 +1560,7 @@ button.rabbit-default:hover {
 
 /* ⬇️ ADD THIS NEW RULE ⬇️ */
 /* Show the icon only when its radio button is checked */
-#searchModeIsGd:checked + span .info-icon {
+#searchModeIsGd:checked ~ .info-icon {
     display: inline-flex;
 }
 /* ⬆️ END OF ADDED RULE ⬆️ */

@@ -1,7 +1,7 @@
+﻿﻿﻿﻿
 ﻿﻿/*
  Working app: YT Modes, Controls & Fading, Playlist Fetch, Player expansion
  Now Playing Icon, Player Home Icon, Saved Theme
- 
  */
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
@@ -713,27 +713,21 @@ async function savePlaylistsToStorage() {
 
 /**
  * Loads a specific video from the currentPlaylist array into the player.
+ * @param {number} index - The index of the video to load.
  */
-function loadVideoFromPlaylist(video) {
-    if (!video) {
-        console.warn("loadVideoFromPlaylist: No video provided.");
-        return;
-    }
-    playerVideoTitle.textContent = video.title;
+function loadVideoFromPlaylist(index) {
+    if (!player || !currentPlaylist[index]) return;
     
-    // ⬇️ THIS IS THE FIX ⬇️
-    // We must ALWAYS load the new video ID.
-    // The onStateChange listener will handle playing it if audio-only is on.
+    currentPlaylistIndex = index;
+    const video = currentPlaylist[index];
+    
     player.loadVideoById(video.id);
+    playerVideoTitle.textContent = video.title; // Set title manually
     
-    /* // OLD BROKEN LOGIC
-    if (isAudioOnly) {
-        player.playVideo(); // This was the bug. It didn't load the new video.
-    } else {
-        player.loadVideoById(video.id);
+    // Update the "Now Playing" bar if it's visible
+    if (nowPlayingBar.style.display === 'flex') {
+        nowPlayingTitle.textContent = video.title;
     }
-    */
-    // ⬆️ END OF FIX ⬆️
 }
 
 /**
