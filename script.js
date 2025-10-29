@@ -392,42 +392,42 @@ function renderLinks(linksToRender = links) {
         return acc;
     }, {});
     for (const category in groupedLinks) {
-        groupedLinks[category].sort((a, b) => a.description.localeCompare(b.description));
-    }
-    const sortedCategories = Object.keys(groupedLinks).sort((a, b) => {
-        if (a === 'Other') return 1;
-        if (b === 'Other') return -1;
-        return a.localeCompare(b);
+    groupedLinks[category].sort((a, b) => a.description.localeCompare(b.description));
+}
+const sortedCategories = Object.keys(groupedLinks).sort((a, b) => {
+    if (a === 'Other') return 1;
+    if (b === 'Other') return -1;
+    return a.localeCompare(b);
+});
+// Removed: favoriteCategories logic (no more category-level stars)
+updateToggleAllLinkState();
+if (currentView === 'list') {
+    sortedCategories.forEach(category => {
+        const categoryHeader = document.createElement('h3');
+        categoryHeader.className = 'category-header';
+        categoryHeader.textContent = category; // simplified
+        fragment.appendChild(categoryHeader);
+        groupedLinks[category].forEach(link => fragment.appendChild(renderLinkItem(link)));
     });
-    const favoriteCategories = new Set(links.filter(l => favoriteLinkIds.has(l.id)).map(l => l.category));
-    updateToggleAllLinkState();
-    if (currentView === 'list') {
-        sortedCategories.forEach(category => {
-            const categoryHeader = document.createElement('h3');
-            categoryHeader.className = 'category-header';
-            categoryHeader.innerHTML = favoriteCategories.has(category) ? `${category} <span class="favorite-indicator">★</span>` : category;
-            fragment.appendChild(categoryHeader);
-            groupedLinks[category].forEach(link => fragment.appendChild(renderLinkItem(link)));
-        });
-    } else {
-        sortedCategories.forEach(category => {
-            const categoryHeader = document.createElement('h3');
-            categoryHeader.className = 'category-header collapsible';
-            categoryHeader.innerHTML = favoriteCategories.has(category) ? `${category} <span class="favorite-indicator" aria-hidden="true">★</span>` : category;
-            fragment.appendChild(categoryHeader);
-            const linksContainer = document.createElement('div');
-            linksContainer.className = 'links-container';
-            groupedLinks[category].forEach(link => linksContainer.appendChild(renderLinkItem(link)));
-            fragment.appendChild(linksContainer);
-            const isSearching = searchInput.value.trim() !== '';
-            const isCollapsed = collapsedCategories.includes(category);
-            if (isSearching || !isCollapsed) {
-                categoryHeader.classList.add('expanded');
-                linksContainer.classList.add('expanded');
-            }
-        });
-    }
-    cardContainer.appendChild(fragment);
+} else {
+    sortedCategories.forEach(category => {
+        const categoryHeader = document.createElement('h3');
+        categoryHeader.className = 'category-header collapsible';
+        categoryHeader.textContent = category; // simplified
+        fragment.appendChild(categoryHeader);
+        const linksContainer = document.createElement('div');
+        linksContainer.className = 'links-container';
+        groupedLinks[category].forEach(link => linksContainer.appendChild(renderLinkItem(link)));
+        fragment.appendChild(linksContainer);
+        const isSearching = searchInput.value.trim() !== '';
+        const isCollapsed = collapsedCategories.includes(category);
+        if (isSearching || !isCollapsed) {
+            categoryHeader.classList.add('expanded');
+            linksContainer.classList.add('expanded');
+        }
+    });
+}
+cardContainer.appendChild(fragment);
 }
 
 function getHostname(url) {
