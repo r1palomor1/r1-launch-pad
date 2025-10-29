@@ -1,6 +1,7 @@
 ﻿﻿/*
  Working app: YT Modes, Controls & Fading, Playlist Fetch, Player expansion
- Now Playing Icon, Player Home Icon, Saved Theme, is.gd, Shuffle Play All
+ Now Playing Icon, Player Home Icon, Saved Theme, is.gd Code, Shuffle Play All
+ Fav YT fix, 
  */
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
@@ -1843,6 +1844,21 @@ if (window.creationStorage?.plain?.set) {
 localStorage.setItem('launchPadR1Theme', currentThemeName);
 
 if (!silent) await sayOnRabbit(`Theme set to ${friendlyName}`);
+
+// === 🔆 Apply Alternate Theme to Speaker Icon ===
+const icon = document.getElementById('nowPlayingIcon');
+if (icon) {
+  icon.classList.remove('alt-theme-rabbit', 'alt-theme-glow');
+  if (currentThemeName === 'rabbit') {
+    // Rabbit Me active → use Glow Forest Green accent
+    icon.classList.add('alt-theme-glow');
+  } else {
+    // Any other theme → use Rabbit Me accent
+    icon.classList.add('alt-theme-rabbit');
+  }
+}
+// === 🔆 End Speaker Icon Theme Update ===
+
 } else {
   const dialog = themeDialogOverlay.querySelector('.custom-prompt-dialog');
   dialog.style.cssText = '';

@@ -1528,6 +1528,17 @@ button.rabbit-default:hover {
     animation: pulsate 1.2s ease-in-out infinite;
 }
 
+/* === 🎨 Alternate Theme Styles for Speaker Icon === */
+#nowPlayingIcon.alt-theme-glow svg {
+    fill: #00ff88 !important; /* Glow Forest Green */
+    filter: drop-shadow(0 0 4px rgba(0, 255, 136, 0.5));
+}
+
+#nowPlayingIcon.alt-theme-rabbit svg {
+    fill: #ff7043 !important; /* Rabbit Me orange */
+    filter: drop-shadow(0 0 4px rgba(255, 112, 67, 0.5));
+}
+
 @keyframes pulsate {
     0%, 100% {
         transform: scale(1);
