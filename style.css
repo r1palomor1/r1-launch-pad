@@ -1141,6 +1141,14 @@ button.rabbit-default:hover {
     touch-action: manipulation;
 }
 
+/* === 🟢 Highlight for currently playing playlist === */
+.youtube-result-card.active-playlist {
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 8px var(--primary-color);
+    background-color: rgba(255, 112, 67, 0.1);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 .youtube-result-card:hover {
     background-color: var(--item-bg-hover);
     border-color: var(--primary-color);
