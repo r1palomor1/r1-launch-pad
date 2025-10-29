@@ -1,7 +1,6 @@
-﻿﻿﻿﻿
 ﻿﻿/*
  Working app: YT Modes, Controls & Fading, Playlist Fetch, Player expansion
- Now Playing Icon, Player Home Icon, Saved Theme
+ Now Playing Icon, Player Home Icon, Saved Theme, is.gd, Shuffle Play All
  */
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
