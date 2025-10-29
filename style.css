@@ -1609,3 +1609,19 @@ button.rabbit-default:hover {
     fill: #fff;
 }
 /* ⬆️ END OF ADDED STYLES ⬆️ */
+
+/* === Active Icon Highlights (Theme-Aware) === */
+.dialog-icon-btn.active svg,
+#playerShuffleBtn.active svg,
+#playerPlayAllBtn.active svg,
+#playerAudioOnlyBtn.active svg,
+#playerAudioOnlyBtn_playlist.active svg {
+    fill: var(--primary-color);
+    opacity: 1;
+    transition: fill 0.3s ease, opacity 0.3s ease;
+}
+
+/* Optional hover feedback */
+.dialog-icon-btn:hover svg {
+    opacity: 0.8;
+}

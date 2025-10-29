@@ -740,24 +740,42 @@ function loadVideoFromPlaylist(video) {
  * Plays the next video in the list, looping to the start if at the end.
  */
 function playNextVideoInList() {
-    let nextIndex = currentPlaylistIndex + 1;
-    if (nextIndex >= currentPlaylist.length) {
-        nextIndex = 0; // Loop to the beginning
+    if (!currentPlaylist || currentPlaylist.length === 0) return;
+
+    // Advance index and wrap if needed
+    currentPlaylistIndex++;
+    if (currentPlaylistIndex >= currentPlaylist.length) {
+        currentPlaylistIndex = 0;
     }
-    loadVideoFromPlaylist(nextIndex);
-    if (player) player.playVideo(); // <-- ADD THIS
+
+    const nextVideo = currentPlaylist[currentPlaylistIndex];
+    if (nextVideo) {
+        loadVideoFromPlaylist(nextVideo);
+        if (player) player.playVideo();
+        sayOnRabbit(`Now playing ${nextVideo.title}`);
+    }
+    triggerHaptic();
 }
 
 /**
  * Plays the previous video in the list, looping to the end if at the start.
  */
 function playPreviousVideoInList() {
-    let prevIndex = currentPlaylistIndex - 1;
-    if (prevIndex < 0) {
-        prevIndex = currentPlaylist.length - 1; // Loop to the end
+    if (!currentPlaylist || currentPlaylist.length === 0) return;
+
+    // Step back index and wrap if needed
+    currentPlaylistIndex--;
+    if (currentPlaylistIndex < 0) {
+        currentPlaylistIndex = currentPlaylist.length - 1;
     }
-    loadVideoFromPlaylist(prevIndex);
-    if (player) player.playVideo(); // <-- ADD THIS
+
+    const prevVideo = currentPlaylist[currentPlaylistIndex];
+    if (prevVideo) {
+        loadVideoFromPlaylist(prevVideo);
+        if (player) player.playVideo();
+        sayOnRabbit(`Now playing ${prevVideo.title}`);
+    }
+    triggerHaptic();
 }
 
 /**
@@ -2392,23 +2410,27 @@ playerBackBtn_playlist.addEventListener('click', () => {
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
     updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
 });
-playerShuffleBtn.addEventListener('click', toggleShuffle); // This now calls our modified toggleShuffle
+playerShuffleBtn.addEventListener('click', toggleShuffle); // uses fixed toggleShuffle()
+
+// --- Play All Button with Active Highlight ---
 playerPlayAllBtn.addEventListener('click', () => {
     if (!player || !isManualPlaylist) return;
+    triggerHaptic();
 
-    // ✅ Turn off shuffle and reset UI
+    // Reset Shuffle state
     isShuffleActive = false;
     playerShuffleBtn.classList.remove('active');
 
-    // ✅ Properly restore the original playlist and reset index
+    // Visually indicate Play All is active
+    playerPlayAllBtn.classList.add('active');
+    setTimeout(() => playerPlayAllBtn.classList.remove('active'), 2000); // fade back after a moment
+
+    // Restore original playlist & restart
     currentPlaylist = [...originalPlaylist];
     currentPlaylistIndex = 0;
-
-    // ✅ Start playback from the first video
     loadVideoFromPlaylist(currentPlaylist[0]);
     if (player) player.playVideo();
 
-    triggerHaptic();
     sayOnRabbit("Playing all from start");
 });
 playerPrevBtn.addEventListener('click', playPreviousVideoInList); // Use our new function
@@ -2589,7 +2611,7 @@ function toggleShuffle() {
     triggerHaptic();
 
     if (!isShuffleActive) {
-        // ✅ Enable shuffle and save the original order
+        // Enable shuffle and save the original order
         isShuffleActive = true;
         playerShuffleBtn.classList.add('active');
         originalPlaylist = [...currentPlaylist];
@@ -2604,16 +2626,22 @@ function toggleShuffle() {
         }
         currentPlaylist = [currentVideo, ...remaining];
         currentPlaylistIndex = 0;
+
         loadVideoFromPlaylist(currentPlaylist[0]);
         if (player) player.playVideo();
 
     } else {
-        // ✅ Disable shuffle and restore original order
+        // Disable shuffle and restore original order
         isShuffleActive = false;
         playerShuffleBtn.classList.remove('active');
+
         const currentVideo = currentPlaylist[currentPlaylistIndex];
         currentPlaylist = [...originalPlaylist];
-        currentPlaylistIndex = currentPlaylist.findIndex(v => v.id === currentVideo.id);
+
+        // restore index to current video in the restored list
+        const idx = currentPlaylist.findIndex(v => v.id === currentVideo?.id);
+        currentPlaylistIndex = idx >= 0 ? idx : 0;
+
         sayOnRabbit("Shuffle disabled");
         loadVideoFromPlaylist(currentPlaylist[currentPlaylistIndex]);
         if (player) player.playVideo();
