@@ -2395,19 +2395,21 @@ playerBackBtn_playlist.addEventListener('click', () => {
 playerShuffleBtn.addEventListener('click', toggleShuffle); // This now calls our modified toggleShuffle
 playerPlayAllBtn.addEventListener('click', () => {
     if (!player || !isManualPlaylist) return;
-    
-    // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
-    // Ensure shuffle is off and the button UI is correct
-    if (isShuffleActive) {
-        isShuffleActive = false;
-        playerShuffleBtn.classList.remove('active');
-    }
-    // Restore the original, unshuffled playlist
+
+    // ✅ Turn off shuffle and reset UI
+    isShuffleActive = false;
+    playerShuffleBtn.classList.remove('active');
+
+    // ✅ Properly restore the original playlist and reset index
     currentPlaylist = [...originalPlaylist];
-    // Play the very first video
-    loadVideoFromPlaylist(0);
-    if (player) player.playVideo(); // <-- ADD THIS
-    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+    currentPlaylistIndex = 0;
+
+    // ✅ Start playback from the first video
+    loadVideoFromPlaylist(currentPlaylist[0]);
+    if (player) player.playVideo();
+
+    triggerHaptic();
+    sayOnRabbit("Playing all from start");
 });
 playerPrevBtn.addEventListener('click', playPreviousVideoInList); // Use our new function
 playerPlayPauseBtn_playlist.addEventListener('click', togglePlayback);
@@ -2584,28 +2586,38 @@ function onPlayerReady(event) {
 
 function toggleShuffle() {
     if (!player || !isManualPlaylist) return; // Only works in manual mode
+    triggerHaptic();
 
-    // --- ⬇️ NEW "TRUE SHUFFLE" LOGIC ⬇️ ---
-
-    // 1. If shuffle isn't already active, turn it on and announce it.
     if (!isShuffleActive) {
+        // ✅ Enable shuffle and save the original order
         isShuffleActive = true;
         playerShuffleBtn.classList.add('active');
-        triggerHaptic();
+        originalPlaylist = [...currentPlaylist];
         sayOnRabbit("Shuffle enabled");
+
+        // Shuffle while keeping current video first
+        const currentVideo = currentPlaylist[currentPlaylistIndex];
+        const remaining = currentPlaylist.filter((_, i) => i !== currentPlaylistIndex);
+        for (let i = remaining.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+        }
+        currentPlaylist = [currentVideo, ...remaining];
+        currentPlaylistIndex = 0;
+        loadVideoFromPlaylist(currentPlaylist[0]);
+        if (player) player.playVideo();
+
     } else {
-        // If already active, just give a haptic for the new shuffle
-        triggerHaptic();
+        // ✅ Disable shuffle and restore original order
+        isShuffleActive = false;
+        playerShuffleBtn.classList.remove('active');
+        const currentVideo = currentPlaylist[currentPlaylistIndex];
+        currentPlaylist = [...originalPlaylist];
+        currentPlaylistIndex = currentPlaylist.findIndex(v => v.id === currentVideo.id);
+        sayOnRabbit("Shuffle disabled");
+        loadVideoFromPlaylist(currentPlaylist[currentPlaylistIndex]);
+        if (player) player.playVideo();
     }
-    
-    // 2. ALWAYS shuffle the current playlist.
-    shuffleArray(currentPlaylist); 
-    
-    // 3. ALWAYS play the first video of the *newly shuffled* list.
-    loadVideoFromPlaylist(0); 
-    if (player) player.playVideo(); 
-    
-    // --- ⬆️ END OF NEW LOGIC ⬆️ ---
 }
 
 function onPlayerStateChange(event) {
