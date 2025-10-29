@@ -1,4 +1,4 @@
-﻿﻿/*
+﻿﻿﻿﻿/*
  Working app: 
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
     Saved Theme, is.gd Code, Shuffle, Fav YT Fix
@@ -859,9 +859,6 @@ async function openPlayerView(options) {
     nowPlayingBar.style.display = 'none';
     // playerVideoTitle.textContent = options.title; // We set this later
     internalPlayerOverlay.style.display = 'flex';
-
-    // 🟢 Track the currently active playlist so it can be highlighted later
-    window.currentPlaylistId = options.playlistId || null;
 
     showPlayerUI(); // <-- ADD THIS LINE
 
@@ -2321,19 +2318,6 @@ deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
     hideTapHint();
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
     updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
-
-    // === 🟢 Highlight the active playlist when returning ===
-    if (window.currentPlaylistId) {
-        const cards = document.querySelectorAll('.youtube-result-card');
-        cards.forEach(card => {
-            if (card.dataset.playlistId === window.currentPlaylistId) {
-                card.classList.add('active-playlist');
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-                card.classList.remove('active-playlist');
-            }
-        });
-    }
 });
 
     // Use a more specific listener on the container for result clicks
