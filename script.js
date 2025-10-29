@@ -1151,6 +1151,31 @@ function startUIHideTimer() {
     }, 4000);
 }
 
+// Reset the 4s UI fade timer on ANY control interaction (Songs & Playlists)
+(function wireUiHideTimerResets() {
+    const ids = [
+        // Songs mode
+        'playerBackBtn','playerSearchBtn','playerPlayPauseBtn','playerAudioOnlyBtn',
+
+        // Playlist mode
+        'playerBackBtn_playlist','playerSearchBtn_playlist',
+        'playerPlayPauseBtn_playlist','playerAudioOnlyBtn_playlist',
+        'playerPrevBtn','playerNextBtn','playerShuffleBtn','playerPlayAllBtn',
+
+        // Shared/overlay bits
+        'playerHomeIcon','stopPlayingBtn'
+    ];
+
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('click', () => {
+            showPlayerUI();      // ensure visible after interaction
+            startUIHideTimer();  // restart the 4s countdown
+        });
+    });
+})();
+
 function openYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'flex';
     youtubeSearchInput.value = '';
