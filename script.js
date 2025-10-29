@@ -2435,9 +2435,26 @@ playerPlayAllBtn.addEventListener('click', () => {
 });
 playerPrevBtn.addEventListener('click', playPreviousVideoInList); // Use our new function
 playerPlayPauseBtn_playlist.addEventListener('click', togglePlayback);
+
+// --- Audio-Only Toggle for Playlist Mode ---
 playerAudioOnlyBtn_playlist.addEventListener('click', () => {
-// ... (audio only logic is unchanged) ...
+    if (!player) return;
+    triggerHaptic();
+
+    isAudioOnly = !isAudioOnly;
+    playerAudioOnlyBtn_playlist.classList.toggle('active', isAudioOnly);
+
+    if (isAudioOnly) {
+        player.mute();
+        playerContainer.classList.add('audio-only');
+        sayOnRabbit("Audio only enabled");
+    } else {
+        player.unMute();
+        playerContainer.classList.remove('audio-only');
+        sayOnRabbit("Audio only disabled");
+    }
 });
+
 playerNextBtn.addEventListener('click', playNextVideoInList); // Use our new function
 playerSearchBtn_playlist.addEventListener('click', () => {
     internalPlayerOverlay.style.display = 'none';
