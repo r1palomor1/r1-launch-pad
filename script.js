@@ -2399,6 +2399,11 @@ function returnToSearchFromPlayer(focusInput = false) {
         // We MUST call openYouTubeSearchView to set placeholders AND
         // to re-render the playlists for highlighting.
         openYouTubeSearchView();
+        
+        // Force re-render of saved playlists to ensure highlighting is applied
+        if (currentSearchMode === 'isGd' || currentSearchMode === 'is.gd') {
+            renderSavedPlaylists();
+        }
     }
 
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
