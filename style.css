@@ -1375,23 +1375,21 @@ button.rabbit-default:hover {
 
 /* === Player Icon Sizing & Proportions (Final) === */
 
-/* Set a standard size for the icon buttons (Shuffle, Next, and Audio Only) */
-#playerShuffleBtn,
+/* Set a standard size for the icon buttons (Playlist, Next, and Audio Only) */
+#playerPlaylistBtn,
 #playerNextBtn,
 #playerAudioOnlyBtn,
 #playerPrevBtn,
-#playerPlayAllBtn,
 #playerAudioOnlyBtn_playlist {
     width: 38px;
     height: 38px;
 }
 
 /* Set the standard size for the icons INSIDE those buttons */
-#playerShuffleBtn svg,
+#playerPlaylistBtn svg,
 #playerNextBtn svg,
 #playerAudioOnlyBtn svg,
 #playerPrevBtn svg,
-#playerPlayAllBtn svg,
 #playerAudioOnlyBtn_playlist svg {
     width: 24px;
     height: 24px;
@@ -1746,8 +1744,6 @@ button.rabbit-default:hover {
 
 /* === Active Icon Highlights (Theme-Aware) === */
 .dialog-icon-btn.active svg,
-#playerShuffleBtn.active svg,
-#playerPlayAllBtn.active svg,
 #playerAudioOnlyBtn.active svg,
 #playerAudioOnlyBtn_playlist.active svg {
     fill: var(--primary-color);

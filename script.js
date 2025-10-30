@@ -71,6 +71,9 @@ const playlistVideoList = document.getElementById('playlistVideoList');
 const playlistPlayAllBtn = document.getElementById('playlistPlayAllBtn');
 const playlistShuffleBtn = document.getElementById('playlistShuffleBtn');
 const closePlaylistBtn = document.getElementById('closePlaylistBtn');
+// Legacy references to prevent errors in existing code
+const playerShuffleBtn = { classList: { add: () => {}, remove: () => {} } }; // Mock object
+const playerPlayAllBtn = { classList: { add: () => {}, remove: () => {} } }; // Mock object
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
 const searchModeIsGdBtn = document.getElementById('searchModeIsGd');
 const isGdInfoBtn = document.getElementById('isGdInfoBtn');
@@ -889,9 +892,15 @@ async function fetchManualPlaylist(playlistId) {
             originalPlaylist = [...videos]; // Save an unshuffled copy
             currentPlaylistIndex = 0;
             
-            // --- ⬇️ REMOVED ⬇️ ---
-            // loadVideoFromPlaylist(0); // This is now called by onPlayerReady
-            // --- ⬆️ END OF REMOVED ⬆️ ---
+            // --- ⬇️ FALLBACK PROTECTION ⬇️ ---
+            // If onPlayerReady doesn't fire within 3 seconds, show the title anyway
+            setTimeout(() => {
+                if (playerVideoTitle.textContent === 'Loading Playlist...' && currentPlaylist[0]) {
+                    playerVideoTitle.textContent = currentPlaylist[0].title;
+                    console.log('Applied fallback title protection');
+                }
+            }, 3000);
+            // --- ⬆️ END OF FALLBACK ⬆️ ---
 
         } else {
             playerVideoTitle.textContent = 'Empty or invalid playlist.';
@@ -939,8 +948,7 @@ async function openPlayerView(options) {
         playerPlaylistControls.style.display = 'flex';
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
         playerAudioOnlyBtn_playlist.innerHTML = AUDIO_ICON_SVG;
-        playerAudioOnlyBtn_playlist.classList.remove('active');
-        playerShuffleBtn.classList.remove('active'); // Ensure shuffle UI is reset
+                playerAudioOnlyBtn_playlist.classList.remove('active');
         isShuffleActive = false;
         
         // --- ⬇️ MODIFIED: AWAIT THE FETCH FUNCTION ⬇️ ---
@@ -2898,47 +2906,7 @@ function onPlayerReady(event) {
     }
 }
 
-function toggleShuffle() {
-    if (!player || !isManualPlaylist) return; // Only works in manual mode
-    triggerHaptic();
-
-    if (!isShuffleActive) {
-        // Enable shuffle and save the original order
-        isShuffleActive = true;
-        playerShuffleBtn.classList.add('active');
-        originalPlaylist = [...currentPlaylist];
-        sayOnRabbit("Shuffle enabled");
-
-        // Shuffle while keeping current video first
-        const currentVideo = currentPlaylist[currentPlaylistIndex];
-        const remaining = currentPlaylist.filter((_, i) => i !== currentPlaylistIndex);
-        for (let i = remaining.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
-        }
-        currentPlaylist = [currentVideo, ...remaining];
-        currentPlaylistIndex = 0;
-
-        loadVideoFromPlaylist(currentPlaylist[0]);
-        if (player) player.playVideo();
-
-    } else {
-        // Disable shuffle and restore original order
-        isShuffleActive = false;
-        playerShuffleBtn.classList.remove('active');
-
-        const currentVideo = currentPlaylist[currentPlaylistIndex];
-        currentPlaylist = [...originalPlaylist];
-
-        // restore index to current video in the restored list
-        const idx = currentPlaylist.findIndex(v => v.id === currentVideo?.id);
-        currentPlaylistIndex = idx >= 0 ? idx : 0;
-
-        sayOnRabbit("Shuffle disabled");
-        loadVideoFromPlaylist(currentPlaylist[currentPlaylistIndex]);
-        if (player) player.playVideo();
-    }
-}
+// toggleShuffle function removed - shuffle functionality moved to playlist overlay
 
 function onPlayerStateChange(event) {
     if (event.data === YT.PlayerState.PLAYING) {
