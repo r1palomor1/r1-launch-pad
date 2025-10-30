@@ -43,6 +43,7 @@ const nowPlayingBar = document.getElementById('nowPlayingBar');
 const nowPlayingIcon = document.getElementById('nowPlayingIcon'); // <-- ADD THIS
 const nowPlayingTitle = document.getElementById('nowPlayingTitle');
 const stopPlayingBtn = document.getElementById('stopPlayingBtn');
+const nowPlayingBarIcon = document.getElementById('nowPlayingBarIcon'); // <-- ADD THIS
 const playerVideoTitle = document.getElementById('playerVideoTitle');
 const youtubePlayerContainer = document.getElementById('youtubePlayer');
 const playerContainer = document.querySelector('.player-container');
@@ -673,8 +674,15 @@ function renderSavedPlaylists() {
         return;
     }
 
+    // --- ⬇️ THIS IS THE NEW LOGIC ⬇️ ---
+    const sortedPlaylists = [...savedPlaylists].sort((a, b) => {
+        return a.title.localeCompare(b.title);
+    });
+    // --- ⬆️ END OF NEW LOGIC ⬆️ ---
+
     const fragment = document.createDocumentFragment();
-    savedPlaylists.forEach(playlist => {
+    // --- ⬇️ MODIFIED: Use the new sorted array ⬇️ ---
+    sortedPlaylists.forEach(playlist => {
         const itemCard = document.createElement('div');
         itemCard.className = 'card youtube-result-card';
         itemCard.dataset.playlistId = playlist.id;
@@ -1132,8 +1140,10 @@ function updateNowPlayingUI(state) {
         nowPlayingBar.style.display = 'none';
         nowPlayingIcon.style.display = 'none';
         nowPlayingIcon.classList.remove('pulsating');
+        nowPlayingBarIcon.classList.remove('pulsating');
     } else if (state === 'paused') {
         nowPlayingIcon.classList.remove('pulsating');
+        nowPlayingBarIcon.classList.remove('pulsating');
         if (isMainView) {
             nowPlayingIcon.style.display = 'flex';
             nowPlayingBar.style.display = 'none';
@@ -1143,6 +1153,7 @@ function updateNowPlayingUI(state) {
         }
     } else if (state === 'playing') {
         nowPlayingIcon.classList.add('pulsating');
+        nowPlayingBarIcon.classList.add('pulsating');
         if (isMainView) {
             nowPlayingIcon.style.display = 'flex';
             nowPlayingBar.style.display = 'none';
