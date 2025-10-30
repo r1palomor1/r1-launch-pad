@@ -2,8 +2,7 @@
  Working app: 
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
     Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, Songs mode default
-    
-    
+      
  */
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
@@ -2446,7 +2445,7 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
     
         if (currentSearchMode === 'videos') {
             triggerYoutubeSearch();
-        } else if (currentSearchMode === 'isGd') {
+        } else if (currentSearchMode === 'is.gd') {
             youtubeSearchResultsContainer.innerHTML = '<p>Resolving link...</p>';
             const fullUrl = `https://is.gd/${query}`;
             const resolvedUrl = await resolveShortUrl(fullUrl);
@@ -2480,19 +2479,17 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
             youtubeSearchResultsContainer.innerHTML = '<p>Fetching playlist info...</p>';
             const metadata = await fetchPlaylistMetadata(playlistId);
             
-            if (!metadata) {
-                youtubeSearchResultsContainer.innerHTML = '<p>Could not fetch playlist info. Please try again.</p>';
-                return;
+            if (metadata) {
+                const playlistData = { id: playlistId, title: metadata.title, thumbnail: metadata.thumbnail, url: resolvedUrl };
+                savedPlaylists.push(playlistData);
+                hasEverAddedPlaylist = true;
+                localStorage.setItem(HAS_ADDED_PLAYLIST_KEY, 'true');
+                await savePlaylistsToStorage();
+                renderSavedPlaylists();
+                youtubeSearchInput.value = '';
+            } else {
+                youtubeSearchResultsContainer.innerHTML = '<p>Failed to fetch playlist info. Try again.</p>';
             }
-
-            if (!hasEverAddedPlaylist) { 
-                hasEverAddedPlaylist = true; 
-            } // <-- ADD THIS
-
-            savedPlaylists.push({ id: playlistId, title: metadata.title, thumb: metadata.thumb });
-            await savePlaylistsToStorage();
-            renderSavedPlaylists(); // Re-render the list with the new item
-            youtubeSearchInput.value = ''; // Clear input on success
         }
     });
     // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
