@@ -1,7 +1,8 @@
 ﻿﻿﻿﻿/*
  Working app: 
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
-    Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, 
+    Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, Songs mode default
+    
     
  */
 const mainView = document.getElementById('mainView');
