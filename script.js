@@ -2484,13 +2484,14 @@ clearYoutubeSearchBtn.addEventListener('click', () => {
 // --- ⬇️ MODIFIED: Radio Button Logic ⬇️ ---
 searchModeVideosBtn.addEventListener('click', () => {
     currentSearchMode = 'videos';
+    resetYouTubeSearch(); // <-- THIS IS THE FIX
     youtubeSearchInput.placeholder = 'Search YouTube...';
-    youtubeSearchResultsContainer.innerHTML = ''; // Clear results
-    youtubeSearchGoBtn.textContent = 'Search'; // <-- ADD THIS
+    youtubeSearchGoBtn.textContent = 'Search';
 });
 
 searchModeIsGdBtn.addEventListener('click', () => {
-    currentSearchMode = 'isGd';
+    currentSearchMode = 'is.gd';
+    resetYouTubeSearch(); // <-- THIS IS THE FIX
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     renderSavedPlaylists(); // Show saved playlists
     youtubeSearchGoBtn.textContent = 'Load';
