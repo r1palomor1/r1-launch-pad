@@ -63,10 +63,14 @@ const playerBackBtn_playlist = document.getElementById('playerBackBtn_playlist')
 const playerSearchBtn_playlist = document.getElementById('playerSearchBtn_playlist');
 const playerPrevBtn = document.getElementById('playerPrevBtn');
 const playerNextBtn = document.getElementById('playerNextBtn');
-const playerShuffleBtn = document.getElementById('playerShuffleBtn');
-const playerPlayAllBtn = document.getElementById('playerPlayAllBtn');
+const playerPlaylistBtn = document.getElementById('playerPlaylistBtn');
 const playerHomeIcon = document.getElementById('playerHomeIcon');
-
+const playlistOverlay = document.getElementById('playlistOverlay');
+const playlistTitle = document.getElementById('playlistTitle');
+const playlistVideoList = document.getElementById('playlistVideoList');
+const playlistPlayAllBtn = document.getElementById('playlistPlayAllBtn');
+const playlistShuffleBtn = document.getElementById('playlistShuffleBtn');
+const closePlaylistBtn = document.getElementById('closePlaylistBtn');
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
 const searchModeIsGdBtn = document.getElementById('searchModeIsGd');
 const isGdInfoBtn = document.getElementById('isGdInfoBtn');
@@ -1215,7 +1219,7 @@ function startUIHideTimer() {
         // Playlist mode
         'playerBackBtn_playlist','playerSearchBtn_playlist',
         'playerPlayPauseBtn_playlist','playerAudioOnlyBtn_playlist',
-        'playerPrevBtn','playerNextBtn','playerShuffleBtn','playerPlayAllBtn',
+        'playerPrevBtn','playerNextBtn','playerPlaylistBtn',
 
         // Shared/overlay bits
         'playerHomeIcon','stopPlayingBtn'
@@ -1272,6 +1276,55 @@ function closeYouTubeSearchView() {
 
 function hideYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'none';
+}
+
+function openPlaylistOverlay() {
+    if (!isManualPlaylist || !currentPlaylist || currentPlaylist.length === 0) {
+        console.log('No playlist available to show');
+        return;
+    }
+    
+    populatePlaylistOverlay();
+    playlistOverlay.style.display = 'flex';
+    triggerHaptic();
+}
+
+function closePlaylistOverlay() {
+    playlistOverlay.style.display = 'none';
+    triggerHaptic();
+}
+
+function populatePlaylistOverlay() {
+    playlistVideoList.innerHTML = '';
+    
+    if (!currentPlaylist || currentPlaylist.length === 0) {
+        playlistVideoList.innerHTML = '<p style="text-align: center; color: var(--font-color); padding: 20px;">No videos in playlist</p>';
+        return;
+    }
+    
+    const fragment = document.createDocumentFragment();
+    
+    currentPlaylist.forEach((video, index) => {
+        const videoItem = document.createElement('div');
+        videoItem.className = 'playlist-video-item';
+        if (index === currentPlaylistIndex) {
+            videoItem.classList.add('current');
+        }
+        
+        videoItem.innerHTML = `<div class="playlist-video-title">${video.title}</div>`;
+        
+        videoItem.addEventListener('click', () => {
+            currentPlaylistIndex = index;
+            loadVideoFromPlaylist(video);
+            if (player) player.playVideo();
+            closePlaylistOverlay();
+            triggerHaptic();
+        });
+        
+        fragment.appendChild(videoItem);
+    });
+    
+    playlistVideoList.appendChild(fragment);
 }
 
 function renderYouTubeResults(results, mode) {
@@ -2592,28 +2645,79 @@ playerSearchBtn.addEventListener('click', () => returnToSearchFromPlayer(true));
 // Event Listeners for playlist controls
 playerBackBtn_playlist.addEventListener('click', () => returnToSearchFromPlayer(false));
 
-playerShuffleBtn.addEventListener('click', toggleShuffle); // uses fixed toggleShuffle()
-
-// --- Play All Button with Active Highlight ---
-playerPlayAllBtn.addEventListener('click', () => {
+// --- Playlist Button (replaces Shuffle and Play All) ---
+playerPlaylistBtn.addEventListener('click', () => {
     if (!player || !isManualPlaylist) return;
     triggerHaptic();
+    openPlaylistOverlay();
+});
 
+// Playlist overlay event listeners
+closePlaylistBtn.addEventListener('click', closePlaylistOverlay);
+
+playlistPlayAllBtn.addEventListener('click', () => {
+    if (!player || !isManualPlaylist) return;
+    triggerHaptic();
+    
     // Reset Shuffle state
     isShuffleActive = false;
-    playerShuffleBtn.classList.remove('active');
-
+    playlistShuffleBtn.classList.remove('active');
+    
     // Visually indicate Play All is active
-    playerPlayAllBtn.classList.add('active');
-    setTimeout(() => playerPlayAllBtn.classList.remove('active'), 2000); // fade back after a moment
-
+    playlistPlayAllBtn.classList.add('active');
+    setTimeout(() => playlistPlayAllBtn.classList.remove('active'), 2000);
+    
     // Restore original playlist & restart
     currentPlaylist = [...originalPlaylist];
     currentPlaylistIndex = 0;
     loadVideoFromPlaylist(currentPlaylist[0]);
     if (player) player.playVideo();
-
+    
+    closePlaylistOverlay();
     sayOnRabbit("Playing all from start");
+});
+
+playlistShuffleBtn.addEventListener('click', () => {
+    if (!player || !isManualPlaylist) return;
+    triggerHaptic();
+    
+    if (!isShuffleActive) {
+        // Enable shuffle
+        isShuffleActive = true;
+        playlistShuffleBtn.classList.add('active');
+        originalPlaylist = [...currentPlaylist];
+        
+        // Shuffle while keeping current video first
+        const currentVideo = currentPlaylist[currentPlaylistIndex];
+        const remaining = currentPlaylist.filter((_, i) => i !== currentPlaylistIndex);
+        for (let i = remaining.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+        }
+        currentPlaylist = [currentVideo, ...remaining];
+        currentPlaylistIndex = 0;
+        
+        loadVideoFromPlaylist(currentPlaylist[0]);
+        if (player) player.playVideo();
+        sayOnRabbit("Shuffle enabled");
+    } else {
+        // Disable shuffle
+        isShuffleActive = false;
+        playlistShuffleBtn.classList.remove('active');
+        
+        const currentVideo = currentPlaylist[currentPlaylistIndex];
+        currentPlaylist = [...originalPlaylist];
+        
+        // Restore index to current video
+        const idx = currentPlaylist.findIndex(v => v.id === currentVideo?.id);
+        currentPlaylistIndex = idx >= 0 ? idx : 0;
+        
+        loadVideoFromPlaylist(currentPlaylist[currentPlaylistIndex]);
+        if (player) player.playVideo();
+        sayOnRabbit("Shuffle disabled");
+    }
+    
+    closePlaylistOverlay();
 });
 playerPrevBtn.addEventListener('click', playPreviousVideoInList); // Use our new function
 playerPlayPauseBtn_playlist.addEventListener('click', togglePlayback);

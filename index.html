@@ -154,11 +154,8 @@
                     <button id="playerPrevBtn" class="dialog-icon-btn" title="Previous">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18 6v12l-8.5-6L18 6zM6 6v12h2V6H6z"></path></svg>
                     </button>
-                    <button id="playerShuffleBtn" class="dialog-icon-btn" title="Shuffle">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"></path></svg>
-                    </button>
-                    <button id="playerPlayAllBtn" class="dialog-icon-btn" title="Play All">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5v14l8-7-8-7zm11 1h2v2h-2V6zm4 0h4v2h-4V6zm-4 4h2v2h-2v-2zm4 0h4v2h-4v-2zm-4 4h2v2h-2v-2zm4 0h4v2h-4v-2z"></path></svg>
+                    <button id="playerPlaylistBtn" class="dialog-icon-btn" title="View Playlist">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 10h11v2H3zm0-4h11v2H3zm0 8h7v2H3zm13-1v8l6-4z"></path></svg>
                     </button>
                     <button id="playerNextBtn" class="dialog-icon-btn" title="Next">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
@@ -180,7 +177,22 @@
         </div>
     </div>
 
-    <div id="youtubeSearchViewOverlay" class="custom-prompt-overlay" style="display: none;">
+    <!-- Playlist Overlay -->
+    <div id="playlistOverlay" style="display: none;">
+        <div class="playlist-overlay-content">
+            <div class="playlist-header">
+                <h3 id="playlistTitle">Playlist</h3>
+                <div class="playlist-controls">
+                    <button id="playlistPlayAllBtn" class="playlist-action-btn">Play All</button>
+                    <button id="playlistShuffleBtn" class="playlist-action-btn">Shuffle</button>
+                </div>
+            </div>
+            <div id="playlistVideoList" class="playlist-video-list">
+                <!-- Videos will be populated by JavaScript -->
+            </div>
+            <button id="closePlaylistBtn" class="close-playlist-btn">Close</button>
+        </div>
+    </div>
     <div id="youtubeSearchView" class="youtube-search-view">
         <div class="search-input-wrapper">
             <input type="text" id="youtubeSearchInput" placeholder="Search YouTube..." autocomplete="off" inputmode="search">
