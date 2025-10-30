@@ -2480,7 +2480,7 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
             const metadata = await fetchPlaylistMetadata(playlistId);
             
             if (metadata) {
-                const playlistData = { id: playlistId, title: metadata.title, thumbnail: metadata.thumbnail, url: resolvedUrl };
+                const playlistData = { id: playlistId, title: metadata.title, thumb: metadata.thumb, url: resolvedUrl };
                 savedPlaylists.push(playlistData);
                 hasEverAddedPlaylist = true;
                 localStorage.setItem(HAS_ADDED_PLAYLIST_KEY, 'true');
