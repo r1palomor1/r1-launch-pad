@@ -1765,6 +1765,13 @@ function openFavoritesDialog() {
                     } else if (videoId) {
                         openPlayerView({ videoId, title: name });
                     } else {
+                        // --- ⬇️ THIS IS THE FIX ⬇️ ---
+                        // Always default to "Songs" mode
+                        currentSearchMode = 'videos'; 
+                        searchModeVideosBtn.checked = true;
+                        resetYouTubeSearch(); // Clear any old is.gd code
+                        // --- ⬆️ END OF FIX ⬆️ ---
+                        
                         openYouTubeSearchView();
                     }
                 } else if (choice === 'external') {
