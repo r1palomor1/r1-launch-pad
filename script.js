@@ -107,7 +107,9 @@ let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
 const SAVED_PLAYLISTS_KEY = 'launchPadR1SavedPlaylists';
+const HAS_ADDED_PLAYLIST_KEY = 'launchPadR1HasAddedPlaylist';
 let savedPlaylists = [];
+let hasEverAddedPlaylist = false; 
 const GENERIC_FAVICON_SRC = 'data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23888\'%3e%3cpath d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\'/%3e%3c/svg%3e';
 
 async function launchUrlOnRabbit(url, name) {
@@ -565,6 +567,14 @@ cardContainer.addEventListener('click', async (e) => {
         openPlayerView({ videoId, title: link.description });
     } else {
         // Generic or channel link → open search
+        
+        // --- ⬇️ THIS IS THE FIX ⬇️ ---
+        // Always default to "Songs" mode when launching from the main page
+        currentSearchMode = 'videos'; 
+        searchModeVideosBtn.checked = true;
+        resetYouTubeSearch(); // Clear any old is.gd code from the input
+        // --- ⬆️ END OF FIX ⬆️ ---
+
         openYouTubeSearchView();
     }
 } else if (choice === 'external') {
@@ -711,14 +721,17 @@ function renderSavedPlaylists() {
  */
 async function savePlaylistsToStorage() {
     const data = JSON.stringify(savedPlaylists);
+    const flagData = String(hasEverAddedPlaylist); // <-- ADD THIS
     if (window.creationStorage) {
         try {
             await window.creationStorage.plain.set(SAVED_PLAYLISTS_KEY, data);
+            await window.creationStorage.plain.set(HAS_ADDED_PLAYLIST_KEY, flagData); // <-- ADD THIS
         } catch (e) {
             console.log('Using localStorage fallback for playlists');
         }
     }
     localStorage.setItem(SAVED_PLAYLISTS_KEY, data);
+    localStorage.setItem(HAS_ADDED_PLAYLIST_KEY, flagData); // <-- ADD THIS
 }
 // --- ⬆️ END OF ADDED CODE ⬆️ ---
 
@@ -2318,6 +2331,18 @@ logo.addEventListener('click', goHome);
         if (storedPlaylists) {
             savedPlaylists = JSON.parse(storedPlaylists);
         }
+        
+        // ⬇️ ADD THIS TO LOAD THE FLAG ⬇️
+        let storedFlag = localStorage.getItem(HAS_ADDED_PLAYLIST_KEY);
+        if (window.creationStorage) {
+            const r1Flag = await window.creationStorage.plain.get(HAS_ADDED_PLAYLIST_KEY);
+            if (r1Flag) storedFlag = r1Flag;
+        }
+        if (storedFlag === 'true') {
+            hasEverAddedPlaylist = true;
+        }
+        // ⬆️ END OF FLAG LOADING ⬆️
+
     } catch (e) {
         console.error("Could not load saved playlists:", e);
         savedPlaylists = [];
@@ -2452,6 +2477,10 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
                 return;
             }
 
+            if (!hasEverAddedPlaylist) { 
+                hasEverAddedPlaylist = true; 
+            } // <-- ADD THIS
+
             savedPlaylists.push({ id: playlistId, title: metadata.title, thumb: metadata.thumb });
             await savePlaylistsToStorage();
             renderSavedPlaylists(); // Re-render the list with the new item
@@ -2491,10 +2520,17 @@ searchModeVideosBtn.addEventListener('click', () => {
 
 searchModeIsGdBtn.addEventListener('click', () => {
     currentSearchMode = 'is.gd';
-    resetYouTubeSearch(); // <-- THIS IS THE FIX
+    resetYouTubeSearch();
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     renderSavedPlaylists(); // Show saved playlists
     youtubeSearchGoBtn.textContent = 'Load';
+
+    // ⬇️ THIS IS THE NEW LOGIC ⬇️
+    if (hasEverAddedPlaylist && savedPlaylists.length === 0) {
+        const alertMessage = "Playlists Not Loading?\n\nIf your saved playlists aren't appearing, please exit the app and clear the device cache by pressing the side button 5 times. Re-opening the app should restore them.";
+        showAlert(alertMessage); // This uses your existing showAlert function
+    }
+    // ⬆️ END OF NEW LOGIC ⬆️
 });
 
 // --- ⬇️ ADDED: Info Button Listener ⬇️ ---
