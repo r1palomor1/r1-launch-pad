@@ -1199,19 +1199,24 @@ function startUIHideTimer() {
     });
 })();
 
+function resetYouTubeSearch() {
+    youtubeSearchInput.value = '';
+    youtubeSearchResultsContainer.innerHTML = '';
+    youtubeNextPageUrl = null; // Also reset pagination
+}
+
 function openYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'flex';
-    youtubeSearchInput.value = '';
-    youtubeSearchInput.placeholder = 'Search YouTube...'; // Reset placeholder
     
-    // Clear previous results and don't auto-focus.
-    // We check the mode to decide what to render
+    // This function now just sets the state, it doesn't reset.
     if (currentSearchMode === 'isGd') {
-        renderSavedPlaylists();
-        youtubeSearchGoBtn.textContent = 'Load'; // <-- ADD THIS
+        youtubeSearchInput.placeholder = 'Enter is.gd code...';
+        youtubeSearchGoBtn.textContent = 'Load';
+        renderSavedPlaylists(); // This is still needed for highlighting
     } else {
-        youtubeSearchResultsContainer.innerHTML = '';
-        youtubeSearchGoBtn.textContent = 'Search'; // <-- ADD THIS
+        youtubeSearchInput.placeholder = 'Search YouTube...';
+        youtubeSearchGoBtn.textContent = 'Search';
+        // We NO LONGER clear the input or results here.
     }
 }
 
@@ -2332,13 +2337,21 @@ deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
 function returnToSearchFromPlayer(focusInput = false) {
     internalPlayerOverlay.style.display = 'none';
     hideTapHint();
-    openYouTubeSearchView(); // This will re-render the list
+
+    if (focusInput) {
+        // "Search" button: Reset the view for a new search
+        resetYouTubeSearch(); // <-- EXPLICITLY RESET
+        openYouTubeSearchView();
+        youtubeSearchInput.focus();
+    } else {
+        // "Back" button: Just show the existing view
+        // We MUST call openYouTubeSearchView to set placeholders AND
+        // to re-render the playlists for highlighting.
+        openYouTubeSearchView();
+    }
+
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
     updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
-    if (focusInput) {
-        youtubeSearchInput.value = ''; // Clear search term
-        youtubeSearchInput.focus(); // Set focus
-    }
 }
     favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
     genericPromptOverlay.addEventListener('click', e => e.stopPropagation());
