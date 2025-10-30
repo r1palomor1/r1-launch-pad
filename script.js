@@ -665,7 +665,26 @@ async function fetchPlaylistMetadata(playlistId) {
         
         const title = xmlDoc.getElementsByTagName('title')[0]?.textContent || 'YouTube Playlist';
         const firstEntry = xmlDoc.getElementsByTagName('entry')[0];
-        const thumb = firstEntry?.getElementsByTagName('media:thumbnail')[0]?.getAttribute('url') || GENERIC_FAVICON_SRC;
+        
+        // Try multiple ways to get the thumbnail
+        let thumb = GENERIC_FAVICON_SRC;
+        if (firstEntry) {
+            // Try media:thumbnail first
+            const mediaThumbnail = firstEntry.getElementsByTagName('media:thumbnail')[0];
+            if (mediaThumbnail) {
+                thumb = mediaThumbnail.getAttribute('url');
+            } else {
+                // Try to get video ID from the entry and construct thumbnail URL
+                const link = firstEntry.getElementsByTagName('link')[0];
+                if (link) {
+                    const videoUrl = link.getAttribute('href');
+                    const videoId = getYoutubeVideoId(videoUrl);
+                    if (videoId) {
+                        thumb = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                    }
+                }
+            }
+        }
         
         return { title, thumb };
     } catch (error) {
@@ -2398,7 +2417,16 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
     const deleteBtn = e.target.closest('.delete-playlist-btn');
     if (deleteBtn && card) {
         e.stopPropagation(); // Stop the click from launching the player
-        // ... (delete button logic remains the same) ...
+        const playlistId = card.dataset.playlistId;
+        const playlistTitle = card.dataset.title;
+        
+        if (await showConfirm(`Delete "${playlistTitle}" from your saved playlists?`)) {
+            savedPlaylists = savedPlaylists.filter(p => p.id !== playlistId);
+            await savePlaylistsToStorage();
+            renderSavedPlaylists();
+            triggerHaptic();
+            await sayOnRabbit("Playlist deleted");
+        }
         return; // Stop further execution
     }
     // --- ⬆️ END OF ADDED CODE ⬆️ ---
