@@ -1592,18 +1592,19 @@ button.rabbit-default:hover {
 }
 
 /* Focused/active feedback */
-.playlist-action-btn:focus,
-.playlist-action-btn:active {
-    background: var(--selection-bg-color, rgba(255,112,67,0.15));
+ .playlist-action-btn:focus,
+ .playlist-action-btn:active {
+    background: none;
+    border: 2px solid var(--theme-accent-color);
     border-radius: 8px;
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: 0 0 0 2px var(--theme-accent-color);
 }
 
-.playlist-action-btn:hover,
-.playlist-action-btn.active {
-    background: var(--primary-color);
-    color: var(--button-text-color);
+ .playlist-action-btn:hover,
+ .playlist-action-btn.active {
+    background: none;
+    color: var(--primary-color);
 }
 
 .playlist-video-list {
