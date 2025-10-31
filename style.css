@@ -1605,6 +1605,8 @@ button.rabbit-default:hover {
  .playlist-action-btn.active {
     background: none;
     color: var(--primary-color);
+    border: 2px solid var(--theme-accent-color);
+    box-shadow: 0 0 0 2px var(--theme-accent-color);
 }
 
 .playlist-video-list {
@@ -1629,6 +1631,11 @@ button.rabbit-default:hover {
     min-height: var(--touch-target-size, 38px);
     transition: background 0.2s, border-color 0.2s;
     gap: 10px;
+}
+
+.playlist-video-item.now-playing {
+    border: 2px solid var(--now-playing-color, #FF7043); /* Use same accent as landing page speaker icon */
+    box-shadow: 0 0 8px var(--now-playing-color, #FF7043);
 }
 
 .playlist-video-item:active,

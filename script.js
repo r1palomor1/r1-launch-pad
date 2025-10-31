@@ -1303,35 +1303,35 @@ function closePlaylistOverlay() {
 
 function populatePlaylistOverlay() {
     playlistVideoList.innerHTML = '';
-    
-    if (!currentPlaylist || currentPlaylist.length === 0) {
-        playlistVideoList.innerHTML = '<p style="text-align: center; color: var(--font-color); padding: 20px;">No videos in playlist</p>';
-        return;
+
+if (!currentPlaylist || currentPlaylist.length === 0) {
+    playlistVideoList.innerHTML = '<p style="text-align: center; color: var(--font-color); padding: 20px;">No videos in playlist</p>';
+    return;
+}
+
+const fragment = document.createDocumentFragment();
+
+currentPlaylist.forEach((video, index) => {
+    const videoItem = document.createElement('div');
+    videoItem.className = 'playlist-video-item';
+    if (index === currentPlaylistIndex) {
+        videoItem.classList.add('now-playing');
     }
     
-    const fragment = document.createDocumentFragment();
+    videoItem.innerHTML = `<div class="playlist-video-title">${video.title}</div>`;
     
-    currentPlaylist.forEach((video, index) => {
-        const videoItem = document.createElement('div');
-        videoItem.className = 'playlist-video-item';
-        if (index === currentPlaylistIndex) {
-            videoItem.classList.add('current');
-        }
-        
-        videoItem.innerHTML = `<div class="playlist-video-title">${video.title}</div>`;
-        
-        videoItem.addEventListener('click', () => {
-            currentPlaylistIndex = index;
-            loadVideoFromPlaylist(video);
-            if (player) player.playVideo();
-            closePlaylistOverlay();
-            triggerHaptic();
-        });
-        
-        fragment.appendChild(videoItem);
+    videoItem.addEventListener('click', () => {
+        currentPlaylistIndex = index;
+        loadVideoFromPlaylist(video);
+        if (player) player.playVideo();
+        closePlaylistOverlay();
+        triggerHaptic();
     });
     
-    playlistVideoList.appendChild(fragment);
+    fragment.appendChild(videoItem);
+});
+
+playlistVideoList.appendChild(fragment);
 }
 
 function renderYouTubeResults(results, mode) {
@@ -2692,6 +2692,7 @@ playlistShuffleBtn.addEventListener('click', () => {
         // Enable shuffle
         isShuffleActive = true;
         playlistShuffleBtn.classList.add('active');
+        playlistPlayAllBtn.classList.remove('active'); // Ensure Play All is not active
         originalPlaylist = [...currentPlaylist];
         
         // Shuffle while keeping current video first
