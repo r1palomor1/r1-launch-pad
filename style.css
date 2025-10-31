@@ -1634,8 +1634,8 @@ button.rabbit-default:hover {
 }
 
 .playlist-video-item.now-playing.alt-theme-rabbit {
-    border: 2px solid #00e676; /* Rabbit Me green */
-    box-shadow: 0 0 8px #00e676;
+    border: 2px solid #ff7043; /* Rabbit Me orange */
+    box-shadow: 0 0 8px #ff7043;
 }
 .playlist-video-item.now-playing.alt-theme-glow {
     border: 2px solid #00ff88; /* Glow Forest Green, matches speaker icon */

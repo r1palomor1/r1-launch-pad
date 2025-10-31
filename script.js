@@ -1316,10 +1316,13 @@ currentPlaylist.forEach((video, index) => {
     videoItem.className = 'playlist-video-item';
     if (index === currentPlaylistIndex) {
     videoItem.classList.add('now-playing');
-    if (currentThemeName === 'rabbit me') {
-        videoItem.classList.add('alt-theme-rabbit');
-    } else {
+    // This logic now perfectly mirrors the speaker icon's logic
+    if (currentThemeName === 'rabbit') {
+        // Rabbit Me active → use Glow Forest Green accent
         videoItem.classList.add('alt-theme-glow');
+    } else {
+        // Any other theme → use Rabbit Me accent
+        videoItem.classList.add('alt-theme-rabbit');
     }
 }
 
