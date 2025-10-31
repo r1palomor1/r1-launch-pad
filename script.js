@@ -1315,13 +1315,13 @@ currentPlaylist.forEach((video, index) => {
     const videoItem = document.createElement('div');
     videoItem.className = 'playlist-video-item';
     if (index === currentPlaylistIndex) {
-        videoItem.classList.add('now-playing');
-        if (currentThemeName === 'rabbit me') {
-            videoItem.classList.add('alt-theme-rabbit');
-        } else {
-            videoItem.classList.add('alt-theme-glow');
-        }
+    videoItem.classList.add('now-playing');
+    if (currentThemeName === 'rabbit me') {
+        videoItem.classList.add('alt-theme-rabbit');
+    } else {
+        videoItem.classList.add('alt-theme-glow');
     }
+}
 
     videoItem.innerHTML = `<div class="playlist-video-title">${video.title}</div>`;
 
