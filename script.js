@@ -1,9 +1,8 @@
 ﻿﻿/*
- Working app: 
+ Working app: PL control redesign working but ugly.  Will polish.
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
     Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, Songs mode default
-      
- */
+*/
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
 const logo = document.getElementById('logo');
