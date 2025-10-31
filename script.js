@@ -1316,10 +1316,15 @@ currentPlaylist.forEach((video, index) => {
     videoItem.className = 'playlist-video-item';
     if (index === currentPlaylistIndex) {
         videoItem.classList.add('now-playing');
+        if (currentThemeName === 'rabbit me') {
+            videoItem.classList.add('alt-theme-rabbit');
+        } else {
+            videoItem.classList.add('alt-theme-glow');
+        }
     }
-    
+
     videoItem.innerHTML = `<div class="playlist-video-title">${video.title}</div>`;
-    
+
     videoItem.addEventListener('click', () => {
         currentPlaylistIndex = index;
         loadVideoFromPlaylist(video);
@@ -1327,7 +1332,7 @@ currentPlaylist.forEach((video, index) => {
         closePlaylistOverlay();
         triggerHaptic();
     });
-    
+
     fragment.appendChild(videoItem);
 });
 

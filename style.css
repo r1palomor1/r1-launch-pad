@@ -1633,8 +1633,16 @@ button.rabbit-default:hover {
     gap: 10px;
 }
 
+.playlist-video-item.now-playing.alt-theme-rabbit {
+    border: 2px solid #00e676; /* Rabbit Me green */
+    box-shadow: 0 0 8px #00e676;
+}
+.playlist-video-item.now-playing.alt-theme-glow {
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 8px var(--primary-color);
+}
 .playlist-video-item.now-playing {
-    border: 2px solid var(--now-playing-color, #FF7043); /* Use same accent as landing page speaker icon */
+    border: 2px solid var(--now-playing-color, #FF7043); /* fallback for legacy */
     box-shadow: 0 0 8px var(--now-playing-color, #FF7043);
 }
 
