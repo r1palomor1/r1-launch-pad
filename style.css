@@ -1540,33 +1540,64 @@ button.rabbit-default:hover {
 }
 
 .playlist-header {
-    padding: 15px;
+    padding: 6px 0 4px 0;
     border-bottom: 1px solid var(--border-color);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
 }
 
-.playlist-header h3 {
-    margin: 0;
-    color: var(--primary-color);
-    font-size: 16px;
-}
-
-.playlist-controls {
+.playlist-controls-centered {
     display: flex;
-    gap: 10px;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 18px;
+    margin: 0 auto;
+    padding: 0;
 }
 
+/* Each icon+label is a touch target */
 .playlist-action-btn {
-    background: var(--button-bg);
-    color: var(--font-color);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: none;
+    border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    min-width: var(--touch-target-size, 38px);
+    min-height: var(--touch-target-size, 38px);
+    padding: 0;
+    outline: none;
+    transition: background 0.2s;
+}
+
+/* Icon sizing and color */
+.playlist-action-btn svg {
+    width: var(--icon-size-large, 24px);
+    height: var(--icon-size-large, 24px);
+    fill: var(--primary-color);
+    margin-bottom: 2px;
+}
+
+/* Small label below icon */
+.playlist-action-label {
+    font-size: 0.7em;
+    color: var(--primary-color);
+    margin-top: 2px;
+    text-align: center;
+    letter-spacing: 0.02em;
+    font-family: var(--font-family);
+    pointer-events: none;
+}
+
+/* Focused/active feedback */
+.playlist-action-btn:focus,
+.playlist-action-btn:active {
+    background: var(--selection-bg-color, rgba(255,112,67,0.15));
+    border-radius: 8px;
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 .playlist-action-btn:hover,
@@ -1580,33 +1611,73 @@ button.rabbit-default:hover {
     overflow-y: auto;
     padding: 10px;
     max-height: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .playlist-video-item {
     display: flex;
     align-items: center;
-    padding: 8px;
-    margin-bottom: 5px;
-    border-radius: 4px;
+    background: var(--item-bg);
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 0;
     cursor: pointer;
-    transition: background 0.2s ease;
+    min-height: var(--touch-target-size, 38px);
+    transition: background 0.2s, border-color 0.2s;
+    gap: 10px;
 }
 
-.playlist-video-item:hover {
-    background: var(--hover-bg);
+.playlist-video-item:active,
+.playlist-video-item.focused {
+    background: var(--selection-bg-color);
+    border-color: var(--selection-border-color);
 }
 
-.playlist-video-item.current {
-    background: var(--primary-color);
-    color: var(--button-text-color);
+.playlist-video-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background: #222;
+}
+
+.playlist-video-meta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 10px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.playlist-video-artist {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--font-color);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .playlist-video-title {
-    font-size: 13px;
-    flex: 1;
+    font-size: 0.9em;
+    color: var(--icon-color);
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+}
+
+.playlist-empty-message {
+    text-align: center;
+    color: var(--icon-color);
+    font-size: 0.95em;
+    padding: 18px 0;
+    opacity: 0.7;
 }
 
 .close-playlist-btn {

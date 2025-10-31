@@ -177,22 +177,44 @@
         </div>
     </div>
 
-    <!-- Playlist Overlay -->
-    <div id="playlistOverlay" style="display: none;">
-        <div class="playlist-overlay-content">
-            <div class="playlist-header">
-                <h3 id="playlistTitle">Playlist</h3>
-                <div class="playlist-controls">
-                    <button id="playlistPlayAllBtn" class="playlist-action-btn">Play All</button>
-                    <button id="playlistShuffleBtn" class="playlist-action-btn">Shuffle</button>
+        <!-- === Playlist Overlay (Modular, Themeable) === -->
+        <div id="playlistOverlay" style="display: none;">
+            <div class="playlist-overlay-content">
+                <!-- Overlay Header: Controls Row -->
+                <div class="playlist-header">
+                    <div class="playlist-controls-centered">
+                        <div class="playlist-action-btn" id="playlistPlayAllBtn" tabindex="0" aria-label="Play All">
+                            <!-- Play All SVG Icon -->
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M4 18V6l8.5 6L4 18zm9.5-12v12l8.5-6-8.5-6z"/>
+                            </svg>
+                            <div class="playlist-action-label">Play All</div>
+                        </div>
+                        <div class="playlist-action-btn" id="playlistShuffleBtn" tabindex="0" aria-label="Shuffle">
+                            <!-- Shuffle SVG Icon -->
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 3h2.5a1 1 0 0 1 1 1V6a1 1 0 1 1-2 0V5.41l-4.88 4.88a1 1 0 0 1-1.41-1.41L16.59 4H16a1 1 0 1 1 0-2zm-9.88 9.88a1 1 0 0 1 1.41 0l4.88 4.88V18a1 1 0 1 1-2 0v-1.41l-4.88-4.88a1 1 0 0 1 0-1.41zm13.76 0a1 1 0 0 1 0 1.41l-4.88 4.88V18a1 1 0 1 1-2 0v-1.41l4.88-4.88a1 1 0 0 1 1.41 0z"/>
+                            </svg>
+                            <div class="playlist-action-label">Shuffle</div>
+                        </div>
+                        <div class="playlist-action-btn" id="closePlaylistBtn" tabindex="0" aria-label="Close Playlist">
+                            <!-- Close SVG Icon -->
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7a1 1 0 0 0-1.41 1.41L10.59 12l-4.89 4.89a1 1 0 1 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4z"/>
+                            </svg>
+                            <div class="playlist-action-label">Close</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Overlay Content: Playlist Video List -->
+                <div id="playlistVideoList" class="playlist-video-list">
+                    <div id="playlistEmptyMessage" class="playlist-empty-message" style="display: none;">
+                        No videos found in this playlist.
+                    </div>
+                    <!-- Video cards are rendered here by JS -->
                 </div>
             </div>
-            <div id="playlistVideoList" class="playlist-video-list">
-                <!-- Videos will be populated by JavaScript -->
-            </div>
-            <button id="closePlaylistBtn" class="close-playlist-btn">Close</button>
         </div>
-    </div>
 
     <div id="youtubeSearchViewOverlay" class="custom-prompt-overlay" style="display: none;">
     <div id="youtubeSearchView" class="youtube-search-view">
