@@ -1629,9 +1629,9 @@ button.rabbit-default:hover {
     /* Ensure border starts transparent */
     border: 1px solid var(--border-color);
 
-    /* --- THIS IS THE FIX --- */
-    /* Re-apply the standard card padding to fix the height */
-    padding: var(--card-padding-y) var(--card-padding-x);
+    /* --- PADDING REMOVED --- */
+    /* Padding is now inherited from the base .card rule,
+       matching the "Songs Mode" cards perfectly. */
 }
 
 .playlist-video-list .youtube-result-card.now-playing.alt-theme-rabbit {
