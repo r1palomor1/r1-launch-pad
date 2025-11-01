@@ -1,6 +1,5 @@
 // /api/fetchPlaylist.js
-import pkg from "yt-dlp-wrap";
-const { YtDlpWrap } = pkg;
+import YtDlpWrap from "yt-dlp-wrap";
 
 /**
  * Fetches a YouTube playlist and returns simplified JSON
@@ -14,21 +13,21 @@ export default async function handler(req, res) {
 
     const url = `https://www.youtube.com/playlist?list=${playlistId}`;
 
-    // Initialize yt-dlp wrapper
+    // ✅ yt-dlp-wrap is itself the class, so instantiate directly
     const ytDlpWrap = new YtDlpWrap();
 
-    // Execute yt-dlp to get JSON playlist data
+    // Run yt-dlp and parse JSON output
     const jsonBuffer = await ytDlpWrap.execPromise([
       url,
       "--flat-playlist",
-      "-J"
+      "-J",
     ]);
 
     const data = JSON.parse(jsonBuffer.toString());
-    const result = (data.entries || []).map(v => ({
+    const result = (data.entries || []).map((v) => ({
       id: v.id,
       title: v.title,
-      thumb: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`
+      thumb: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`,
     }));
 
     res.setHeader("Cache-Control", "max-age=3600");
