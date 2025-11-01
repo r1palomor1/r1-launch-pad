@@ -1,6 +1,5 @@
 // /api/fetchPlaylist.js
 
-// ⬇️ THIS IS THE CORRECTED IMPORT ⬇️
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const YtDlpWrap = require("yt-dlp-wrap");
@@ -10,6 +9,14 @@ const YtDlpWrap = require("yt-dlp-wrap");
  */
 export default async function handler(req, res) {
   try {
+    // ⬇️ --- CHANGE 1: DEFINE THE PATH --- ⬇️
+    // We must use the /tmp directory, as it's the only writable one
+    const ytDlpPath = "/tmp/yt-dlp";
+
+    // ⬇️ --- CHANGE 2: DOWNLOAD THE BINARY --- ⬇️
+    // Wait for the download to complete before trying to use it
+    await YtDlpWrap.default.downloadFromGithub(ytDlpPath);
+
     const playlistId = req.query.id;
     if (!playlistId) {
       return res.status(400).json({ error: "Missing playlist id" });
@@ -17,10 +24,9 @@ export default async function handler(req, res) {
 
     const url = `https://www.youtube.com/playlist?list=${playlistId}`;
 
-    // ✅ yt-dlp-wrap is itself the class, so instantiate directly
-    
-    // ⬇️ THIS IS THE FIX ⬇️
-    const ytDlpWrap = new YtDlpWrap.default();
+    // ⬇️ --- CHANGE 3: TELL THE WRAPPER WHERE THE BINARY IS --- ⬇️
+    // Pass the file path to the constructor
+    const ytDlpWrap = new YtDlpWrap.default(ytDlpPath);
 
     // Run yt-dlp and parse JSON output
     const jsonBuffer = await ytDlpWrap.execPromise([
