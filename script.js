@@ -1302,44 +1302,54 @@ function closePlaylistOverlay() {
 }
 
 function populatePlaylistOverlay() {
-    playlistVideoList.innerHTML = '';
+    const emptyMessage = document.getElementById('playlistEmptyMessage');
+    // Clear only the video cards, not the header which is now inside
+    const existingCards = playlistVideoList.querySelectorAll('.card.youtube-result-card');
+    existingCards.forEach(card => card.remove());
 
-if (!currentPlaylist || currentPlaylist.length === 0) {
-    playlistVideoList.innerHTML = '<p style="text-align: center; color: var(--font-color); padding: 20px;">No videos in playlist</p>';
-    return;
-}
-
-const fragment = document.createDocumentFragment();
-
-currentPlaylist.forEach((video, index) => {
-    const videoItem = document.createElement('div');
-    videoItem.className = 'playlist-video-item';
-    if (index === currentPlaylistIndex) {
-    videoItem.classList.add('now-playing');
-    // This logic now perfectly mirrors the speaker icon's logic
-    if (currentThemeName === 'rabbit') {
-        // Rabbit Me active → use Glow Forest Green accent
-        videoItem.classList.add('alt-theme-glow');
-    } else {
-        // Any other theme → use Rabbit Me accent
-        videoItem.classList.add('alt-theme-rabbit');
+    if (!currentPlaylist || currentPlaylist.length === 0) {
+        emptyMessage.style.display = 'block';
+        return;
     }
-}
+    
+    emptyMessage.style.display = 'none';
+    const fragment = document.createDocumentFragment();
 
-    videoItem.innerHTML = `<div class="playlist-video-title">${video.title}</div>`;
+    currentPlaylist.forEach((video, index) => {
+        const videoItem = document.createElement('div');
+        videoItem.className = 'card youtube-result-card'; // Use the same class as search results
+        
+        // Use the same structure as search results
+        videoItem.innerHTML = `
+            <img src="${video.thumb || GENERIC_FAVICON_SRC}" class="link-favicon" alt="Video thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
+            <div class="link-description">${video.title}</div>`;
 
-    videoItem.addEventListener('click', () => {
-        currentPlaylistIndex = index;
-        loadVideoFromPlaylist(video);
-        if (player) player.playVideo();
-        closePlaylistOverlay();
-        triggerHaptic();
+        // Apply "now-playing" highlighting
+        if (index === currentPlaylistIndex) {
+            videoItem.classList.add('now-playing');
+            
+            // This logic now perfectly mirrors the speaker icon's logic
+            if (currentThemeName === 'rabbit') {
+                // Rabbit Me active → use Glow Forest Green accent
+                videoItem.classList.add('alt-theme-glow');
+            } else {
+                // Any other theme → use Rabbit Me accent
+                videoItem.classList.add('alt-theme-rabbit');
+            }
+        }
+
+        videoItem.addEventListener('click', () => {
+            currentPlaylistIndex = index;
+            loadVideoFromPlaylist(video);
+            if (player) player.playVideo();
+            closePlaylistOverlay();
+            triggerHaptic();
+        });
+
+        fragment.appendChild(videoItem);
     });
 
-    fragment.appendChild(videoItem);
-});
-
-playlistVideoList.appendChild(fragment);
+    playlistVideoList.appendChild(fragment);
 }
 
 function renderYouTubeResults(results, mode) {
