@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/fetchPlaylist.js": {
-      "runtime": "nodejs20.x",
+      "runtime": "@vercel/node@3.0.0",
       "memory": 512,
       "maxDuration": 10
     }
