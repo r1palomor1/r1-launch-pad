@@ -8,7 +8,7 @@
     "start": "node api/fetchPlaylist.js"
   },
   "dependencies": {
-  "@distube/ytpl": "^1.2.3"
+  "youtubei.js": "^10.0.0"
 },
   "author": "r1palomor1",
   "license": "MIT"

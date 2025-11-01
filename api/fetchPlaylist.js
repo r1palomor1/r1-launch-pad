@@ -1,6 +1,6 @@
 // /api/fetchPlaylist.js
 
-import ytpl from '@distube/ytpl';
+import { Innertube } from 'youtubei.js';
 
 /**
  * Fetches a YouTube playlist and returns simplified JSON
@@ -12,21 +12,28 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing playlist id' });
     }
 
-    // No download, no /tmp, no python. Just call the JS function.
-    // { limit: Infinity } ensures we get all videos.
-    const playlist = await ytpl(playlistId, { limit: Infinity });
+    // 1. Create a new Innertube session
+    const youtube = await Innertube.create();
 
-    // Map the results to match the exact format your app expects
-    const result = playlist.items.map((v) => ({
+    // 2. Fetch the playlist. This returns all videos.
+    const playlist = await youtube.getPlaylist(playlistId);
+
+    if (!playlist.videos) {
+      return res.status(404).json({ error: 'Playlist not found or is empty' });
+    }
+    
+    // 3. Map the results to match the exact format your app expects
+    const result = playlist.videos.map((v) => ({
       id: v.id,
-      title: v.name, // Note: @distube/ytpl uses 'name' not 'title'
-      thumb: v.thumbnail,
+      title: v.title.text,
+      // Get the highest resolution thumbnail (usually the last one)
+      thumb: v.thumbnails[v.thumbnails.length - 1].url,
     }));
 
     res.setHeader('Cache-Control', 'max-age=3600');
     res.status(200).json(result);
   } catch (err) {
-    console.error('@distube/ytpl error:', err);
+    console.error('youtubei.js error:', err);
     res
       .status(500)
       .json({ error: 'Failed to fetch playlist', details: err.message });
