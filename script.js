@@ -1,5 +1,5 @@
 ﻿﻿/*
- Working app: Playlist area redesigned but no thumbnails or wrap video info.
+ Working app: Playlist area with video cards but is.gd limits 15 videos.
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
     Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, Songs mode default
 */
