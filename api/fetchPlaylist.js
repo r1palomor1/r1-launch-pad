@@ -1,5 +1,6 @@
 // /api/fetchPlaylist.js
-import { YtDlpWrap } from "yt-dlp-wrap";
+import pkg from "yt-dlp-wrap";
+const { YtDlpWrap } = pkg;
 
 /**
  * Fetches a YouTube playlist and returns simplified JSON
