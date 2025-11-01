@@ -8,7 +8,7 @@
     "start": "node api/fetchPlaylist.js"
   },
   "dependencies": {
-    "yt-dlp-wrap": "^2.3.12"
+    "ytpl": "^2.3.0"
   },
   "author": "r1palomor1",
   "license": "MIT"
