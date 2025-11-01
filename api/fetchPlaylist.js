@@ -15,14 +15,18 @@ export default async function handler(req, res) {
     // 1. Create a new Innertube session
     const youtube = await Innertube.create();
 
-    // 2. Fetch the playlist. This returns all videos.
+    // 2. Fetch the initial playlist data
     const playlist = await youtube.getPlaylist(playlistId);
 
     if (!playlist.videos) {
       return res.status(404).json({ error: 'Playlist not found or is empty' });
     }
     
-    // 3. Map the results to match the exact format your app expects
+    // ⬇️ *** THIS IS THE NEW, CRITICAL LINE *** ⬇️
+    // Tell the library to fetch all remaining videos
+    await playlist.videos.next(0); 
+
+    // 3. Map the results (which now contain all videos)
     const result = playlist.videos.map((v) => ({
       id: v.id,
       title: v.title.text,
