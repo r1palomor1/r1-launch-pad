@@ -1,5 +1,5 @@
 ﻿﻿/*
- Working app: PL control redesign working but ugly.  Will polish.
+ Working app: Playlist area redesigned but no thumbnails or wrap video info.
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
     Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, Songs mode default
 */
