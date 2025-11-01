@@ -1,4 +1,5 @@
 ﻿﻿/*
+ Redesigning Playlist Area to use yt-dlp and return json instead of current legacy xml
  Working app: Playlist area with video cards but is.gd limits 15 videos.
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
     Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, Songs mode default

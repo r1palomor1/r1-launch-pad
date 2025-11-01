@@ -3,3 +3,7 @@ rabbit-hmi-oss/
 docs/
 *.pdf
 *.txt
+
+# Do NOT ignore API endpoints
+!api/
+
