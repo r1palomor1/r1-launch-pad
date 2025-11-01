@@ -18,7 +18,9 @@ export default async function handler(req, res) {
     const url = `https://www.youtube.com/playlist?list=${playlistId}`;
 
     // ✅ yt-dlp-wrap is itself the class, so instantiate directly
-    const ytDlpWrap = new YtDlpWrap();
+    
+    // ⬇️ THIS IS THE FIX ⬇️
+    const ytDlpWrap = new YtDlpWrap.default();
 
     // Run yt-dlp and parse JSON output
     const jsonBuffer = await ytDlpWrap.execPromise([
