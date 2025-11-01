@@ -1,7 +1,7 @@
 {
   "name": "r1-launch-pad",
   "version": "1.0.0",
-  "description": "Rabbit R1 Launch Pad Creation App with YouTube Playlist integration via yt-dlp on Vercel.",
+  "description": "Rabbit R1 Launch Pad Creation App with YouTube Playlist integration via yt-dlp-wrap on Vercel.",
   "type": "module",
   "engines": {
     "node": "20.x"
@@ -12,7 +12,7 @@
     "start": "vercel start"
   },
   "dependencies": {
-    "yt-dlp-exec": "^2.0.0"
+    "yt-dlp-wrap": "^2.3.12"
   },
   "author": "r1palomor1",
   "license": "MIT"
