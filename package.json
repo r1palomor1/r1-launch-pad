@@ -1,26 +1,19 @@
 {
   "name": "r1-launch-pad",
   "version": "1.0.0",
-  "description": "Rebuild of Launch Pad R1",
-  "main": "script.js",
-  "directories": {
-    "doc": "docs"
+  "description": "Rabbit R1 Launch Pad Creation App with YouTube Playlist integration via yt-dlp on Vercel.",
+  "type": "module",
+  "engines": {
+    "node": "18.x"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "start": "vercel start"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/r1palomor1/r1-launch-pad.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/r1palomor1/r1-launch-pad/issues"
-  },
-  "homepage": "https://github.com/r1palomor1/r1-launch-pad#readme",
   "dependencies": {
-    "yt-dlp-exec": "^1.0.2"
-  }
+    "yt-dlp-exec": "^2.0.0"
+  },
+  "author": "r1palomor1",
+  "license": "MIT"
 }
