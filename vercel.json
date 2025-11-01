@@ -1,9 +1,10 @@
 {
   "functions": {
     "api/fetchPlaylist.js": {
-      "runtime": "@vercel/node@3.0.0",
+      "runtime": "nodejs20.x",
       "memory": 512,
       "maxDuration": 10
     }
-  }
+  },
+  "regions": ["iad1"]
 }
