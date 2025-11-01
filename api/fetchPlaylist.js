@@ -1,5 +1,9 @@
 // /api/fetchPlaylist.js
-import YtDlpWrap from "yt-dlp-wrap";
+
+// ⬇️ THIS IS THE CORRECTED IMPORT ⬇️
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const YtDlpWrap = require("yt-dlp-wrap");
 
 /**
  * Fetches a YouTube playlist and returns simplified JSON
