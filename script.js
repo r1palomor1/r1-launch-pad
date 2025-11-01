@@ -2505,6 +2505,15 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
         
         if (await showConfirm(`Delete "${playlistTitle}" from your saved playlists?`)) {
             savedPlaylists = savedPlaylists.filter(p => p.id !== playlistId);
+
+            // --- THIS IS THE FIX ---
+            // If the user just deleted the last playlist, set the flag to false.
+            if (savedPlaylists.length === 0) {
+                localStorage.setItem('launchPadR1LegacyHasPlaylists', 'false');
+                hasEverAddedPlaylist = false; // Also sync the main variable
+            }
+            // --- END OF FIX ---
+
             await savePlaylistsToStorage();
             renderSavedPlaylists();
             triggerHaptic();
@@ -2594,7 +2603,10 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
                 const playlistData = { id: playlistId, title: metadata.title, thumb: metadata.thumb, url: resolvedUrl };
                 savedPlaylists.push(playlistData);
                 hasEverAddedPlaylist = true;
-                localStorage.setItem(HAS_ADDED_PLAYLIST_KEY, 'true');
+                // --- THIS IS THE FIX ---
+                // Set the simple, reliable localStorage flag.
+                localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
+                // --- END OF FIX ---
                 await savePlaylistsToStorage();
                 renderSavedPlaylists();
                 youtubeSearchInput.value = '';
@@ -2641,12 +2653,14 @@ searchModeIsGdBtn.addEventListener('click', () => {
     renderSavedPlaylists(); // Show saved playlists
     youtubeSearchGoBtn.textContent = 'Load';
 
-    // ⬇️ THIS IS THE NEW LOGIC ⬇️
-    if (hasEverAddedPlaylist && savedPlaylists.length === 0) {
+    // --- THIS IS THE FIX ---
+    // Check both the main variable AND our new backup flag.
+    const hasPlaylistsInBackup = localStorage.getItem('launchPadR1LegacyHasPlaylists');
+    if ((hasEverAddedPlaylist || hasPlaylistsInBackup === 'true') && savedPlaylists.length === 0) {
         const alertMessage = "Playlists Not Loading?\n\nIf your saved playlists aren't appearing, please exit the app and clear the device cache by pressing the side button 5 times. Re-opening the app should restore them.";
         showAlert(alertMessage); // This uses your existing showAlert function
     }
-    // ⬆️ END OF NEW LOGIC ⬆️
+    // --- END OF FIX ---
 });
 
 // --- ⬇️ ADDED: Info Button Listener ⬇️ ---
