@@ -14,7 +14,7 @@ export default async function handler(req, res) {
       flatPlaylist: true
     });
 
-    const result = data.entries.map(v => ({
+    const result = (data.entries || []).map(v => ({
       id: v.id,
       title: v.title,
       thumb: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`

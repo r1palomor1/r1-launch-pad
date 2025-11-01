@@ -4,7 +4,7 @@
   "description": "Rabbit R1 Launch Pad Creation App with YouTube Playlist integration via yt-dlp on Vercel.",
   "type": "module",
   "engines": {
-    "node": "18.x"
+    "node": "20.x"
   },
   "scripts": {
     "dev": "vercel dev",
