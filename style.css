@@ -1629,9 +1629,10 @@ button.rabbit-default:hover {
     /* Ensure border starts transparent */
     border: 1px solid var(--border-color);
 
-    /* --- PADDING REMOVED --- */
-    /* Padding is now inherited from the base .card rule,
-       matching the "Songs Mode" cards perfectly. */
+    /* --- THIS IS THE FIX --- */
+    /* Re-apply the standard card padding to override the
+       conflicting .youtube-result-card rule from line 943 */
+    padding: var(--card-padding-y) var(--card-padding-x);
 }
 
 .playlist-video-list .youtube-result-card.now-playing.alt-theme-rabbit {
