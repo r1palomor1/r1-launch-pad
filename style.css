@@ -1628,28 +1628,40 @@ button.rabbit-default:hover {
     margin-bottom: 0; /* Override default card margin */
     /* Ensure border starts transparent */
     border: 1px solid var(--border-color);
+
+    /* --- THIS IS THE FIX --- */
+    /* Re-apply the standard card padding to fix the height */
+    padding: var(--card-padding-y) var(--card-padding-x);
 }
 
 .playlist-video-list .youtube-result-card.now-playing.alt-theme-rabbit {
     border: 2px solid #ff7043; /* Rabbit Me orange */
     box-shadow: 0 0 8px #ff7043;
+    /* --- FIX: Re-add vertical padding --- */
+    padding-top: var(--card-padding-y);
+    padding-bottom: var(--card-padding-y);
     padding-left: calc(var(--card-padding-x) - 1px); /* Keep inner content aligned */
     padding-right: calc(var(--card-padding-x) - 1px);
 }
 .playlist-video-list .youtube-result-card.now-playing.alt-theme-glow {
     border: 2px solid #00ff88; /* Glow Forest Green */
     box-shadow: 0 0 8px #00ff88;
+    /* --- FIX: Re-add vertical padding --- */
+    padding-top: var(--card-padding-y);
+    padding-bottom: var(--card-padding-y);
     padding-left: calc(var(--card-padding-x) - 1px);
     padding-right: calc(var(--card-padding-x) - 1px);
 }
 .playlist-video-list .youtube-result-card.now-playing {
     border: 2px solid var(--now-playing-color, #FF7043); /* fallback */
     box-shadow: 0 0 8px var(--now-playing-color, #FF7043);
+    /* --- FIX: Re-add vertical padding --- */
+    padding-top: var(--card-padding-y);
+    padding-bottom: var(--card-padding-y);
     padding-left: calc(var(--card-padding-x) - 1px);
     padding-right: calc(var(--card-padding-x) - 1px);
 }
 /* --- END OF NEW RULES --- */
-
 
 /* --- REMOVED OLD UNUSED RULES --- */
 /*
