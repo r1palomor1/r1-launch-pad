@@ -1,9 +1,8 @@
 // /api/fetchPlaylist.js
-import YTDlpWrap from "yt-dlp-wrap";
+import { YtDlpWrap } from "yt-dlp-wrap";
 
 /**
- * Fetches a YouTube playlist and returns a simplified JSON list
- * of { id, title, thumb } entries.
+ * Fetches a YouTube playlist and returns simplified JSON
  */
 export default async function handler(req, res) {
   try {
@@ -13,9 +12,11 @@ export default async function handler(req, res) {
     }
 
     const url = `https://www.youtube.com/playlist?list=${playlistId}`;
-    const ytDlpWrap = new YTDlpWrap();
 
-    // Run yt-dlp in flat playlist JSON mode
+    // Initialize yt-dlp wrapper
+    const ytDlpWrap = new YtDlpWrap();
+
+    // Execute yt-dlp to get JSON playlist data
     const jsonBuffer = await ytDlpWrap.execPromise([
       url,
       "--flat-playlist",
@@ -30,10 +31,10 @@ export default async function handler(req, res) {
     }));
 
     res.setHeader("Cache-Control", "max-age=3600");
-    return res.status(200).json(result);
+    res.status(200).json(result);
   } catch (err) {
     console.error("yt-dlp-wrap error:", err);
-    return res
+    res
       .status(500)
       .json({ error: "Failed to fetch playlist", details: err.message });
   }
