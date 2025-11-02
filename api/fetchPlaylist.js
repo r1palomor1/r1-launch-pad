@@ -33,7 +33,6 @@ export default async function handler(req, res) {
       thumb: v.thumbnails[v.thumbnails.length - 1].url,
     }));
 
-    // ⬇️ *** THIS IS THE NEW PART *** ⬇️
     // Get the playlist's main title
     const playlistTitle = playlist.title || 'YouTube Playlist';
 
@@ -42,10 +41,16 @@ export default async function handler(req, res) {
       title: playlistTitle,
       videos: result
     };
-    // ⬆️ *** END OF NEW PART *** ⬆️
+
+    // ⬇️ *** THIS IS THE FIX (CORS HEADERS) *** ⬇️
+    // Allow requests from any origin
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    // ⬆️ *** END OF FIX *** ⬆️
 
     res.setHeader('Cache-Control', 'max-age=3600');
-    res.status(200).json(responseData); // <-- We now send the wrapped object
+    res.status(200).json(responseData); 
   } catch (err) {
     console.error('youtubei.js error:', err);
     res
