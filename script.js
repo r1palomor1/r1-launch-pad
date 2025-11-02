@@ -2507,23 +2507,23 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
             } else {
                 showAlert(`Could not find a valid video ID in the link: ${card.dataset.videoLink}`);
             }
-                        } else if (card.dataset.playlistId) {
-            // This is our new logic for a playlist
-            const playlistId = card.dataset.playlistId;
-            
-            // --- ⬇️ THIS IS THE NEW LOGIC ⬇️ ---
-            hideYouTubeSearchView();
-            const playlistData = savedPlaylists.find(p => p.id === playlistId);
-            if (playlistData) {
-                // Fetch the full playlist data if needed
-                await fetchManualPlaylist(playlistId);
-                currentPlaylistIndex = 0;
-                isManualPlaylist = true;
-                currentlyPlayingPlaylistId = playlistId;
+               } else if (card.dataset.playlistId) {
+                // This is our new logic for a playlist
+                const playlistId = card.dataset.playlistId;
+                const title = card.dataset.title; // 🟨 ADDED: Get the title from the card
+                
+                // --- ⬇️ THIS IS THE FIX ⬇️ ---
+                hideYouTubeSearchView();
+                
+                // 1. Open the player in the background. We MUST await this.
+                //    This function creates the player and fetches the playlist.
+                await openPlayerView({ playlistId: playlistId, title: title });
+
+                // 2. Now that the player is open and the playlist data is loaded,
+                //    open the playlist overlay on top of it.
                 openPlaylistOverlay();
+                // --- ⬆️ END OF FIX ⬆️ ---
             }
-            // --- ⬆️ END OF NEW LOGIC ⬆️ ---
-        }
     }
 });
 
