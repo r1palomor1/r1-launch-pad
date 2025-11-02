@@ -1,9 +1,9 @@
 ﻿﻿
-﻿﻿/*
-Redesigning Playlist Area to use yt-dlp and return json instead of current legacy xml
- Working app: Playlist area with video cards but is.gd limits 15 videos.
+/*
+ Redesigning Playlist Area to use yt-dlp and return json. Jump to PL overlay.
+ Working app: Playlist area with video cards maxed 100 videos.  No ext and int options.
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
-    Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, Songs mode default
+    Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, 
 */
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
