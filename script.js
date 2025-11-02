@@ -746,19 +746,14 @@ function loadVideoFromPlaylist(video) {
     }
     playerVideoTitle.textContent = video.title;
     
-    // ⬇️ THIS IS THE FIX ⬇️
-    // We must ALWAYS load the new video ID.
-    // The onStateChange listener will handle playing it if audio-only is on.
-    player.loadVideoById(video.id);
-    
-    /* // OLD BROKEN LOGIC
-    if (isAudioOnly) {
-        player.playVideo(); // This was the bug. It didn't load the new video.
-    } else {
+    // ⬇️ *** THIS IS THE FIX *** ⬇️
+    // We load the new video ID and immediately tell the player
+    // to play it. This ensures both commands are sent.
+    if (player) {
         player.loadVideoById(video.id);
+        player.playVideo(); // Tell it to play immediately
     }
-    */
-    // ⬆️ END OF FIX ⬆️
+    // ⬆️ *** END OF FIX *** ⬆️
 }
 
 /**
@@ -775,8 +770,7 @@ function playNextVideoInList() {
 
     const nextVideo = currentPlaylist[currentPlaylistIndex];
     if (nextVideo) {
-        loadVideoFromPlaylist(nextVideo);
-        if (player) player.playVideo();
+        loadVideoFromPlaylist(nextVideo); // This function now handles play
         sayOnRabbit(`Now playing ${nextVideo.title}`);
     }
     triggerHaptic();
@@ -796,8 +790,7 @@ function playPreviousVideoInList() {
 
     const prevVideo = currentPlaylist[currentPlaylistIndex];
     if (prevVideo) {
-        loadVideoFromPlaylist(prevVideo);
-        if (player) player.playVideo();
+        loadVideoFromPlaylist(prevVideo); // This function now handles play
         sayOnRabbit(`Now playing ${prevVideo.title}`);
     }
     triggerHaptic();
@@ -1327,12 +1320,8 @@ function populatePlaylistOverlay() {
                 currentPlaylistIndex = index; // Set the new index
                 const newVideo = currentPlaylist[index]; // Get the video object
                 if (newVideo) {
-                    // Use the helper to load the video...
+                    // The helper function now handles loading AND playing
                     loadVideoFromPlaylist(newVideo);
-                    // ...and then explicitly tell the player to play it.
-                    if (player) {
-                        player.playVideo();
-                    }
                 }
                 // Close the overlay to show the player
                 closePlaylistOverlay();
