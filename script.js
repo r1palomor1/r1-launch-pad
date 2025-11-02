@@ -552,45 +552,31 @@ cardContainer.addEventListener('click', async (e) => {
         const isYouTube = getHostname(link.url).includes('youtube.com') || getHostname(link.url).includes('youtu.be');
 
         if (isYouTube) {
-            const choice = await showGenericPrompt({
-                message: `How would you like to launch "${link.description}"?`,
-                buttons: [
-                    { text: 'Internally', value: 'internal', class: '', order: 2 },
-                    { text: 'Externally', value: 'external', class: 'secondary', order: 1 }
-                ]
-            });
-            
-            if (choice === 'internal') {
-    const videoId = getYoutubeVideoId(link.url);
-    const playlistId = getYoutubePlaylistId(link.url); // 🔹 NEW helper below
+            // --- THIS IS THE NEW LOGIC (NO POPUP) ---
+            const videoId = getYoutubeVideoId(link.url);
+            const playlistId = getYoutubePlaylistId(link.url); // 🔹 NEW helper below
 
-    if (playlistId) {
-        console.log(`[YouTube] Playlist ID detected: ${playlistId}`);
-        // ✅ If it’s a YouTube playlist, open as playlist
-        openPlayerView({ playlistId, title: link.description });
-    } else if (videoId) {
-        console.log(`[YouTube] Video ID detected: ${videoId}`);
-        // ✅ Normal single video behavior
-        openPlayerView({ videoId, title: link.description });
-    } else {
-        // Generic or channel link → open search
-        
-        // --- ⬇️ THIS IS THE FIX ⬇️ ---
-        // Always default to "Songs" mode when launching from the main page
-        currentSearchMode = 'videos'; 
-        searchModeVideosBtn.checked = true;
-        resetYouTubeSearch(); // Clear any old is.gd code from the input
-        // --- ⬆️ END OF FIX ⬆️ ---
+            if (playlistId) {
+                console.log(`[YouTube] Playlist ID detected: ${playlistId}`);
+                // ✅ If it’s a YouTube playlist, open as playlist
+                openPlayerView({ playlistId, title: link.description });
+            } else if (videoId) {
+                console.log(`[YouTube] Video ID detected: ${videoId}`);
+                // ✅ Normal single video behavior
+                openPlayerView({ videoId, title: link.description });
+            } else {
+                // Generic or channel link → open search
+                
+                // Always default to "Songs" mode when launching from the main page
+                currentSearchMode = 'videos'; 
+                searchModeVideosBtn.checked = true;
+                resetYouTubeSearch(); // Clear any old is.gd code from the input
 
-        openYouTubeSearchView();
-    }
-} else if (choice === 'external') {
-    triggerHaptic();
-    launchUrlOnRabbit(link.url, link.description);
-}
-
+                openYouTubeSearchView();
+            }
+            // --- END OF NEW LOGIC ---
         } else {
-            // Default behavior for all other links (including non-video YouTube links)
+            // Default behavior for all other links
             triggerHaptic();
             launchUrlOnRabbit(link.url, link.description);
         }
@@ -1293,14 +1279,12 @@ function populatePlaylistOverlay() {
         return;
     }
     
-    // ⬇️ *** THIS IS THE NEW LOGIC *** ⬇️
     // Set the count text
     if (countElement) {
         const count = currentPlaylist.length;
         // Use currentPlaylistIndex + 1 for a 1-based count
         countElement.textContent = `${currentPlaylistIndex + 1} / ${count}`; // <-- 3. Set new format
     }
-    // ⬆️ *** END OF NEW LOGIC *** ⬆️
     
     emptyMessage.style.display = 'none';
     const fragment = document.createDocumentFragment();
@@ -1316,19 +1300,17 @@ function populatePlaylistOverlay() {
 
         // Apply "now-playing" highlighting
         if (index === currentPlaylistIndex) {
-            videoItem.id = 'playlist-current-item'; // <-- ADD THIS ID
+            videoItem.id = 'playlist-current-item';
             videoItem.classList.add('now-playing');
             
-            // This logic now perfectly mirrors the speaker icon's logic
             if (currentThemeName === 'rabbit') {
-                // Rabbit Me active → use Glow Forest Green accent
                 videoItem.classList.add('alt-theme-glow');
             } else {
-                // Any other theme → use Rabbit Me accent
                 videoItem.classList.add('alt-theme-rabbit');
             }
         }
 
+        // ⬇️ *** THIS IS THE FIX *** ⬇️
         videoItem.addEventListener('click', () => {
             if (index === currentPlaylistIndex) {
                 // Video is already playing, just go back to player
@@ -1343,6 +1325,7 @@ function populatePlaylistOverlay() {
             }
             triggerHaptic();
         });
+        // ⬆️ *** END OF FIX *** ⬆️
 
         fragment.appendChild(videoItem);
     });
@@ -1844,35 +1827,22 @@ function openFavoritesDialog() {
             const isYouTube = hostname.includes('youtube.com') || hostname.includes('youtu.be');
 
             if (isYouTube) {
-                const choice = await showGenericPrompt({
-                    message: `How would you like to launch "${name}"?`,
-                    buttons: [
-                        { text: 'Internally', value: 'internal', class: '', order: 2 },
-                        { text: 'Externally', value: 'external', class: 'secondary', order: 1 }
-                    ]
-                });
-
-                if (choice === 'internal') {
-                    const videoId = getYoutubeVideoId(url);
-                    const playlistId = getYoutubePlaylistId(url);
-                    if (playlistId) {
-                        openPlayerView({ playlistId, title: name });
-                    } else if (videoId) {
-                        openPlayerView({ videoId, title: name });
-                    } else {
-                        // --- ⬇️ THIS IS THE FIX ⬇️ ---
-                        // Always default to "Songs" mode
-                        currentSearchMode = 'videos'; 
-                        searchModeVideosBtn.checked = true;
-                        resetYouTubeSearch(); // Clear any old is.gd code
-                        // --- ⬆️ END OF FIX ⬆️ ---
-                        
-                        openYouTubeSearchView();
-                    }
-                } else if (choice === 'external') {
-                    triggerHaptic();
-                    launchUrlOnRabbit(url, name);
+                // --- THIS IS THE NEW LOGIC (NO POPUP) ---
+                const videoId = getYoutubeVideoId(url);
+                const playlistId = getYoutubePlaylistId(url);
+                if (playlistId) {
+                    openPlayerView({ playlistId, title: name });
+                } else if (videoId) {
+                    openPlayerView({ videoId, title: name });
+                } else {
+                    // Always default to "Songs" mode
+                    currentSearchMode = 'videos'; 
+                    searchModeVideosBtn.checked = true;
+                    resetYouTubeSearch(); // Clear any old is.gd code
+                    
+                    openYouTubeSearchView();
                 }
+                // --- END OF NEW LOGIC ---
             } else {
                 // Default behavior for non-YouTube favorites
                 triggerHaptic();
