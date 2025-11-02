@@ -1310,23 +1310,22 @@ function populatePlaylistOverlay() {
             }
         }
 
-                // ⬇️ *** THIS IS THE FIX *** ⬇️
+                                                // ⬇️ *** THIS IS THE FIX *** ⬇️
         videoItem.addEventListener('click', () => {
-            if (index === currentPlaylistIndex) {
+            if (index === currentPlaylistIndex && player) {
                 // Video is already playing, just go back to player
                 closePlaylistOverlay();
                 showPlayerUI();
             } else {
                 // Clicked a new video, so load and play it
                 currentPlaylistIndex = index;
-                loadVideoFromPlaylist(video);
                 closePlaylistOverlay();
-                showPlayerUI();
+                // Open player with playlist context to show full controls
+                openPlayerView({ videoId: video.id, title: video.title, playlistId: currentlyPlayingPlaylistId });
             }
             triggerHaptic();
         });
         // ⬆️ *** END OF FIX *** ⬆️
-        
 
         fragment.appendChild(videoItem);
     });
@@ -2505,19 +2504,20 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
             } else {
                 showAlert(`Could not find a valid video ID in the link: ${card.dataset.videoLink}`);
             }
-        } else if (card.dataset.playlistId) {
+                        } else if (card.dataset.playlistId) {
             // This is our new logic for a playlist
             const playlistId = card.dataset.playlistId;
             
             // --- ⬇️ THIS IS THE NEW LOGIC ⬇️ ---
-            if (playlistId === currentlyPlayingPlaylistId && player) {
-                // This playlist is already playing, just show the player.
-                // We can re-use the function from the 'Now Playing' bar!
-                openPlayerFromNowPlaying();
-            } else {
-                // This is a new playlist, so start it fresh.
-                hideYouTubeSearchView(); // <-- MOVED HERE
-                openPlayerView({ playlistId: playlistId, title: title });
+            hideYouTubeSearchView();
+            const playlistData = savedPlaylists.find(p => p.id === playlistId);
+            if (playlistData) {
+                // Fetch the full playlist data if needed
+                await fetchManualPlaylist(playlistId);
+                currentPlaylistIndex = 0;
+                isManualPlaylist = true;
+                currentlyPlayingPlaylistId = playlistId;
+                openPlaylistOverlay();
             }
             // --- ⬆️ END OF NEW LOGIC ⬆️ ---
         }
