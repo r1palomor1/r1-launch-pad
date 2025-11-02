@@ -1310,22 +1310,23 @@ function populatePlaylistOverlay() {
             }
         }
 
-        // ⬇️ *** THIS IS THE FIX *** ⬇️
+                // ⬇️ *** THIS IS THE FIX *** ⬇️
         videoItem.addEventListener('click', () => {
             if (index === currentPlaylistIndex) {
                 // Video is already playing, just go back to player
-                openPlayerFromNowPlaying(); // This just shows the player
-                closePlaylistOverlay();     // This hides the overlay
+                closePlaylistOverlay();
+                showPlayerUI();
             } else {
                 // Clicked a new video, so load and play it
                 currentPlaylistIndex = index;
                 loadVideoFromPlaylist(video);
-                if (player) player.playVideo();
                 closePlaylistOverlay();
+                showPlayerUI();
             }
             triggerHaptic();
         });
         // ⬆️ *** END OF FIX *** ⬆️
+        
 
         fragment.appendChild(videoItem);
     });
