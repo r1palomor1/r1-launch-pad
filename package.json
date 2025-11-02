@@ -8,7 +8,7 @@
     "start": "node api/fetchPlaylist.js"
   },
   "dependencies": {
-  "youtubei.js": "^10.0.0"
+  "youtubei.js": "latest"
 },
   "author": "r1palomor1",
   "license": "MIT"

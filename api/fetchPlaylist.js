@@ -21,9 +21,10 @@ export default async function handler(req, res) {
     if (!playlist.videos) {
       return res.status(404).json({ error: 'Playlist not found or is empty' });
     }
-    
-    // Tell the library to fetch all remaining videos
-    await playlist.videos.next(0); 
+
+    // ⬇️ *** THIS LINE HAS BEEN REMOVED *** ⬇️
+    // await playlist.videos.next(0); 
+    // ⬆️ *** IT WAS CAUSING THE CRASH *** ⬆️
 
     // 3. Map the results (which now contain all videos)
     const result = playlist.videos.map((v) => ({
@@ -42,12 +43,10 @@ export default async function handler(req, res) {
       videos: result
     };
 
-    // ⬇️ *** THIS IS THE FIX (CORS HEADERS) *** ⬇️
-    // Allow requests from any origin
+    // Add CORS Headers to allow any domain to request this
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    // ⬆️ *** END OF FIX *** ⬆️
 
     res.setHeader('Cache-Control', 'max-age=3600');
     res.status(200).json(responseData); 
