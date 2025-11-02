@@ -1280,14 +1280,14 @@ function closePlaylistOverlay() {
 }
 
 function populatePlaylistOverlay() {
-    const countElement = document.getElementById('playlistVideoCount'); // <-- ADD THIS
+    const countElement = document.getElementById('playlistVideoCountText'); // <-- 1. Find new text span
     const emptyMessage = document.getElementById('playlistEmptyMessage');
     // Clear only the video cards, not the header which is now inside
     const existingCards = playlistVideoList.querySelectorAll('.card.youtube-result-card');
     existingCards.forEach(card => card.remove());
 
     if (!currentPlaylist || currentPlaylist.length === 0) {
-        if (countElement) countElement.textContent = ''; // <-- ADD THIS
+        if (countElement) countElement.textContent = '0 / 0'; // <-- 2. Set default empty text
         emptyMessage.style.display = 'block';
         return;
     }
@@ -1296,7 +1296,8 @@ function populatePlaylistOverlay() {
     // Set the count text
     if (countElement) {
         const count = currentPlaylist.length;
-        countElement.textContent = `${count} video${count === 1 ? '' : 's'}`;
+        // Use currentPlaylistIndex + 1 for a 1-based count
+        countElement.textContent = `${currentPlaylistIndex + 1} / ${count}`; // <-- 3. Set new format
     }
     // ⬆️ *** END OF NEW LOGIC *** ⬆️
     

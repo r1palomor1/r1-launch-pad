@@ -184,10 +184,17 @@
                 <div id="playlistVideoList" class="playlist-video-list">
                     <!-- Overlay Header: Controls Row -->
                     <div class="playlist-header">
-                    <div id="playlistVideoCount" class="playlist-video-count"></div>
                     <div class="playlist-controls-centered">
+                        
+                        <div class="playlist-video-count-wrapper" title="Current Video">
+                            <svg class="playlist-count-icon" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 11.4928L7.5 14.4909L9.5 11.4928H13.5C14.053 11.4928 14.5 11.0461 14.5 10.4935V1.49935C14.5 0.946709 14.053 0.5 13.5 0.5H1.5C0.947 0.5 0.5 0.946709 0.5 1.49935V10.4935C0.5 11.0461 0.947 11.4928 1.5 11.4928H5.5Z" stroke="currentColor" stroke-width="1"/>
+                            </svg>
+                            <span id="playlistVideoCountText" class="playlist-count-text"></span>
+                        </div>
                         <div class="playlist-action-btn" id="playlistPlayAllBtn" tabindex="0" aria-label="Play All">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+...
                                 <path d="M4 18V6l8.5 6L4 18zm9.5-12v12l8.5-6-8.5-6z"/>
                             </svg>
                             <div class="playlist-action-label">Play All</div>
