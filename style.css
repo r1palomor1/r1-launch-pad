@@ -1537,7 +1537,7 @@ button.rabbit-default:hover {
     top: 52%; /* Fine-tune vertical position */
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 0.7em; /* Small text */
+    font-size: 0.5em; /* Small text */
     font-weight: bold;
     color: var(--icon-color); /* Match icon */
     font-family: var(--font-family);
