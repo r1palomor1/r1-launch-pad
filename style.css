@@ -1520,13 +1520,13 @@ button.rabbit-default:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 50px;  /* Standard tap size */
+    width: 55px;  /* Standard tap size */
     height: 38px; /* Standard tap size */
     margin-top: 5px; /* Aligns with other icons */
 }
 
 .playlist-count-icon {
-    width: 46px;  /* Icon size */
+    width: 50px;  /* Icon size */
     height: 35px; /* Icon size */
     color: var(--icon-color); /* Use a more subtle color */
     opacity: 0.8;
