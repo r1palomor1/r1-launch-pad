@@ -1514,6 +1514,14 @@ button.rabbit-default:hover {
 }
 /* ⬆️ END OF ADDED STYLES ⬆️ */
 
+.playlist-video-count {
+    font-size: 0.85em;
+    color: var(--icon-color);
+    text-align: center;
+    margin-bottom: 4px;
+    min-height: 1em; /* Prevents layout jump */
+}
+
 /* === Playlist Overlay Styles === */
 #playlistOverlay {
     position: fixed;

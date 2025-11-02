@@ -1280,15 +1280,25 @@ function closePlaylistOverlay() {
 }
 
 function populatePlaylistOverlay() {
+    const countElement = document.getElementById('playlistVideoCount'); // <-- ADD THIS
     const emptyMessage = document.getElementById('playlistEmptyMessage');
     // Clear only the video cards, not the header which is now inside
     const existingCards = playlistVideoList.querySelectorAll('.card.youtube-result-card');
     existingCards.forEach(card => card.remove());
 
     if (!currentPlaylist || currentPlaylist.length === 0) {
+        if (countElement) countElement.textContent = ''; // <-- ADD THIS
         emptyMessage.style.display = 'block';
         return;
     }
+    
+    // ⬇️ *** THIS IS THE NEW LOGIC *** ⬇️
+    // Set the count text
+    if (countElement) {
+        const count = currentPlaylist.length;
+        countElement.textContent = `${count} video${count === 1 ? '' : 's'}`;
+    }
+    // ⬆️ *** END OF NEW LOGIC *** ⬆️
     
     emptyMessage.style.display = 'none';
     const fragment = document.createDocumentFragment();
