@@ -1316,24 +1316,26 @@ function populatePlaylistOverlay() {
             }
         }
 
-                                                // ⬇️ *** THIS IS THE FIX *** ⬇️
+        // ⬇️ *** THIS IS THE FIX *** ⬇️
         videoItem.addEventListener('click', () => {
             if (index === currentPlaylistIndex && player) {
                 // Video is already playing, just go back to player
                 closePlaylistOverlay();
                 showPlayerUI();
-                        } else {
+            } else {
                 // Clicked a new video, so load and play it
-                currentPlaylistIndex = index;
-                closePlaylistOverlay();
-                // Open player with playlist context to show full controls
-                openPlayerView({ videoId: video.id, title: video.title, playlistId: currentlyPlayingPlaylistId });
-                // Wait a moment for player to initialize, then load the correct video
-                setTimeout(() => {
-                    if (player && player.loadVideoById) {
-                        player.loadVideoById(video.id);
+                currentPlaylistIndex = index; // Set the new index
+                const newVideo = currentPlaylist[index]; // Get the video object
+                if (newVideo) {
+                    // Use the helper to load the video...
+                    loadVideoFromPlaylist(newVideo);
+                    // ...and then explicitly tell the player to play it.
+                    if (player) {
+                        player.playVideo();
                     }
-                }, 500);
+                }
+                // Close the overlay to show the player
+                closePlaylistOverlay();
             }
             triggerHaptic();
         });
