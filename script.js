@@ -1315,6 +1315,7 @@ function populatePlaylistOverlay() {
 
         // Apply "now-playing" highlighting
         if (index === currentPlaylistIndex) {
+            videoItem.id = 'playlist-current-item'; // <-- ADD THIS ID
             videoItem.classList.add('now-playing');
             
             // This logic now perfectly mirrors the speaker icon's logic
@@ -2833,6 +2834,19 @@ playerHomeIcon.addEventListener('click', () => {
 });
 // --- ⬆️ END OF ADDED CODE ⬆️ ---
 
+// ⬇️ *** ADD THIS NEW LISTENER FOR THE COUNTER *** ⬇️
+document.querySelector('.playlist-video-count-wrapper').addEventListener('click', () => {
+    const currentItem = document.getElementById('playlist-current-item');
+    if (currentItem) {
+        currentItem.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center' // This centers the item in the list
+        });
+        triggerHaptic();
+    }
+});
+// ⬆️ *** END OF NEW LISTENER *** ⬆️
+
     // Use the correct 'sideClick' event based on the SDK demo.
     window.addEventListener('sideClick', (event) => {
         if (internalPlayerOverlay.style.display === 'flex') {
@@ -2930,38 +2944,47 @@ function onPlayerReady(event) {
 // toggleShuffle function removed - shuffle functionality moved to playlist overlay
 
 function onPlayerStateChange(event) {
+    // ⬇️ *** ADD THESE TWO LINES *** ⬇️
+    const countWrapper = document.querySelector('.playlist-video-count-wrapper');
+    const countElement = document.getElementById('playlistVideoCountText');
+
     if (event.data === YT.PlayerState.PLAYING) {
-        let currentTitle = ''; // <-- ADD THIS
+        let currentTitle = '';
 
         // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
         if (isManualPlaylist) {
             // In manual mode, get title from our array
             if (currentPlaylist[currentPlaylistIndex]) {
-                currentTitle = currentPlaylist[currentPlaylistIndex].title; // <-- SET VARIABLE
+                currentTitle = currentPlaylist[currentPlaylistIndex].title;
                 playerVideoTitle.textContent = currentTitle;
+
+                // ⬇️ *** ADD THIS BLOCK *** ⬇️
+                // Update the counter dynamically
+                if (countElement) {
+                    countElement.textContent = `${currentPlaylistIndex + 1} / ${currentPlaylist.length}`;
+                }
+                if (countWrapper) {
+                    countWrapper.classList.add('pulsating');
+                }
+                // ⬆️ *** END OF BLOCK *** ⬆️
             }
         } else {
             // Original logic for single songs
             const videoData = player.getVideoData();
             if (videoData && videoData.title) {
-                currentTitle = videoData.title; // <-- SET VARIABLE
+                currentTitle = videoData.title;
                 playerVideoTitle.textContent = currentTitle;
             }
         }
         // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
-        // --- ⬇️ THIS IS THE FIX ⬇️ ---
-        nowPlayingTitle.textContent = currentTitle; // <-- UPDATE THE BAR'S TITLE
-        updateNowPlayingUI('playing'); // <-- UPDATE THE BAR'S VISIBILITY
-        // --- ⬆️ END OF FIX ⬆️ ---
+        nowPlayingTitle.textContent = currentTitle;
+        updateNowPlayingUI('playing');
 
-        // Update BOTH buttons
         playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
         playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
         
-        // --- ⬇️ ADDED TO FIX UI FADING BUG ⬇️ ---
-        showPlayerUI(); // Always show UI when a new video starts
-        // --- ⬆️ END OF ADDED CODE ⬆️ ---
+        showPlayerUI();
         startUIHideTimer();
 
     } else if (event.data === YT.PlayerState.PAUSED ) {
@@ -2974,25 +2997,23 @@ function onPlayerStateChange(event) {
             isIntentionalPause = false; 
         }
         
-        updateNowPlayingUI('paused'); // <-- ADD THIS BACK
+        updateNowPlayingUI('paused');
+
+        if (countWrapper) countWrapper.classList.remove('pulsating'); // <-- ADD THIS
 
     } else if (event.data === YT.PlayerState.ENDED ) {
         playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; 
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
-        // nowPlayingBar.style.display = 'none'; // <-- REMOVED
         clearTimeout(uiHideTimeout);
         
-        // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+        if (countWrapper) countWrapper.classList.remove('pulsating'); // <-- ADD THIS
+        
         if (isManualPlaylist) {
-            // When a video ends, automatically play the next one.
             playNextVideoInList();
-            // Don't show UI, let the next video start playing.
         } else {
-            // Original logic for single songs
             showPlayerUI();
-            updateNowPlayingUI('stopped'); // <-- KEPT (This is correct)
+            updateNowPlayingUI('stopped');
         }
-        // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
     } else if (event.data === YT.PlayerState.BUFFERING) {
         // This state is unreliable for title updates, do nothing here.

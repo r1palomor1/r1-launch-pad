@@ -1735,7 +1735,8 @@ button.rabbit-default:hover {
 }
 
 #nowPlayingIcon.pulsating svg,
-#nowPlayingBarIcon.pulsating { /* <-- ADD THIS */
+#nowPlayingBarIcon.pulsating,
+.playlist-video-count-wrapper.pulsating .playlist-count-icon { /* <-- ADD THIS */
     animation: pulsate 1.2s ease-in-out infinite;
 }
 
