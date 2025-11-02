@@ -22,7 +22,6 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Playlist not found or is empty' });
     }
     
-    // ⬇️ *** THIS IS THE NEW, CRITICAL LINE *** ⬇️
     // Tell the library to fetch all remaining videos
     await playlist.videos.next(0); 
 
@@ -34,8 +33,19 @@ export default async function handler(req, res) {
       thumb: v.thumbnails[v.thumbnails.length - 1].url,
     }));
 
+    // ⬇️ *** THIS IS THE NEW PART *** ⬇️
+    // Get the playlist's main title
+    const playlistTitle = playlist.title || 'YouTube Playlist';
+
+    // Wrap the results in an object
+    const responseData = {
+      title: playlistTitle,
+      videos: result
+    };
+    // ⬆️ *** END OF NEW PART *** ⬆️
+
     res.setHeader('Cache-Control', 'max-age=3600');
-    res.status(200).json(result);
+    res.status(200).json(responseData); // <-- We now send the wrapped object
   } catch (err) {
     console.error('youtubei.js error:', err);
     res

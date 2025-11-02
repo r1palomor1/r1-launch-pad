@@ -1,5 +1,5 @@
 ﻿﻿/*
- Redesigning Playlist Area to use yt-dlp and return json instead of current legacy xml
+Redesigning Playlist Area to use yt-dlp and return json instead of current legacy xml
  Working app: Playlist area with video cards but is.gd limits 15 videos.
     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
     Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, Songs mode default
@@ -659,41 +659,25 @@ async function resolveShortUrl(shortUrl) {
  * Fetches metadata for a playlist (title and first video thumbnail).
  */
 async function fetchPlaylistMetadata(playlistId) {
-    const feed = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
-    const url = `https://corsproxy.io/?${encodeURIComponent(feed)}`;
+    // This function now calls our Vercel API
+    const url = `/api/fetchPlaylist?id=${playlistId}`;
     
     try {
         const response = await fetch(url);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
-        const xmlText = await response.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        // We now parse JSON
+        const data = await response.json();
         
-        const title = xmlDoc.getElementsByTagName('title')[0]?.textContent || 'YouTube Playlist';
-        const firstEntry = xmlDoc.getElementsByTagName('entry')[0];
-        
-        // Try multiple ways to get the thumbnail
-        let thumb = GENERIC_FAVICON_SRC;
-        if (firstEntry) {
-            // Try media:thumbnail first
-            const mediaThumbnail = firstEntry.getElementsByTagName('media:thumbnail')[0];
-            if (mediaThumbnail) {
-                thumb = mediaThumbnail.getAttribute('url');
-            } else {
-                // Try to get video ID from the entry and construct thumbnail URL
-                const link = firstEntry.getElementsByTagName('link')[0];
-                if (link) {
-                    const videoUrl = link.getAttribute('href');
-                    const videoId = getYoutubeVideoId(videoUrl);
-                    if (videoId) {
-                        thumb = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
-                    }
-                }
-            }
+        // We need the playlist title (data.title) and the first video's thumb
+        if (data.videos && data.videos.length > 0) {
+            return { 
+                title: data.title, 
+                thumb: data.videos[0].thumb || GENERIC_FAVICON_SRC 
+            };
         }
         
-        return { title, thumb };
+        return null; // Playlist was empty or invalid
     } catch (error) {
         console.error('Error fetching playlist metadata:', error);
         return null;
@@ -867,14 +851,12 @@ function parseXMLPlaylist(xmlText) {
 }
 
 /**
- * Fetches the playlist data directly, just like your small app.
+ * Fetches the playlist data from our new Vercel endpoint.
  * This is called by openPlayerView.
  */
 async function fetchManualPlaylist(playlistId) {
-    // --- ⬇️ MODIFIED: ADDED ENCODEURICOMPONENT (FROM SMALL APP) ⬇️ ---
-    const feed = `https://www.youtube.com/feeds/videos.xml?playlist_id=${playlistId}`;
-    const url = `https://corsproxy.io/?${encodeURIComponent(feed)}`;
-    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+    // This function now calls our Vercel API and expects JSON
+    const url = `/api/fetchPlaylist?id=${playlistId}`;
     
     try {
         const response = await fetch(url);
@@ -882,25 +864,18 @@ async function fetchManualPlaylist(playlistId) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const xmlText = await response.text();
-        const videos = parseXMLPlaylist(xmlText);
+        // We now parse JSON, not XML
+        const data = await response.json(); 
         
-        if (videos.length > 0) {
+        if (data.videos && data.videos.length > 0) {
             // SUCCESS! We got the list.
-            console.log(`[Manual Playlist] Fetched ${videos.length} videos.`);
-            currentPlaylist = videos;
-            originalPlaylist = [...videos]; // Save an unshuffled copy
+            console.log(`[Manual Playlist] Fetched ${data.videos.length} videos.`);
+            currentPlaylist = data.videos;
+            originalPlaylist = [...data.videos]; // Save an unshuffled copy
             currentPlaylistIndex = 0;
             
-            // --- ⬇️ FALLBACK PROTECTION ⬇️ ---
-            // If onPlayerReady doesn't fire within 3 seconds, show the title anyway
-            setTimeout(() => {
-                if (playerVideoTitle.textContent === 'Loading Playlist...' && currentPlaylist[0]) {
-                    playerVideoTitle.textContent = currentPlaylist[0].title;
-                    console.log('Applied fallback title protection');
-                }
-            }, 3000);
-            // --- ⬆️ END OF FALLBACK ⬆️ ---
+            // We can set the title immediately from the API response
+            playerVideoTitle.textContent = data.title;
 
         } else {
             playerVideoTitle.textContent = 'Empty or invalid playlist.';
