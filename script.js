@@ -914,9 +914,12 @@ async function openPlayerView(options) {
                 playerAudioOnlyBtn_playlist.classList.remove('active');
         isShuffleActive = false;
         
-        // --- ⬇️ MODIFIED: AWAIT THE FETCH FUNCTION ⬇️ ---
+                // --- ⬇️ MODIFIED: AWAIT THE FETCH FUNCTION ⬇️ ---
         // We wait for the fetch to finish before creating the player
-        await fetchManualPlaylist(options.playlistId);
+        // But skip if we already have the playlist loaded from the overlay
+        if (!options.skipFetch) {
+            await fetchManualPlaylist(options.playlistId);
+        }
         // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
 
     } else {
@@ -1321,18 +1324,13 @@ function populatePlaylistOverlay() {
                 // Video is already playing, just go back to player
                 closePlaylistOverlay();
                 showPlayerUI();
-                        } else {
+                                    } else {
                 // Clicked a new video, so load and play it
                 currentPlaylistIndex = index;
                 closePlaylistOverlay();
                 // Open player with playlist context to show full controls
-                openPlayerView({ videoId: video.id, title: video.title, playlistId: currentlyPlayingPlaylistId });
-                // Wait a moment for player to initialize, then load the correct video
-                setTimeout(() => {
-                    if (player && player.loadVideoById) {
-                        player.loadVideoById(video.id);
-                    }
-                }, 500);
+                // Pass a flag to indicate we already have the playlist loaded
+                openPlayerView({ videoId: video.id, title: video.title, playlistId: currentlyPlayingPlaylistId, skipFetch: true });
             }
             triggerHaptic();
         });
