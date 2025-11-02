@@ -1255,8 +1255,13 @@ function openPlaylistOverlay() {
         return;
     }
     
+    playlistOverlay.style.display = 'flex';
+    triggerHaptic();
     populatePlaylistOverlay();
-    playlistVideoList.scrollTop = 0; // <-- ADD THIS LINE
+    // Scroll to top AFTER populating to ensure it works
+    setTimeout(() => {
+        playlistVideoList.scrollTop = 0;
+    }, 0);
     playlistOverlay.style.display = 'flex';
     triggerHaptic();
 }
@@ -1316,12 +1321,18 @@ function populatePlaylistOverlay() {
                 // Video is already playing, just go back to player
                 closePlaylistOverlay();
                 showPlayerUI();
-            } else {
+                        } else {
                 // Clicked a new video, so load and play it
                 currentPlaylistIndex = index;
                 closePlaylistOverlay();
                 // Open player with playlist context to show full controls
                 openPlayerView({ videoId: video.id, title: video.title, playlistId: currentlyPlayingPlaylistId });
+                // Wait a moment for player to initialize, then load the correct video
+                setTimeout(() => {
+                    if (player && player.loadVideoById) {
+                        player.loadVideoById(video.id);
+                    }
+                }, 500);
             }
             triggerHaptic();
         });
