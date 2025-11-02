@@ -659,8 +659,9 @@ async function resolveShortUrl(shortUrl) {
  * Fetches metadata for a playlist (title and first video thumbnail).
  */
 async function fetchPlaylistMetadata(playlistId) {
-    // This function now calls our Vercel API
-    const url = `/api/fetchPlaylist?id=${playlistId}`;
+    // ⬇️ *** THIS IS THE FIX *** ⬇️
+    // We must use the full, absolute URL to your Vercel deployment
+    const url = `https://r1-launch-pad.vercel.app/api/fetchPlaylist?id=${playlistId}`;
     
     try {
         const response = await fetch(url);
@@ -855,8 +856,9 @@ function parseXMLPlaylist(xmlText) {
  * This is called by openPlayerView.
  */
 async function fetchManualPlaylist(playlistId) {
-    // This function now calls our Vercel API and expects JSON
-    const url = `/api/fetchPlaylist?id=${playlistId}`;
+    // ⬇️ *** THIS IS THE FIX *** ⬇️
+    // We must use the full, absolute URL here as well
+    const url = `https://r1-launch-pad.vercel.app/api/fetchPlaylist?id=${playlistId}`;
     
     try {
         const response = await fetch(url);
