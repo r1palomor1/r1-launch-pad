@@ -1270,6 +1270,7 @@ function openPlaylistOverlay() {
     }
     
     populatePlaylistOverlay();
+    playlistVideoList.scrollTop = 0; // <-- ADD THIS LINE
     playlistOverlay.style.display = 'flex';
     triggerHaptic();
 }

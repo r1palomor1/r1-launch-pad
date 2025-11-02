@@ -1737,7 +1737,7 @@ button.rabbit-default:hover {
 #nowPlayingIcon.pulsating svg,
 #nowPlayingBarIcon.pulsating,
 .playlist-video-count-wrapper.pulsating .playlist-count-icon { /* <-- ADD THIS */
-    animation: pulsate 1.2s ease-in-out infinite;
+    animation: pulsate 1.6s ease-in-out infinite;
 }
 
 /* === 🎨 Alternate Theme Styles for Speaker Icon === */
