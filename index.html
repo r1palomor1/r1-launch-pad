@@ -132,6 +132,8 @@
         <button id="playerHomeIcon" title="Go Home">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
         </button>
+        <button id="playerVolumeIcon" class="dialog-icon-btn" title="Volume">
+            </button>
         
         <button id="playerPlaylistBtn" class="dialog-icon-btn" title="View Playlist">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 10h11v2H3zm0-4h11v2H3zm0 8h7v2H3zm13-1v8l6-4z"></path></svg>
@@ -140,11 +142,15 @@
             <div id="youtubePlayer"></div>
             </div>
         <div class="player-controls">
+            <div id="volumeSliderContainer" style="display: none;">
+                <input type="range" id="volumeSlider" min="0" max="100" value="100">
+            </div>
             <div id="playerSongControls" class="player-navigation">
                 <button id="playerBackBtn" class="secondary">Back</button>
                 <div class="player-main-controls">
                     <button id="playerPlayPauseBtn" class="dialog-icon-btn"></button>
                     <button id="playerAudioOnlyBtn" class="dialog-icon-btn"></button>
+                    <button id="playerVolumeBtn" class="dialog-icon-btn" title="Volume"></button>
                 </div>
                 <button id="playerSearchBtn" class="secondary">Search</button>
             </div>
@@ -163,6 +169,7 @@
                     <button id="playerBackBtn_playlist" class="secondary">Back</button>
                     <button id="playerPlayPauseBtn_playlist" class="dialog-icon-btn"></button>
                     <button id="playerAudioOnlyBtn_playlist" class="dialog-icon-btn"></button>
+                    <button id="playerVolumeBtn_playlist" class="dialog-icon-btn" title="Volume"></button>
                     <button id="playerSearchBtn_playlist" class="secondary">Search</button>
                 </div>
             </div>
