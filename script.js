@@ -1331,6 +1331,15 @@ function populatePlaylistOverlay() {
                 // Video is already playing, just go back to player
                 closePlaylistOverlay();
                 showPlayerUI();
+
+                // ⬇️ *** THIS IS THE FIX *** ⬇️
+                // Check if the player is currently playing
+                if (player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                    // If it is, restart the 4-second fade-out timer
+                    startUIHideTimer();
+                }
+                // ⬆️ *** END OF FIX *** ⬆️
+
             } else {
                 // Clicked a new video, so load and play it
                 currentPlaylistIndex = index; // Set the new index
