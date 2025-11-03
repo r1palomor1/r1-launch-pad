@@ -1005,40 +1005,28 @@ function hidePlayerUI() {
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
     
-    // 1. Collapse header
+    // ⬇️ *** THIS IS THE FIX *** ⬇️
+    // We ONLY fade the elements. We no longer change height or padding.
     if (header) {
-        header.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         header.style.opacity = '0';
-        header.style.height = '0';
-        header.style.padding = '0'; 
-        header.style.visibility = 'hidden';
         header.style.pointerEvents = 'none';
     }
     
-    // 2. Collapse controls partially
     if (controls) {
-        controls.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         controls.style.opacity = '0';
-        controls.style.height = '35px'; 
-        controls.style.padding = '0'; 
-        controls.style.visibility = 'hidden';
         controls.style.pointerEvents = 'none';
     }
+    // ⬆️ *** END OF FIX *** ⬆️
 
-    // --- ⬇️ ADDED: Show Home Icon ⬇️ ---
+    // --- Show floating icons ---
     if (playerHomeIcon) {
         playerHomeIcon.style.opacity = '1';
         playerHomeIcon.style.pointerEvents = 'auto';
     }
-    // --- ⬆️ END OF ADDED CODE ⬆️ ---
-
-    // ⬇️ *** THIS IS THE FIX *** ⬇️
-    // Also show the playlist icon, but only if we are in playlist mode
     if (playerPlaylistBtn && isManualPlaylist) {
         playerPlaylistBtn.style.opacity = '1';
         playerPlaylistBtn.style.pointerEvents = 'auto';
     }
-    // ⬆️ *** END OF FIX *** ⬆️
     
     // Show tap hint after UI fades
     showTapHint();
@@ -1049,40 +1037,31 @@ function showPlayerUI() {
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
     
-    // Restore header
+    // ⬇️ *** THIS IS THE FIX *** ⬇️
+    // We ONLY fade the elements.
     if (header) {
         header.style.opacity = '1';
-        header.style.height = ''; 
-        header.style.padding = ''; 
-        header.style.visibility = ''; 
         header.style.pointerEvents = 'auto';
     }
-    // Restore controls
     if (controls) {
         controls.style.opacity = '1';
-        controls.style.height = ''; 
-        controls.style.padding = ''; 
-        controls.style.visibility = ''; 
         controls.style.pointerEvents = 'auto';
     }
+    // ⬆️ *** END OF FIX *** ⬆️
 
-    // --- ⬇️ ADDED: Hide Home Icon ⬇️ ---
+    // --- Hide floating icons ---
     if (playerHomeIcon) {
         playerHomeIcon.style.opacity = '0';
         playerHomeIcon.style.pointerEvents = 'none';
     }
-    // --- ⬆️ END OF ADDED CODE ⬆️ ---
-
-    // ⬇️ *** THIS IS THE FIX *** ⬇️
-    // Always hide the floating playlist icon when the main UI is visible
     if (playerPlaylistBtn) {
         playerPlaylistBtn.style.opacity = '0';
         playerPlaylistBtn.style.pointerEvents = 'none';
     }
-    // ⬆️ *** END OF FIX *** ⬆️
     
     // Hide tap hint when UI shows again
     hideTapHint();    
+    
     // Sync audio button state when UI reappears
     if (isAudioOnly) {
         playerAudioOnlyBtn.classList.add('active');
