@@ -1,9 +1,9 @@
 ﻿﻿
 /*
+ Working app: Move PL icon and now fades.  Playlist area with video cards maxed 100 videos.  
  Redesigning Playlist Area to use yt-dlp and return json. Jump to PL overlay.
- Working app: Playlist area with video cards maxed 100 videos.  No ext and int options.
-    YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
-    Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, 
+     YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
+    Saved Theme, is.gd Code, Shuffle, Fav YT Fix, Playlist focus, No ext and int options.
 */
 const mainView = document.getElementById('mainView');
 const searchInput = document.getElementById('searchInput');
