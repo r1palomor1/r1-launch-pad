@@ -1,5 +1,4 @@
-﻿﻿﻿﻿﻿﻿
-/*
+﻿﻿/*
  Working app: Move PL icon and now fades.  Playlist area with video cards maxed 100 videos.  
  Redesigning Playlist Area to use yt-dlp and return json. Jump to PL overlay.
      YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
@@ -2919,31 +2918,6 @@ stopPlayingBtn.addEventListener('click', (e) => {
     }
 });
 
-// --- ⬇️ --- ADDED FOR VOLUME --- ⬇️ ---
-
-// 1. Listen for the user dragging the slider
-volumeSlider.addEventListener('input', (e) => {
-    const newVolume = e.target.value;
-    if (player) {
-        player.setVolume(newVolume);
-        // If they drag to 0, mute. If they drag > 0, unmute.
-        if (newVolume == 0) {
-            player.mute();
-        } else if (player.isMuted()) {
-            player.unMute();
-        }
-    }
-    updateVolumeUI(); // Update icons in real-time
-    startUIHideTimer(); // Reset the fade-out timer
-});
-
-// 2. Add the master click handler to all 3 buttons
-if (playerVolumeBtn) playerVolumeBtn.addEventListener('click', toggleVolumeSlider);
-if (playerVolumeBtn_playlist) playerVolumeBtn_playlist.addEventListener('click', toggleVolumeSlider);
-if (playerVolumeIcon) playerVolumeIcon.addEventListener('click', toggleVolumeSlider);
-
-// --- ⬆️ --- END OF ADDED LISTENERS --- ⬆️ ---
-
 // --- ⬇️ ADD THIS NEW LISTENER ⬇️ ---
 playerHomeIcon.addEventListener('click', () => {
     // We REMOVED player.stopVideo() and updateNowPlayingUI('stopped')
@@ -3044,6 +3018,28 @@ function onPlayerReady(event) {
     // --- ⬇️ ADDED FOR VOLUME ⬇️ ---
     updateVolumeUI(); // Set initial volume slider and icons
     // --- ⬆️ END OF ADD ⬆️ ---
+
+    // 1. Listen for the user dragging the slider
+    volumeSlider.addEventListener('input', (e) => {
+        const newVolume = e.target.value;
+        if (player) {
+            player.setVolume(newVolume);
+            // If they drag to 0, mute. If they drag > 0, unmute.
+            if (newVolume == 0) {
+                player.mute();
+            } else if (player.isMuted()) {
+                player.unMute();
+            }
+        }
+        updateVolumeUI(); // Update icons in real-time
+        startUIHideTimer(); // Reset the fade-out timer
+    });
+
+    // 2. Add the master click handler to all 3 buttons
+    if (playerVolumeBtn) playerVolumeBtn.addEventListener('click', toggleVolumeSlider);
+    if (playerVolumeBtn_playlist) playerVolumeBtn_playlist.addEventListener('click', toggleVolumeSlider);
+    if (playerVolumeIcon) playerVolumeIcon.addEventListener('click', toggleVolumeSlider);
+
 
     // This function fires as soon as the player has loaded the video/playlist data.
     
