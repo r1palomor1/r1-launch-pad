@@ -1067,27 +1067,16 @@ button.rabbit-default:hover {
     object-fit: cover;
 }
 
-/* ⬇️ *** THIS IS THE FIX *** ⬇️ */
 .player-controls {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1050; /* Above tapHint */
-    
+    flex: 0 0 auto;
     display: flex;
+    /* flex-direction: column; was removed */
     align-items: center;
     justify-content: space-between;
-    
-    /* Add a background and safe-area padding for the overlay */
-    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 30%);
-    padding: 10px 0 max(10px, env(safe-area-inset-bottom));
-    
-    /* Standard fade transition */
+    padding-top: 10px;
     transition: opacity 0.5s ease;
     opacity: 1;
 }
-/* ⬆️ *** END OF FIX *** ⬆️ */
 
 .player-navigation {
     display: flex;
@@ -1391,23 +1380,17 @@ button.rabbit-default:hover {
 #playerAudioOnlyBtn,
 #playerPrevBtn,
 #playerPrevBtn,
-#playerAudioOnlyBtn_playlist,
-#playerBackBtn_playlist,
-#playerSearchBtn_playlist,
-#playerPlayPauseBtn_playlist {
+#playerAudioOnlyBtn_playlist {
     width: 38px;
     height: 38px;
 }
 
-/* Set the standard size for the icons INSIDE those buttons */
+* Set the standard size for the icons INSIDE those buttons */
 #playerNextBtn svg,
 #playerAudioOnlyBtn svg,
 #playerPrevBtn svg,
 #playerPrevBtn svg,
-#playerAudioOnlyBtn_playlist svg,
-#playerBackBtn_playlist svg,
-#playerSearchBtn_playlist svg,
-#playerPlayPauseBtn_playlist svg {
+#playerAudioOnlyBtn_playlist svg {
     width: 24px;
     height: 24px;
 }
@@ -1434,10 +1417,10 @@ button.rabbit-default:hover {
 
 .playlist-controls-row {
     display: flex;
-    justify-content: space-evenly; /* This will space 3 icons out nicely */
+    justify-content: space-between;
     align-items: center;
     width: 100%;
-    gap: 6px; /* A small gap is still good */
+    gap: 4px;
 }
 
 /* Apply same styling as .player-navigation to playlist controls */
