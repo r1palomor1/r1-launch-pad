@@ -1031,6 +1031,14 @@ function hidePlayerUI() {
         playerHomeIcon.style.pointerEvents = 'auto';
     }
     // --- ⬆️ END OF ADDED CODE ⬆️ ---
+
+    // ⬇️ *** THIS IS THE FIX *** ⬇️
+    // Also show the playlist icon, but only if we are in playlist mode
+    if (playerPlaylistBtn && isManualPlaylist) {
+        playerPlaylistBtn.style.opacity = '1';
+        playerPlaylistBtn.style.pointerEvents = 'auto';
+    }
+    // ⬆️ *** END OF FIX *** ⬆️
     
     // Show tap hint after UI fades
     showTapHint();
@@ -1064,6 +1072,14 @@ function showPlayerUI() {
         playerHomeIcon.style.pointerEvents = 'none';
     }
     // --- ⬆️ END OF ADDED CODE ⬆️ ---
+
+    // ⬇️ *** THIS IS THE FIX *** ⬇️
+    // Always hide the floating playlist icon when the main UI is visible
+    if (playerPlaylistBtn) {
+        playerPlaylistBtn.style.opacity = '0';
+        playerPlaylistBtn.style.pointerEvents = 'none';
+    }
+    // ⬆️ *** END OF FIX *** ⬆️
     
     // Hide tap hint when UI shows again
     hideTapHint();    
