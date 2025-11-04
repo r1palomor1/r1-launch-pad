@@ -2704,6 +2704,12 @@ searchModeVideosBtn.addEventListener('click', () => {
     resetYouTubeSearch(); // <-- THIS IS THE FIX
     youtubeSearchInput.placeholder = 'Search YouTube...';
     youtubeSearchGoBtn.textContent = 'Search';
+    
+    // Scroll to top to show search bar but keep focus on cards if they exist
+    youtubeSearchView.scrollTop = 0;
+    if (youtubeSearchResultsContainer.querySelector('.youtube-result-card')) {
+        setTimeout(() => youtubeSearchResultsContainer.focus(), 100);
+    }
 });
 
 searchModeIsGdBtn.addEventListener('click', () => {
@@ -2712,6 +2718,10 @@ searchModeIsGdBtn.addEventListener('click', () => {
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     renderSavedPlaylists(); // Show saved playlists
     youtubeSearchGoBtn.textContent = 'Load';
+    
+    // Scroll to top to show search bar but keep focus on cards
+    youtubeSearchView.scrollTop = 0;
+    setTimeout(() => youtubeSearchResultsContainer.focus(), 100);
 
     // --- THIS IS THE FIX ---
     // Check both the main variable AND our new backup flag.
