@@ -1,5 +1,5 @@
 ﻿﻿/*
- Working app: Vertical volume slider and standarize icon landing & player vars.
+ Working app: Vertical volume slider and standarize icons using vars.
     Move PL icon and now fades. Playlist area with video cards maxed 100 videos.  
     Redesigning Playlist Area to use yt-dlp and return json. Jump to PL overlay.
      YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
