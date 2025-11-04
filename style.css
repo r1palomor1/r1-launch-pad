@@ -1120,7 +1120,7 @@ button.rabbit-default:hover {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 85vh; /* This is the crucial line */
+    max-height: 95vh; /* This is the crucial line */
     overflow-y: auto; /* If necessary, activate for full-dialog scrolling */
 }
 
