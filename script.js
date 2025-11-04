@@ -1258,10 +1258,10 @@ function openYouTubeSearchView() {
         // We NO LONGER clear the input or results here.
     }
     
-    // Make container focusable and focus it for scroll wheel support
+    // Make container focusable but don't focus it initially - focus search input instead
     youtubeSearchResultsContainer.tabIndex = 0;
     setTimeout(() => {
-        youtubeSearchResultsContainer.focus();
+        youtubeSearchInput.focus();
     }, 100);
 }
 
@@ -1434,7 +1434,7 @@ function renderYouTubeResults(results, mode) {
         if (isFirstBatch && index === 0) {
             setTimeout(() => {
                 itemCard.focus();
-                // Also ensure the container is focusable and focused for scroll wheel
+                // Now focus the container for scroll wheel support after results are loaded
                 youtubeSearchResultsContainer.focus();
             }, 100); // Small delay to ensure DOM is ready
         }
