@@ -80,6 +80,8 @@ const playerMuteBtn = document.getElementById('playerMuteBtn');
 const playerMuteBtn_playlist = document.getElementById('playerMuteBtn_playlist');
 const playerVolumeSlider = document.getElementById('playerVolumeSlider');
 const playerVolumeSlider_playlist = document.getElementById('playerVolumeSlider_playlist');
+const playerVolumePopup = document.getElementById('playerVolumePopup');
+const playerVolumePopup_playlist = document.getElementById('playerVolumePopup_playlist');
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
 const searchModeIsGdBtn = document.getElementById('searchModeIsGd');
 const isGdInfoBtn = document.getElementById('isGdInfoBtn');
@@ -107,6 +109,8 @@ const VOLUME_MUTED_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="
 // Volume Control Variables
 let lastVolume = 50; // Store the last volume level before muting
 let currentVolume = 50; // Current volume level
+let volumeSliderTimeout = null; // Timer for auto-hiding volume popup
+const VOLUME_STORAGE_KEY = 'r1VolumeLevel';
 let isAudioOnly = false;
 let isShuffleActive = false; // Add this line
 let youtubeNextPageUrl = null;
@@ -1627,7 +1631,9 @@ async function handleAddFromQuery(description, url) {
         applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
         
         // Initialize volume controls
-        updateVolumeSliders(currentVolume);
+        currentVolume = loadVolumeFromStorage();
+        lastVolume = currentVolume;
+        updateVolumeControls(currentVolume);
         updateMuteButtonIcon(false);
     }
 
@@ -2806,10 +2812,17 @@ playerAudioOnlyBtn.addEventListener('click', () => {
 });
 
 // Volume Control Event Listeners
-playerMuteBtn.addEventListener('click', toggleMute);
-playerMuteBtn_playlist.addEventListener('click', toggleMute);
+playerMuteBtn.addEventListener('click', () => showVolumePopup('song'));
+playerMuteBtn_playlist.addEventListener('click', () => showVolumePopup('playlist'));
 playerVolumeSlider.addEventListener('input', handleVolumeChange);
 playerVolumeSlider_playlist.addEventListener('input', handleVolumeChange);
+
+// Click outside to hide volume popup
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.volume-icon-container')) {
+        hideVolumePopup();
+    }
+});
 
 // --- ⬇️ ADD THIS NEW LISTENER ⬇️ ---
 nowPlayingIcon.addEventListener('click', () => {
@@ -2951,32 +2964,57 @@ function togglePlayback() {
 }
 
 // Volume Control Functions
-function toggleMute() {
-    if (!player || typeof player.isMuted !== 'function') return;
-    
+function showVolumePopup(mode) {
     triggerHaptic();
+    showPlayerUI(); // Reset the 4-second timer
     
-    try {
-        if (player.isMuted()) {
-            player.unMute();
-            updateMuteButtonIcon(false);
-            player.setVolume(lastVolume);
-            updateVolumeSliders(lastVolume);
-            currentVolume = lastVolume;
-        } else {
-            lastVolume = currentVolume;
-            player.mute();
-            updateMuteButtonIcon(true);
-            updateVolumeSliders(0);
+    const popup = mode === 'playlist' ? playerVolumePopup_playlist : playerVolumePopup;
+    const otherPopup = mode === 'playlist' ? playerVolumePopup : playerVolumePopup_playlist;
+    
+    // Hide other popup if open
+    hideVolumePopup();
+    
+    // Show this popup
+    popup.style.display = 'flex';
+    // Force reflow for transition
+    popup.offsetHeight;
+    popup.classList.add('show');
+    
+    // Set auto-hide timer for popup (3 seconds)
+    clearTimeout(volumeSliderTimeout);
+    volumeSliderTimeout = setTimeout(() => {
+        hideVolumePopup();
+    }, 3000);
+}
+
+function hideVolumePopup() {
+    playerVolumePopup.classList.remove('show');
+    playerVolumePopup_playlist.classList.remove('show');
+    
+    setTimeout(() => {
+        if (!playerVolumePopup.classList.contains('show')) {
+            playerVolumePopup.style.display = 'none';
         }
-    } catch (e) {
-        console.warn("Mute/unmute failed due to autoplay policy");
-    }
+        if (!playerVolumePopup_playlist.classList.contains('show')) {
+            playerVolumePopup_playlist.style.display = 'none';
+        }
+    }, 200); // Match transition duration
+    
+    clearTimeout(volumeSliderTimeout);
 }
 
 function handleVolumeChange(e) {
     const newVolume = parseInt(e.target.value);
     currentVolume = newVolume;
+    
+    // Reset 4-second timer on each interaction
+    showPlayerUI();
+    
+    // Reset popup auto-hide timer
+    clearTimeout(volumeSliderTimeout);
+    volumeSliderTimeout = setTimeout(() => {
+        hideVolumePopup();
+    }, 3000);
     
     if (!player || typeof player.setVolume !== 'function') return;
     
@@ -2991,9 +3029,9 @@ function handleVolumeChange(e) {
             lastVolume = newVolume;
         }
         
-        // Update both sliders to stay in sync
-        updateVolumeSliders(newVolume);
-        updateSliderFill(e.target);
+        // Update both sliders and displays to stay in sync
+        updateVolumeControls(newVolume);
+        saveVolumeToStorage(newVolume);
     } catch (e) {
         console.warn("Volume change blocked");
     }
@@ -3005,25 +3043,65 @@ function updateMuteButtonIcon(isMuted) {
     playerMuteBtn_playlist.innerHTML = icon;
 }
 
-function updateVolumeSliders(volume) {
+function updateVolumeControls(volume) {
+    // Update sliders
     playerVolumeSlider.value = volume;
     playerVolumeSlider_playlist.value = volume;
+    
+    // Update visual fill
     updateSliderFill(playerVolumeSlider);
     updateSliderFill(playerVolumeSlider_playlist);
+    
+    // Update level displays
+    document.querySelectorAll('.volume-level-display').forEach(display => {
+        display.textContent = volume;
+    });
 }
 
 function updateSliderFill(slider) {
     const percentage = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
-    slider.style.background = `linear-gradient(to right, var(--primary-color) ${percentage}%, rgba(255, 255, 255, 0.1) ${percentage}%)`;
+    slider.style.background = `linear-gradient(to top, rgba(255, 255, 255, 0.1) 0%, var(--primary-color) ${percentage}%)`;
+}
+
+function saveVolumeToStorage(volume) {
+    // Save to localStorage
+    localStorage.setItem(VOLUME_STORAGE_KEY, volume.toString());
+    
+    // Save to R1 creation storage (if available)
+    try {
+        if (typeof saveToR1 === 'function') {
+            saveToR1('volume', volume);
+        }
+    } catch (e) {
+        console.log('R1 storage not available, using localStorage only');
+    }
+}
+
+function loadVolumeFromStorage() {
+    try {
+        // Try R1 creation storage first
+        if (typeof loadFromR1 === 'function') {
+            const r1Volume = loadFromR1('volume');
+            if (r1Volume !== null && r1Volume !== undefined) {
+                return parseInt(r1Volume);
+            }
+        }
+    } catch (e) {
+        console.log('R1 storage not available, using localStorage');
+    }
+    
+    // Fallback to localStorage
+    const stored = localStorage.getItem(VOLUME_STORAGE_KEY);
+    return stored ? parseInt(stored) : 50; // Default to 50%
 }
 
 function onPlayerReady(event) {
     // This function fires as soon as the player has loaded the video/playlist data.
     
-    // Initialize volume controls
+    // Initialize volume controls with stored volume
     try {
         player.setVolume(currentVolume);
-        updateVolumeSliders(currentVolume);
+        updateVolumeControls(currentVolume);
         updateMuteButtonIcon(false);
     } catch (e) {
         console.warn("Volume initialization failed due to autoplay policy");
