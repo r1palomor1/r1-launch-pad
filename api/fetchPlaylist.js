@@ -35,11 +35,7 @@ export default async function handler(req, res) {
     }));
 
     // Get the playlist's main title
-    console.log('DEBUG: playlist object keys:', Object.keys(playlist));
-    console.log('DEBUG: playlist.title:', playlist.title);
-    console.log('DEBUG: playlist.info:', playlist.info);
-    console.log('DEBUG: playlist.header:', playlist.header);
-    const playlistTitle = playlist.title?.text || playlist.title || 'YouTube Playlist';
+    const playlistTitle = playlist.info?.title || playlist.title?.text || playlist.title || 'YouTube Playlist';
 
     // Wrap the results in an object
     const responseData = {
