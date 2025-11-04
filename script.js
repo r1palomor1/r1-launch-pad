@@ -2845,7 +2845,16 @@ function resetUITimer() {
 // Click outside to hide volume popup
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.volume-icon-container')) {
+        const wasVolumePopupVisible = playerVolumePopup.style.display === 'flex' || 
+                                     playerVolumePopup_playlist.style.display === 'flex';
         hideVolumePopup();
+        
+        // If volume popup was visible and user clicked to close it, restart UI timer
+        if (wasVolumePopupVisible && internalPlayerOverlay.style.display === 'flex') {
+            if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                startUIHideTimer();
+            }
+        }
     }
 });
 
