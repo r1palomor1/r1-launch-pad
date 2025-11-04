@@ -1134,8 +1134,8 @@ button.rabbit-default:hover {
 
 #youtubeSearchResultsContainer {
     flex-grow: 1;
-    min-height: 0;
-    max-height: 75vh;
+    min-height: 200px;
+    max-height: 80vh;
     color: var(--icon-color);
     text-align: center;
     overflow-y: auto;
