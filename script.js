@@ -666,10 +666,18 @@ async function resolveShortUrl(shortUrl) {
 async function fetchPlaylistMetadata(playlistId) {
     // ⬇️ *** THIS IS THE FIX *** ⬇️
     // We must use the full, absolute URL to your Vercel deployment
-    const url = `https://r1-launch-pad.vercel.app/api/fetchPlaylist?id=${playlistId}`;
+    // Add cache-busting timestamp to force fresh requests
+    const cacheBuster = Date.now();
+    const url = `https://r1-launch-pad.vercel.app/api/fetchPlaylist?id=${playlistId}&_t=${cacheBuster}`;
     
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            // Additional cache-busting headers
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         // We now parse JSON
@@ -856,10 +864,18 @@ function parseXMLPlaylist(xmlText) {
 async function fetchManualPlaylist(playlistId) {
     // ⬇️ *** THIS IS THE FIX *** ⬇️
     // We must use the full, absolute URL here as well
-    const url = `https://r1-launch-pad.vercel.app/api/fetchPlaylist?id=${playlistId}`;
+    // Add cache-busting timestamp to force fresh requests
+    const cacheBuster = Date.now();
+    const url = `https://r1-launch-pad.vercel.app/api/fetchPlaylist?id=${playlistId}&_t=${cacheBuster}`;
     
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            // Additional cache-busting headers
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
