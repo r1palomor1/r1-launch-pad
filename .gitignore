@@ -31,3 +31,6 @@ obj/
 .env
 .env.local
 .env.*
+
+# YT DIV OVERLAY REFERENCE ONLY
+temp-volume-reference/

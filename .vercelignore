@@ -1,5 +1,6 @@
 # Exclude reference clones and docs from deployment uploads
 rabbit-hmi-oss/
+temp-volume-reference/
 docs/
 *.pdf
 *.txt

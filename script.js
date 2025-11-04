@@ -1,5 +1,4 @@
-﻿﻿﻿﻿﻿﻿
-/*
+﻿﻿/*
  Working app: Move PL icon and now fades.  Playlist area with video cards maxed 100 videos.  
  Redesigning Playlist Area to use yt-dlp and return json. Jump to PL overlay.
      YT Modes, Controls & Fade, Playlist Fetch, Player UI, Icons (Now Playing, Home, Speaker),
@@ -75,6 +74,12 @@ const closePlaylistBtn = document.getElementById('closePlaylistBtn');
 // Legacy references to prevent errors in existing code
 const playerShuffleBtn = { classList: { add: () => {}, remove: () => {} } }; // Mock object
 const playerPlayAllBtn = { classList: { add: () => {}, remove: () => {} } }; // Mock object
+
+// Volume Controls
+const playerMuteBtn = document.getElementById('playerMuteBtn');
+const playerMuteBtn_playlist = document.getElementById('playerMuteBtn_playlist');
+const playerVolumeSlider = document.getElementById('playerVolumeSlider');
+const playerVolumeSlider_playlist = document.getElementById('playerVolumeSlider_playlist');
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
 const searchModeIsGdBtn = document.getElementById('searchModeIsGd');
 const isGdInfoBtn = document.getElementById('isGdInfoBtn');
@@ -94,6 +99,14 @@ const PLAY_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 2
 const PAUSE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
 const STOP_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>`;
 const AUDIO_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 0 0-9 9v7c0 1.1.9 2 2 2h4v-8H5v-1a7 7 0 0 1 14 0v1h-4v8h4c1.1 0 2-.9 2-2v-7a9 9 0 0 0-9-9z"/></svg>`;
+
+// Volume Control Icons
+const VOLUME_HIGH_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>`;
+const VOLUME_MUTED_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12A4.5 4.5 0 0 0 14 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>`;
+
+// Volume Control Variables
+let lastVolume = 50; // Store the last volume level before muting
+let currentVolume = 50; // Current volume level
 let isAudioOnly = false;
 let isShuffleActive = false; // Add this line
 let youtubeNextPageUrl = null;
@@ -1612,6 +1625,10 @@ async function handleAddFromQuery(description, url) {
         await loadLinksFromR1();
         renderLinks();
         applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
+        
+        // Initialize volume controls
+        updateVolumeSliders(currentVolume);
+        updateMuteButtonIcon(false);
     }
 
     document.addEventListener('DOMContentLoaded', init);
@@ -2788,6 +2805,12 @@ playerAudioOnlyBtn.addEventListener('click', () => {
     sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
 });
 
+// Volume Control Event Listeners
+playerMuteBtn.addEventListener('click', toggleMute);
+playerMuteBtn_playlist.addEventListener('click', toggleMute);
+playerVolumeSlider.addEventListener('input', handleVolumeChange);
+playerVolumeSlider_playlist.addEventListener('input', handleVolumeChange);
+
 // --- ⬇️ ADD THIS NEW LISTENER ⬇️ ---
 nowPlayingIcon.addEventListener('click', () => {
     // This function will be shared by the icon and the bar
@@ -2927,8 +2950,84 @@ function togglePlayback() {
     }
 }
 
+// Volume Control Functions
+function toggleMute() {
+    if (!player || typeof player.isMuted !== 'function') return;
+    
+    triggerHaptic();
+    
+    try {
+        if (player.isMuted()) {
+            player.unMute();
+            updateMuteButtonIcon(false);
+            player.setVolume(lastVolume);
+            updateVolumeSliders(lastVolume);
+            currentVolume = lastVolume;
+        } else {
+            lastVolume = currentVolume;
+            player.mute();
+            updateMuteButtonIcon(true);
+            updateVolumeSliders(0);
+        }
+    } catch (e) {
+        console.warn("Mute/unmute failed due to autoplay policy");
+    }
+}
+
+function handleVolumeChange(e) {
+    const newVolume = parseInt(e.target.value);
+    currentVolume = newVolume;
+    
+    if (!player || typeof player.setVolume !== 'function') return;
+    
+    try {
+        if (newVolume === 0) {
+            player.mute();
+            updateMuteButtonIcon(true);
+        } else {
+            player.unMute();
+            player.setVolume(newVolume);
+            updateMuteButtonIcon(false);
+            lastVolume = newVolume;
+        }
+        
+        // Update both sliders to stay in sync
+        updateVolumeSliders(newVolume);
+        updateSliderFill(e.target);
+    } catch (e) {
+        console.warn("Volume change blocked");
+    }
+}
+
+function updateMuteButtonIcon(isMuted) {
+    const icon = isMuted ? VOLUME_MUTED_ICON_SVG : VOLUME_HIGH_ICON_SVG;
+    playerMuteBtn.innerHTML = icon;
+    playerMuteBtn_playlist.innerHTML = icon;
+}
+
+function updateVolumeSliders(volume) {
+    playerVolumeSlider.value = volume;
+    playerVolumeSlider_playlist.value = volume;
+    updateSliderFill(playerVolumeSlider);
+    updateSliderFill(playerVolumeSlider_playlist);
+}
+
+function updateSliderFill(slider) {
+    const percentage = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+    slider.style.background = `linear-gradient(to right, var(--primary-color) ${percentage}%, rgba(255, 255, 255, 0.1) ${percentage}%)`;
+}
+
 function onPlayerReady(event) {
     // This function fires as soon as the player has loaded the video/playlist data.
+    
+    // Initialize volume controls
+    try {
+        player.setVolume(currentVolume);
+        updateVolumeSliders(currentVolume);
+        updateMuteButtonIcon(false);
+    } catch (e) {
+        console.warn("Volume initialization failed due to autoplay policy");
+    }
     
     // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
     if (isManualPlaylist) {

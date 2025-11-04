@@ -1435,6 +1435,91 @@ button.rabbit-default:hover {
     min-height: 32px !important;
 }
 
+/* === Volume Controls Styling === */
+.volume-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+}
+
+#playerMuteBtn,
+#playerMuteBtn_playlist {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: var(--font-color);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#playerMuteBtn:hover,
+#playerMuteBtn_playlist:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#playerMuteBtn svg,
+#playerMuteBtn_playlist svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 80px;
+    height: 4px;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--primary-color) 50%, rgba(255, 255, 255, 0.1) 50%);
+    outline: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.volume-slider:hover {
+    background: linear-gradient(to right, var(--primary-color) 50%, rgba(255, 255, 255, 0.2) 50%);
+}
+
+/* Responsive volume slider for smaller screens */
+@media (max-width: 480px) {
+    .volume-slider {
+        width: 60px;
+    }
+    
+    .volume-container {
+        gap: 6px;
+        padding: 0 4px;
+    }
+}
+
 /* Tap Hint - Full width bar at bottom */
 #tapHint {
     position: absolute;
