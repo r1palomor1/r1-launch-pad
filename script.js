@@ -1257,6 +1257,12 @@ function openYouTubeSearchView() {
         youtubeSearchGoBtn.textContent = 'Search';
         // We NO LONGER clear the input or results here.
     }
+    
+    // Make container focusable and focus it for scroll wheel support
+    youtubeSearchResultsContainer.tabIndex = 0;
+    setTimeout(() => {
+        youtubeSearchResultsContainer.focus();
+    }, 100);
 }
 
 function closeYouTubeSearchView() {
@@ -1426,7 +1432,11 @@ function renderYouTubeResults(results, mode) {
         
         // Focus the first card only on initial load (not pagination)
         if (isFirstBatch && index === 0) {
-            setTimeout(() => itemCard.focus(), 100); // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                itemCard.focus();
+                // Also ensure the container is focusable and focused for scroll wheel
+                youtubeSearchResultsContainer.focus();
+            }, 100); // Small delay to ensure DOM is ready
         }
     });
     youtubeSearchResultsContainer.appendChild(fragment);

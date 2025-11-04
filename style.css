@@ -1138,6 +1138,8 @@ button.rabbit-default:hover {
     max-height: 75vh;
     color: var(--icon-color);
     text-align: center;
+    overflow-y: auto;
+    outline: none;
 }
 
 .youtube-result-card {
