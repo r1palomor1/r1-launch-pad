@@ -2717,17 +2717,26 @@ searchModeIsGdBtn.addEventListener('click', () => {
     resetYouTubeSearch();
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     youtubeSearchGoBtn.textContent = 'Load';
-    
-    // SIMPLE FIX: Set scroll position BEFORE rendering cards
+
+    // --- FINAL FIX ---
+    // Scroll to top BEFORE rendering anything.
     youtubeSearchView.scrollTop = 0;
-    
-    // Then render playlists (which will naturally push content down)
+
+    // Render the playlists.
     renderSavedPlaylists();
-    
-    // Focus on results container for scroll wheel functionality
+
+    // After rendering, check if playlists were actually added to the DOM.
     setTimeout(() => {
-        youtubeSearchResultsContainer.focus();
-    }, 50);
+        const hasCards = youtubeSearchResultsContainer.querySelector('.youtube-result-card');
+        if (hasCards) {
+            // If cards exist, focus the container for scrolling, but prevent the
+            // browser's default behavior of scrolling the focused element into view.
+            youtubeSearchResultsContainer.focus({ preventScroll: true });
+        } else {
+            // If no cards exist, focus the input field for the user.
+            youtubeSearchInput.focus();
+        }
+    }, 100); // A small delay ensures the DOM is updated.
 
     // --- THIS IS THE FIX ---
     // Check both the main variable AND our new backup flag.
