@@ -109,7 +109,10 @@ header {
 }
 
 .search-input-wrapper {
-    position: relative;
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-color);
+    z-index: 1;
     flex-grow: 1;
     display: flex;
     align-items: center;
@@ -1121,7 +1124,7 @@ button.rabbit-default:hover {
     flex-direction: column;
     gap: 8px;
     max-height: 95vh; /* This is the crucial line */
-    overflow-y: auto; /* If necessary, activate for full-dialog scrolling */
+    overflow: hidden; /* Prevent this container from scrolling */
 }
 
 .youtube-search-view .search-section {
@@ -1143,7 +1146,7 @@ button.rabbit-default:hover {
 }
 
 .youtube-result-card {
-    padding-right: 0.625rem;
+    padding-right: 0.325rem; /* Adjusted padding for better alignment from .625*/
     cursor: pointer;
     min-height: 44px;
     touch-action: manipulation;
@@ -1244,10 +1247,15 @@ button.rabbit-default:hover {
 }
 
 .search-controls-row {
+    position: sticky;
+    top: 37px; /* Height of the search input + gap */
+    background-color: var(--bg-color);
+    z-index: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 4px 0;
+    padding-bottom: 4px; /* Add some space below */
 }
 
 @media (max-width: 320px) {
