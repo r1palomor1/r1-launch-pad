@@ -2718,16 +2718,16 @@ searchModeIsGdBtn.addEventListener('click', () => {
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     youtubeSearchGoBtn.textContent = 'Load';
     
-    // First scroll to top to show search bar
+    // SIMPLE FIX: Set scroll position BEFORE rendering cards
     youtubeSearchView.scrollTop = 0;
     
-    // Then render playlists and focus on cards
-    renderSavedPlaylists(); // Show saved playlists
+    // Then render playlists (which will naturally push content down)
+    renderSavedPlaylists();
+    
+    // Focus on results container for scroll wheel functionality
     setTimeout(() => {
-        // Ensure search bar stays visible after rendering
-        youtubeSearchView.scrollTop = 0;
         youtubeSearchResultsContainer.focus();
-    }, 100);
+    }, 50);
 
     // --- THIS IS THE FIX ---
     // Check both the main variable AND our new backup flag.
