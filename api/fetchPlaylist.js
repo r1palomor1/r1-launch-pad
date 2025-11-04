@@ -12,15 +12,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing playlist id' });
     }
 
-    // 1. Create a new Innertube session with cache-busting
-    const youtube = await Innertube.create({
-      // Force fresh session each time
-      session: {
-        client_name: 'WEB',
-        client_version: '2.0',
-        visitor_data: undefined // Force new visitor session
-      }
-    });
+    // 1. Create a new Innertube session
+    const youtube = await Innertube.create();
 
     // 2. Fetch the initial playlist data
     const playlist = await youtube.getPlaylist(playlistId);
@@ -55,10 +48,8 @@ export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // Aggressive anti-caching headers for fresh title data
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
+    // Prevent caching of stale titles while allowing reasonable performance
+    res.setHeader('Cache-Control', 'no-cache, max-age=300'); // 5 minute cache
     res.setHeader('ETag', `"${Date.now()}-${playlistId}"`); // Unique ETag per request
     res.status(200).json(responseData); 
   } catch (err) {
