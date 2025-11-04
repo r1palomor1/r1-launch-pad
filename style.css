@@ -1505,7 +1505,7 @@ button.rabbit-default:hover {
     -webkit-appearance: slider-vertical;
     appearance: slider-vertical;
     width: 6px;
-    height: 80px;
+    height: 120px; /* Increased from 80px for better touch control */
     background: linear-gradient(to top, rgba(255, 255, 255, 0.1) 0%, var(--primary-color) 50%);
     outline: none;
     border-radius: 3px;
@@ -1564,7 +1564,7 @@ button.rabbit-default:hover {
     }
     
     .volume-slider-vertical {
-        height: 70px;
+        height: 100px; /* Still taller than original for better control */
     }
 }
 

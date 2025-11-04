@@ -2817,6 +2817,12 @@ playerMuteBtn_playlist.addEventListener('click', () => showVolumePopup('playlist
 playerVolumeSlider.addEventListener('input', handleVolumeChange);
 playerVolumeSlider_playlist.addEventListener('input', handleVolumeChange);
 
+// Additional events to ensure continuous timer reset during sliding
+playerVolumeSlider.addEventListener('mousemove', () => showPlayerUI());
+playerVolumeSlider_playlist.addEventListener('mousemove', () => showPlayerUI());
+playerVolumeSlider.addEventListener('touchmove', () => showPlayerUI());
+playerVolumeSlider_playlist.addEventListener('touchmove', () => showPlayerUI());
+
 // Click outside to hide volume popup
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.volume-icon-container')) {
@@ -3007,10 +3013,10 @@ function handleVolumeChange(e) {
     const newVolume = parseInt(e.target.value);
     currentVolume = newVolume;
     
-    // Reset 4-second timer on each interaction
+    // CRITICAL: Reset 4-second timer on EVERY slider movement
     showPlayerUI();
     
-    // Reset popup auto-hide timer
+    // Reset popup auto-hide timer on every movement
     clearTimeout(volumeSliderTimeout);
     volumeSliderTimeout = setTimeout(() => {
         hideVolumePopup();
