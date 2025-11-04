@@ -1094,8 +1094,8 @@ button.rabbit-default:hover {
 }
 
 .player-navigation .dialog-icon-btn svg {
-    width: 24px;
-    height: 24px;
+    width: var(--actions-icon-size);
+    height: var(--actions-icon-size);
 }
 
 .player-navigation button {
@@ -1425,8 +1425,8 @@ button.rabbit-default:hover {
 
 /* Apply same styling as .player-navigation to playlist controls */
 .player-navigation-playlist .dialog-icon-btn svg {
-    width: 24px;
-    height: 24px;
+    width: var(--actions-icon-size);
+    height: var(--actions-icon-size);
 }
 
 .player-navigation-playlist button {
