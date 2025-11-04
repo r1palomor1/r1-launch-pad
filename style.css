@@ -1381,8 +1381,8 @@ button.rabbit-default:hover {
 #playerPrevBtn,
 #playerPrevBtn,
 #playerAudioOnlyBtn_playlist {
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
 }
 
 * Set the standard size for the icons INSIDE those buttons */
@@ -1391,20 +1391,20 @@ button.rabbit-default:hover {
 #playerPrevBtn svg,
 #playerPrevBtn svg,
 #playerAudioOnlyBtn_playlist svg {
-    width: 24px;
-    height: 24px;
+    width: var(--actions-icon-size);
+    height: var(--actions-icon-size);
 }
 
 /* Override: Keep the main Play/Pause button and its icon the largest for emphasis */
 #playerPlayPauseBtn,
 #playerPlayPauseBtn_playlist {
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
 }
 #playerPlayPauseBtn svg,
 #playerPlayPauseBtn_playlist svg {
-    width: 30px;
-    height: 30px;
+    width: var(--actions-icon-size);
+    height: var(--actions-icon-size);
 }
 
 /* Playlist Player Styles - Uses same layout as Song controls */
@@ -1445,9 +1445,8 @@ button.rabbit-default:hover {
 /* Volume button theming handled by .dialog-icon-btn class */
 #playerMuteBtn svg,
 #playerMuteBtn_playlist svg {
-    /* Let the parent .dialog-icon-btn styling handle the theming */
-    width: 20px;
-    height: 20px;
+    width: var(--actions-icon-size);
+    height: var(--actions-icon-size);
 }
 
 /* Volume Popup Styling */
