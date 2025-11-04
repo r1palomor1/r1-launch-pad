@@ -14,7 +14,13 @@
     --checkbox-border-color: #555;
     --button-font-color: #FFFFFF;
     --checkbox-checked-bg: var(--primary-color);
-    --actions-icon-size: 20px; /* ADDED: For main action icons */
+    
+    /* === Icon & Container Size Variables === */
+    --actions-landing-icon-size: 16px; /* Landing page action icons */
+    --actions-player-icon-size: 22px;  /* Player page action icons */
+    --actions-landing-container-size: 32px; /* Landing page button containers */
+    --actions-player-container-size: 36px;  /* Player page button containers */
+    
     --favorite-color: #FFD700;
 
     /* Dynamic Sizing Variables */
@@ -145,8 +151,8 @@ header {
     background: transparent;
     border: none;
     padding: 0;
-    width: 32px;
-    height: 32px;
+    width: var(--actions-landing-container-size);
+    height: var(--actions-landing-container-size);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -158,8 +164,8 @@ header {
 }
 
 #quickLaunchBtn svg, #deleteAllBtn svg {
-    width: var(--actions-icon-size);
-    height: var(--actions-icon-size);
+    width: var(--actions-landing-icon-size);
+    height: var(--actions-landing-icon-size);
     fill: var(--icon-color);
     transition: fill 0.2s ease;
 }
@@ -171,8 +177,8 @@ header {
 }
 
 #themeBtn img {
-    width: var(--actions-icon-size);
-    height: var(--actions-icon-size);
+    width: var(--actions-landing-icon-size);
+    height: var(--actions-landing-icon-size);
     display: block;
 }
 
@@ -721,8 +727,8 @@ button.rabbit-default:hover {
 
 .view-btn svg {
     display: block;
-    width: var(--actions-icon-size);
-    height: var(--actions-icon-size);
+    width: var(--actions-landing-icon-size);
+    height: var(--actions-landing-icon-size);
     fill: var(--icon-color);
     transition: fill 0.2s ease;
 }
@@ -897,14 +903,14 @@ button.rabbit-default:hover {
     border: none;
     cursor: pointer;
     padding: 2px 6px;
-    width: 32px;
-    height: 32px;
+    width: var(--actions-player-container-size);
+    height: var(--actions-player-container-size);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     touch-action: manipulation;
-    min-height: 32px !important;
+    min-height: var(--actions-player-container-size) !important;
     font-size: 0.8em !important;
 }
 
@@ -1094,8 +1100,8 @@ button.rabbit-default:hover {
 }
 
 .player-navigation .dialog-icon-btn svg {
-    width: var(--actions-icon-size);
-    height: var(--actions-icon-size);
+    width: var(--actions-player-icon-size);
+    height: var(--actions-player-icon-size);
 }
 
 .player-navigation button {
@@ -1391,8 +1397,8 @@ button.rabbit-default:hover {
 #playerPrevBtn svg,
 #playerPrevBtn svg,
 #playerAudioOnlyBtn_playlist svg {
-    width: var(--actions-icon-size);
-    height: var(--actions-icon-size);
+    width: var(--actions-player-icon-size);
+    height: var(--actions-player-icon-size);
 }
 
 /* Override: Keep the main Play/Pause button and its icon the largest for emphasis */
@@ -1403,8 +1409,8 @@ button.rabbit-default:hover {
 }
 #playerPlayPauseBtn svg,
 #playerPlayPauseBtn_playlist svg {
-    width: var(--actions-icon-size);
-    height: var(--actions-icon-size);
+    width: var(--actions-player-icon-size);
+    height: var(--actions-player-icon-size);
 }
 
 /* Playlist Player Styles - Uses same layout as Song controls */
@@ -1425,8 +1431,8 @@ button.rabbit-default:hover {
 
 /* Apply same styling as .player-navigation to playlist controls */
 .player-navigation-playlist .dialog-icon-btn svg {
-    width: var(--actions-icon-size);
-    height: var(--actions-icon-size);
+    width: var(--actions-player-icon-size);
+    height: var(--actions-player-icon-size);
 }
 
 .player-navigation-playlist button {
@@ -1445,8 +1451,8 @@ button.rabbit-default:hover {
 /* Volume button theming handled by .dialog-icon-btn class */
 #playerMuteBtn svg,
 #playerMuteBtn_playlist svg {
-    width: var(--actions-icon-size);
-    height: var(--actions-icon-size);
+    width: var(--actions-player-icon-size);
+    height: var(--actions-player-icon-size);
 }
 
 /* Volume Popup Styling */
