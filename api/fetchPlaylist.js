@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     }));
 
     // Get the playlist's main title
-    const playlistTitle = playlist.title || 'YouTube Playlist';
+    const playlistTitle = playlist.title?.text || playlist.title || 'YouTube Playlist';
 
     // Wrap the results in an object
     const responseData = {
