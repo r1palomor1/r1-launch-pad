@@ -2519,9 +2519,23 @@ function returnToSearchFromPlayer(focusInput = false) {
         youtubeSearchInput.focus();
     } else {
         // "Back" button: Just show the existing view
-        // We MUST call openYouTubeSearchView to set placeholders AND
-        // to re-render the playlists for highlighting.
-        openYouTubeSearchView();
+        youtubeSearchViewOverlay.style.display = 'flex';
+        
+        // Set the placeholders and content without focusing search input
+        if (currentSearchMode === 'isGd') {
+            youtubeSearchInput.placeholder = 'Enter is.gd code...';
+            youtubeSearchGoBtn.textContent = 'Load';
+            renderSavedPlaylists(); // This is still needed for highlighting
+        } else {
+            youtubeSearchInput.placeholder = 'Search YouTube...';
+            youtubeSearchGoBtn.textContent = 'Search';
+        }
+        
+        // Make container focusable and focus it (since we're returning to cards)
+        youtubeSearchResultsContainer.tabIndex = 0;
+        setTimeout(() => {
+            youtubeSearchResultsContainer.focus();
+        }, 100);
         
         // Force re-render of saved playlists to ensure highlighting is applied
         if (currentSearchMode === 'isGd' || currentSearchMode === 'is.gd') {
