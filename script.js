@@ -2931,6 +2931,11 @@ document.querySelector('.playlist-video-count-wrapper').addEventListener('click'
     const SCROLL_AMOUNT_DIALOG = 80; // A smaller scroll amount for lists in dialogs.
 
     function getActiveScrollTarget() {
+        // Check for volume popup first - highest priority for scroll wheel
+        if (playerVolumePopup.style.display === 'flex' || playerVolumePopup_playlist.style.display === 'flex') {
+            return 'volume'; // Special identifier for volume control
+        }
+        
         if (themeDialogOverlay.style.display === 'flex') return themeColorList;
         if (deletePromptOverlay.style.display === 'flex') return deleteLinksList;
         if (favoritesPromptOverlay.style.display === 'flex') return favoritesList;
@@ -2948,14 +2953,20 @@ document.querySelector('.playlist-video-count-wrapper').addEventListener('click'
 
     window.addEventListener('scrollUp', () => {
         const target = getActiveScrollTarget();
-        if (target) {
+        if (target === 'volume') {
+            // Increase volume by 5 when scrolling up
+            adjustVolumeByScroll(5);
+        } else if (target) {
             target.scrollBy({ top: -(target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG), behavior: 'smooth' });
         }
     });
 
     window.addEventListener('scrollDown', () => {
         const target = getActiveScrollTarget();
-        if (target) {
+        if (target === 'volume') {
+            // Decrease volume by 5 when scrolling down
+            adjustVolumeByScroll(-5);
+        } else if (target) {
             target.scrollBy({ top: (target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG), behavior: 'smooth' });
         }
     });
@@ -2989,6 +3000,49 @@ function togglePlayback() {
 }
 
 // Volume Control Functions
+function adjustVolumeByScroll(delta) {
+    // Get current volume from the active slider
+    const currentSlider = playerVolumePopup.style.display === 'flex' ? 
+                         playerVolumeSlider : playerVolumeSlider_playlist;
+    
+    const currentValue = parseInt(currentSlider.value);
+    const newVolume = Math.max(0, Math.min(100, currentValue + delta));
+    
+    // Update the volume using existing logic
+    currentVolume = newVolume;
+    
+    // Trigger haptic feedback and UI updates
+    triggerHaptic();
+    showPlayerUI(); // Reset the 4-second timer
+    
+    // Reset popup auto-hide timer
+    clearTimeout(volumeSliderTimeout);
+    volumeSliderTimeout = setTimeout(() => {
+        hideVolumePopup();
+    }, 3000);
+    
+    // Update player volume if available
+    if (player && typeof player.setVolume === 'function') {
+        try {
+            if (newVolume === 0) {
+                player.mute();
+                updateMuteButtonIcon(true);
+            } else {
+                player.unMute();
+                player.setVolume(newVolume);
+                updateMuteButtonIcon(false);
+                lastVolume = newVolume;
+            }
+            
+            // Update both sliders and displays to stay in sync
+            updateVolumeControls(newVolume);
+            saveVolumeToStorage(newVolume);
+        } catch (e) {
+            console.warn("Volume change blocked");
+        }
+    }
+}
+
 function showVolumePopup(mode) {
     triggerHaptic();
     showPlayerUI(); // Reset the 4-second timer
