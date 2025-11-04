@@ -1391,10 +1391,16 @@ function renderYouTubeResults(results, mode) {
         return;
     }
 
+    // Check if this is the first batch of results (not pagination)
+    const isFirstBatch = !youtubeSearchResultsContainer.querySelector('.youtube-result-card');
+
     const fragment = document.createDocumentFragment();
-    results.forEach(item => {
+    results.forEach((item, index) => {
         const itemCard = document.createElement('div');
         itemCard.className = 'card youtube-result-card';
+        
+        // Make cards focusable for scroll wheel navigation
+        itemCard.tabIndex = 0;
 
         if (mode === 'videos') {
             itemCard.dataset.videoLink = item.link; 
@@ -1417,6 +1423,11 @@ function renderYouTubeResults(results, mode) {
                 </div>`;
         }
         fragment.appendChild(itemCard);
+        
+        // Focus the first card only on initial load (not pagination)
+        if (isFirstBatch && index === 0) {
+            setTimeout(() => itemCard.focus(), 100); // Small delay to ensure DOM is ready
+        }
     });
     youtubeSearchResultsContainer.appendChild(fragment);
 }
