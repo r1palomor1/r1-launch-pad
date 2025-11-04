@@ -14,7 +14,7 @@
     --checkbox-border-color: #555;
     --button-font-color: #FFFFFF;
     --checkbox-checked-bg: var(--primary-color);
-    --actions-icon-size: 20px; /* ADDED: For main action icons */
+    --actions-icon-size: 18px; /* ADDED: For main action icons */
     --favorite-color: #FFD700;
 
     /* Dynamic Sizing Variables */
