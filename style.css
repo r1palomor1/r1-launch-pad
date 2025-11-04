@@ -1138,10 +1138,7 @@ button.rabbit-default:hover {
 
 #youtubeSearchResultsContainer {
     flex-grow: 1;
-    /* Set a fixed height to perfectly fit 3 cards (44px each) + spacing (8px * 2) */
-    height: calc((44px * 3) + (8px * 2));
-    min-height: auto; /* Override previous min-height */
-    max-height: none; /* Override previous max-height */
+    min-height: 200px;
     color: var(--icon-color);
     text-align: center;
     overflow-y: auto;
