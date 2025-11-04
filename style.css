@@ -1380,9 +1380,7 @@ button.rabbit-default:hover {
 #playerAudioOnlyBtn,
 #playerPrevBtn,
 #playerPrevBtn,
-#playerAudioOnlyBtn_playlist,
-#playerVolumeBtn, /* ⬅️ ADD THIS */
-#playerVolumeBtn_playlist /* ⬅️ ADD THIS */ {
+#playerAudioOnlyBtn_playlist {
     width: 38px;
     height: 38px;
 }
@@ -1392,9 +1390,7 @@ button.rabbit-default:hover {
 #playerAudioOnlyBtn svg,
 #playerPrevBtn svg,
 #playerPrevBtn svg,
-#playerAudioOnlyBtn_playlist svg,
-#playerVolumeBtn svg, /* ⬅️ ADD THIS */
-#playerVolumeBtn_playlist svg /* ⬅️ ADD THIS */ {
+#playerAudioOnlyBtn_playlist svg {
     width: 24px;
     height: 24px;
 }
@@ -1517,68 +1513,6 @@ button.rabbit-default:hover {
     opacity: 1;
 }
 /* ⬆️ END OF ADDED STYLES ⬆️ */
-
-/* ⬇️ --- ADDED FOR VOLUME CONTROL --- ⬇️ */
-
-/* 1. Style for the subtle volume icon (when controls are faded) */
-#playerVolumeIcon {
-    position: absolute;
-    top: max(2px, env(safe-area-inset-top));
-    /* Position it next to the playlist icon */
-    right: max(35px, env(safe-area-inset-right)); 
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1100;
-    opacity: 0; /* Hidden by default */
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-#playerVolumeIcon svg {
-    width: 20px;
-    height: 20px;
-    fill: var(--icon-color);
-    opacity: 0.6;
-}
-
-#playerVolumeIcon:hover svg {
-    fill: var(--primary-color);
-    opacity: 1;
-}
-
-/* 2. Style for the pop-up slider container */
-#volumeSliderContainer {
-    position: absolute;
-    /* Pop it up *above* the main control bar */
-    bottom: 100%; 
-    left: 10px;
-    right: 10px;
-    padding: 10px 15px;
-    /* Use a semi-transparent background to "float" */
-    background-color: rgba(0, 0, 0, 0.5); 
-    border-radius: 8px 8px 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-}
-
-/* 3. Style for the slider itself */
-#volumeSliderContainer input[type="range"] {
-    width: 100%;
-    margin: 0;
-    /* Make the slider track match the theme */
-    accent-color: var(--primary-color); 
-}
-/* ⬆️ --- END OF ADDED STYLES --- ⬆️ */
 
 /* ⬇️ *** ADD THESE NEW STYLES *** ⬇️ */
 #playerPlaylistBtn {
