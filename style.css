@@ -116,8 +116,7 @@ header {
     flex-grow: 1;
     display: flex;
     align-items: center;
-    /* Define the height of the search bar area for dynamic calculations */
-    --search-bar-height: 34px; 
+    padding-bottom: 4px; /* Add padding to create space for the controls below */
 }
 
 .search-input-wrapper input {
@@ -189,7 +188,7 @@ header {
 
 input[type="text"] {
     flex-grow: 1;
-    padding: 6px 8px; /* Increased vertical padding for better touch */
+    padding: 3px 8px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     background-color: var(--item-bg);
@@ -1125,8 +1124,8 @@ button.rabbit-default:hover {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 95vh; /* This is the crucial line */
-    overflow: hidden; /* Prevent this container from scrolling */
+    max-height: 95vh;
+    overflow-y: auto; /* REVERTED: Allow this container to scroll again */
 }
 
 .youtube-search-view .search-section {
@@ -1139,8 +1138,10 @@ button.rabbit-default:hover {
 
 #youtubeSearchResultsContainer {
     flex-grow: 1;
-    min-height: 200px;
-    max-height: 80vh;
+    /* Set a fixed height to perfectly fit 3 cards (44px each) + spacing (8px * 2) */
+    height: calc((44px * 3) + (8px * 2));
+    min-height: auto; /* Override previous min-height */
+    max-height: none; /* Override previous max-height */
     color: var(--icon-color);
     text-align: center;
     overflow-y: auto;
@@ -1213,8 +1214,8 @@ button.rabbit-default:hover {
 /* The label is the new clickable area */
 .radio-label {
     display: flex;
-    align-items: center; /* Vertically center the bubble and text */
-    padding: 2px 0; /* Add a little vertical space */
+    align-items: flex-start; /* <-- CHANGED FROM 'center' */
+    padding-top: 2px; /* <-- ADDED to align text with the top of the bubble */
     cursor: pointer;
     font-size: 0.8em;
     color: var(--icon-color);
@@ -1250,13 +1251,13 @@ button.rabbit-default:hover {
 
 .search-controls-row {
     position: sticky;
-    top: var(--search-bar-height); /* Use variable for dynamic positioning */
+    top: 37px; /* Height of the search input + gap */
     background-color: var(--bg-color);
     z-index: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 2px 0; /* Reduced vertical margin */
+    margin: 4px 0;
     padding-bottom: 4px; /* Add some space below */
 }
 
