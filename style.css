@@ -17,9 +17,9 @@
     
     /* === Icon & Container Size Variables === */
     --actions-landing-icon-size: 16px; /* Landing page action icons */
-    --actions-player-icon-size: 24px;  /* Player page action icons */
+    --actions-player-icon-size: 20px;  /* Player page action icons */
     --actions-landing-container-size: 32px; /* Landing page button containers */
-    --actions-player-container-size: 40px;  /* Player page button containers */
+    --actions-player-container-size: 38px;  /* Player page button containers */
     
     --favorite-color: #FFD700;
 
