@@ -3015,10 +3015,15 @@ function adjustVolumeByScroll(delta) {
     triggerHaptic();
     showPlayerUI(); // Reset the 4-second timer
     
-    // Reset popup auto-hide timer
+    // Reset popup auto-hide timer and keep UI visible while popup is open
     clearTimeout(volumeSliderTimeout);
+    clearTimeout(uiHideTimeout); // Prevent UI from hiding while volume popup is active
     volumeSliderTimeout = setTimeout(() => {
         hideVolumePopup();
+        // Only restart UI timer after popup closes
+        if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+            startUIHideTimer();
+        }
     }, 3000);
     
     // Update player volume if available
@@ -3059,10 +3064,15 @@ function showVolumePopup(mode) {
     popup.offsetHeight;
     popup.classList.add('show');
     
-    // Set auto-hide timer for popup (3 seconds)
+    // Clear UI timer while popup is active and set auto-hide timer for popup
+    clearTimeout(uiHideTimeout);
     clearTimeout(volumeSliderTimeout);
     volumeSliderTimeout = setTimeout(() => {
         hideVolumePopup();
+        // Restart UI timer after popup closes
+        if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+            startUIHideTimer();
+        }
     }, 3000);
 }
 
