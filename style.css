@@ -1442,32 +1442,12 @@ button.rabbit-default:hover {
     align-items: center;
 }
 
-#playerMuteBtn,
-#playerMuteBtn_playlist {
-    background: rgba(255, 255, 255, 0.05);
-    border: none;
-    color: var(--font-color);
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#playerMuteBtn:hover,
-#playerMuteBtn_playlist:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
+/* Volume button theming handled by .dialog-icon-btn class */
 #playerMuteBtn svg,
 #playerMuteBtn_playlist svg {
+    /* Let the parent .dialog-icon-btn styling handle the theming */
     width: 20px;
     height: 20px;
-    fill: currentColor;
 }
 
 /* Volume Popup Styling */

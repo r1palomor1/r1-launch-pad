@@ -2818,10 +2818,24 @@ playerVolumeSlider.addEventListener('input', handleVolumeChange);
 playerVolumeSlider_playlist.addEventListener('input', handleVolumeChange);
 
 // Additional events to ensure continuous timer reset during sliding
-playerVolumeSlider.addEventListener('mousemove', () => showPlayerUI());
-playerVolumeSlider_playlist.addEventListener('mousemove', () => showPlayerUI());
-playerVolumeSlider.addEventListener('touchmove', () => showPlayerUI());
-playerVolumeSlider_playlist.addEventListener('touchmove', () => showPlayerUI());
+playerVolumeSlider.addEventListener('mousemove', resetUITimer);
+playerVolumeSlider_playlist.addEventListener('mousemove', resetUITimer);
+playerVolumeSlider.addEventListener('touchmove', resetUITimer);
+playerVolumeSlider_playlist.addEventListener('touchmove', resetUITimer);
+
+// Helper function for fallback timer reset
+function resetUITimer() {
+    showPlayerUI();
+    // Additional fallback
+    if (typeof clearTimeout !== 'undefined' && typeof uiHideTimeout !== 'undefined') {
+        clearTimeout(uiHideTimeout);
+        uiHideTimeout = setTimeout(() => {
+            if (typeof hidePlayerUI === 'function') {
+                hidePlayerUI();
+            }
+        }, 4000);
+    }
+}
 
 // Click outside to hide volume popup
 document.addEventListener('click', (e) => {
@@ -3013,8 +3027,26 @@ function handleVolumeChange(e) {
     const newVolume = parseInt(e.target.value);
     currentVolume = newVolume;
     
-    // CRITICAL: Reset 4-second timer on EVERY slider movement
-    showPlayerUI();
+    // FALLBACK SOLUTION: Force timer reset multiple ways
+    triggerHaptic(); // Same as other controls
+    showPlayerUI(); // Reset the 4-second timer
+    
+    // ADDITIONAL FALLBACK: Clear and manually restart the UI timer
+    if (typeof clearTimeout !== 'undefined' && typeof uiHideTimeout !== 'undefined') {
+        clearTimeout(uiHideTimeout);
+        // Force UI to stay visible and restart timer
+        const playerControls = document.querySelector('.player-controls');
+        const playerVideoTitle = document.getElementById('playerVideoTitle');
+        if (playerControls) playerControls.style.opacity = '1';
+        if (playerVideoTitle) playerVideoTitle.style.opacity = '1';
+        
+        // Restart the 4-second timer manually
+        uiHideTimeout = setTimeout(() => {
+            if (typeof hidePlayerUI === 'function') {
+                hidePlayerUI();
+            }
+        }, 4000);
+    }
     
     // Reset popup auto-hide timer on every movement
     clearTimeout(volumeSliderTimeout);
