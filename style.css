@@ -116,6 +116,8 @@ header {
     flex-grow: 1;
     display: flex;
     align-items: center;
+    /* Define the height of the search bar area for dynamic calculations */
+    --search-bar-height: 34px; 
 }
 
 .search-input-wrapper input {
@@ -187,7 +189,7 @@ header {
 
 input[type="text"] {
     flex-grow: 1;
-    padding: 3px 8px;
+    padding: 6px 8px; /* Increased vertical padding for better touch */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     background-color: var(--item-bg);
@@ -1211,8 +1213,8 @@ button.rabbit-default:hover {
 /* The label is the new clickable area */
 .radio-label {
     display: flex;
-    align-items: flex-start; /* <-- CHANGED FROM 'center' */
-    padding-top: 2px; /* <-- ADDED to align text with the top of the bubble */
+    align-items: center; /* Vertically center the bubble and text */
+    padding: 2px 0; /* Add a little vertical space */
     cursor: pointer;
     font-size: 0.8em;
     color: var(--icon-color);
@@ -1248,13 +1250,13 @@ button.rabbit-default:hover {
 
 .search-controls-row {
     position: sticky;
-    top: 37px; /* Height of the search input + gap */
+    top: var(--search-bar-height); /* Use variable for dynamic positioning */
     background-color: var(--bg-color);
     z-index: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 4px 0;
+    margin: 2px 0; /* Reduced vertical margin */
     padding-bottom: 4px; /* Add some space below */
 }
 
