@@ -2716,12 +2716,18 @@ searchModeIsGdBtn.addEventListener('click', () => {
     currentSearchMode = 'is.gd';
     resetYouTubeSearch();
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
-    renderSavedPlaylists(); // Show saved playlists
     youtubeSearchGoBtn.textContent = 'Load';
     
-    // Scroll to top to show search bar but keep focus on cards
+    // First scroll to top to show search bar
     youtubeSearchView.scrollTop = 0;
-    setTimeout(() => youtubeSearchResultsContainer.focus(), 100);
+    
+    // Then render playlists and focus on cards
+    renderSavedPlaylists(); // Show saved playlists
+    setTimeout(() => {
+        // Ensure search bar stays visible after rendering
+        youtubeSearchView.scrollTop = 0;
+        youtubeSearchResultsContainer.focus();
+    }, 100);
 
     // --- THIS IS THE FIX ---
     // Check both the main variable AND our new backup flag.
