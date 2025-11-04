@@ -2949,6 +2949,7 @@ document.querySelector('.playlist-video-count-wrapper').addEventListener('click'
         if (deletePromptOverlay.style.display === 'flex') return deleteLinksList;
         if (favoritesPromptOverlay.style.display === 'flex') return favoritesList;
         if (youtubeSearchViewOverlay.style.display === 'flex') return youtubeSearchResultsContainer;
+        if (playlistOverlay.style.display !== 'none') return playlistVideoList;
         
         // Check if we are on the main view and not in input mode or another overlay.
         const onMainView = internalPlayerOverlay.style.display === 'none' &&
