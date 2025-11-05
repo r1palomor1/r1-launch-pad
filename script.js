@@ -1766,10 +1766,10 @@ async function handleAddFromQuery(description, url) {
     async function init() {
         await loadLinksFromR1();
         renderLinks();
-        applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
+        await applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
         
         // Initialize volume controls
-        currentVolume = loadVolumeFromStorage();
+        currentVolume = await loadVolumeFromStorage(); // <-- ADD AWAIT
         lastVolume = currentVolume;
         updateVolumeControls(currentVolume);
         updateMuteButtonIcon(false);
@@ -3354,36 +3354,40 @@ function updateSliderFill(slider) {
     slider.style.background = `linear-gradient(to top, rgba(255, 255, 255, 0.1) 0%, var(--primary-color) ${percentage}%)`;
 }
 
-function saveVolumeToStorage(volume) {
-    // Save to localStorage
-    localStorage.setItem(VOLUME_STORAGE_KEY, volume.toString());
+async function saveVolumeToStorage(volume) {
+    const volumeString = volume.toString();
+    
+    // Save to localStorage (as fallback)
+    localStorage.setItem(VOLUME_STORAGE_KEY, volumeString);
     
     // Save to R1 creation storage (if available)
     try {
-        if (typeof saveToR1 === 'function') {
-            saveToR1('volume', volume);
+        if (window.creationStorage && window.creationStorage.plain) {
+            await window.creationStorage.plain.set(VOLUME_STORAGE_KEY, volumeString);
         }
     } catch (e) {
         console.log('R1 storage not available, using localStorage only');
     }
 }
 
-function loadVolumeFromStorage() {
+async function loadVolumeFromStorage() {
+    let storedVolume = null;
+    
+    // Try R1 creation storage first
     try {
-        // Try R1 creation storage first
-        if (typeof loadFromR1 === 'function') {
-            const r1Volume = loadFromR1('volume');
-            if (r1Volume !== null && r1Volume !== undefined) {
-                return parseInt(r1Volume);
-            }
+        if (window.creationStorage && window.creationStorage.plain) {
+            storedVolume = await window.creationStorage.plain.get(VOLUME_STORAGE_KEY);
         }
     } catch (e) {
         console.log('R1 storage not available, using localStorage');
     }
     
-    // Fallback to localStorage
-    const stored = localStorage.getItem(VOLUME_STORAGE_KEY);
-    return stored ? parseInt(stored) : 50; // Default to 50%
+    // Fallback to localStorage if R1 storage is empty or fails
+    if (!storedVolume) {
+        storedVolume = localStorage.getItem(VOLUME_STORAGE_KEY);
+    }
+    
+    return storedVolume ? parseInt(storedVolume) : 50; // Default to 50%
 }
 
 function onPlayerReady(event) {
