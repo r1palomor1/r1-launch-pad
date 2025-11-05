@@ -94,6 +94,11 @@ const youtubeSearchResultsContainer = document.getElementById('youtubeSearchResu
 const youtubeSearchView = document.getElementById('youtubeSearchView');
 const youtubeSearchLoader = document.getElementById('youtubeSearchLoader');
 const clearYoutubeSearchBtn = document.getElementById('clearYoutubeSearchBtn');
+// === NEW: Add button and state for collapsing header ===
+const showSearchHeaderBtn = document.getElementById('showSearchHeaderBtn');
+let isSearchHeaderCollapsed = false;
+let lastSearchScrollTop = 0;
+// === END OF NEW ===
 const SUN_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.55 4.95l1.414-1.414L7.05 5.636 5.636 7.05 3.55 4.95zm12.728 12.728l1.414-1.414L19.778 18.364l-1.414 1.414-2.086-2.086zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.95 20.45l-1.414-1.414L5.636 17l1.414 1.414-2.086 2.036zM18.364 7.05l1.414-1.414L21.864 7.05l-1.414 1.414-2.086-2.086z"/></svg>`;
 const MOON_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 8 8 .5.5 0 0 1 .5.5v.5a10 10 0 1 1 0-20 .5.5 0 0 1 .5.5V4a8 8 0 0 0-8 8z"/></svg>`;
 
@@ -1247,6 +1252,10 @@ function resetYouTubeSearch() {
 function openYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'flex';
     
+    // === NEW: Ensure header is visible on open ===
+    toggleSearchHeader(true);
+    // === END OF NEW ===
+
     // This function now just sets the state, it doesn't reset.
     if (currentSearchMode === 'isGd') {
         youtubeSearchInput.placeholder = 'Enter is.gd code...';
@@ -1538,6 +1547,27 @@ window.onPluginMessage = async (e) => {
     }
 };
 
+// === NEW: Core function to control header visibility ===
+function toggleSearchHeader(show) {
+    if (show) {
+        // Show the header
+        youtubeSearchView.classList.remove('header-collapsed');
+        showSearchHeaderBtn.style.display = 'none';
+        showSearchHeaderBtn.classList.remove('pulsating');
+        isSearchHeaderCollapsed = false;
+        // After showing, reset scroll top to prevent immediate re-hide
+        lastSearchScrollTop = 0; 
+        youtubeSearchView.scrollTop = 0; // Scroll to top
+    } else {
+        // Hide the header
+        if (isSearchHeaderCollapsed) return; // Already hidden
+        youtubeSearchView.classList.add('header-collapsed');
+        showSearchHeaderBtn.style.display = 'block';
+        showSearchHeaderBtn.classList.add('pulsating');
+        isSearchHeaderCollapsed = true;
+    }
+}
+// === END OF NEW FUNCTION ===
 
 youtubeSearchView.addEventListener('scroll', () => {
     if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
@@ -1552,6 +1582,34 @@ youtubeSearchView.addEventListener('scroll', () => {
 
 youtubeSearchInput.addEventListener('focus', () => youtubeSearchViewOverlay.classList.add('input-focused'));
 youtubeSearchInput.addEventListener('blur', () => youtubeSearchViewOverlay.classList.remove('input-focused'));
+
+// === NEW: Listener for the expand icon ===
+showSearchHeaderBtn.addEventListener('click', () => {
+    toggleSearchHeader(true); // Force-show the header
+    youtubeSearchInput.focus(); // Focus the input for the user
+});
+
+// === NEW: Scroll listener to hide the header ===
+youtubeSearchView.addEventListener('scroll', () => {
+    // This listener is separate from the infinite scroll one
+    const scrollTop = youtubeSearchView.scrollTop;
+    
+    // Check if scrolling up (flicking up to see more)
+    // We add a 5px buffer to prevent accidental hides
+    if (scrollTop > lastSearchScrollTop && scrollTop > 5) {
+        if (!isSearchHeaderCollapsed) {
+            toggleSearchHeader(false); // Hide header
+        }
+    }
+    
+    // Store current scroll position for next event
+    // Only update if not at the very top
+    if (scrollTop > 0) {
+        lastSearchScrollTop = scrollTop;
+    } else {
+        lastSearchScrollTop = 0; // Reset at top
+    }
+});
 
 function createFormHTML(linkData = {}, isForEditing = false) {
     const { description = '', url = 'https://', category = 'Other' } = linkData;
@@ -2702,6 +2760,7 @@ clearYoutubeSearchBtn.addEventListener('click', () => {
 searchModeVideosBtn.addEventListener('click', () => {
     currentSearchMode = 'videos';
     resetYouTubeSearch(); // <-- THIS IS THE FIX
+    toggleSearchHeader(true); // === NEW: Ensure header is visible ===
     youtubeSearchInput.placeholder = 'Search YouTube...';
     youtubeSearchGoBtn.textContent = 'Search';
     
@@ -2715,6 +2774,7 @@ searchModeVideosBtn.addEventListener('click', () => {
 searchModeIsGdBtn.addEventListener('click', () => {
     currentSearchMode = 'is.gd';
     resetYouTubeSearch();
+    toggleSearchHeader(true); // === NEW: Ensure header is visible ===
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     youtubeSearchGoBtn.textContent = 'Load';
 
