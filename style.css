@@ -1137,8 +1137,9 @@ button.rabbit-default:hover {
 }
 
 #youtubeSearchResultsContainer {
-    flex-grow: 1;
-    min-height: 200px;
+    /* flex-grow: 1; */ /* <-- REMOVED */
+    height: 148px;     /* <-- SET FIXED HEIGHT */
+    min-height: 148px; /* <-- SET FIXED HEIGHT */
     color: var(--icon-color);
     text-align: center;
     overflow-y: auto;
