@@ -1785,6 +1785,37 @@ button.rabbit-default:hover {
     overflow: hidden; /* New: Child will handle scrolling */
 }
 
+/* === NEW STYLES FOR PLAYLIST HEADER ICON === */
+#showPlaylistHeaderBtn {
+    position: absolute;
+    /* The parent list has 10px padding */
+    top: 10px; 
+    left: 10px;
+    z-index: 5; 
+    
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--icon-color);
+    opacity: 0.7;
+    
+    display: none; /* Hidden by default */
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+#showPlaylistHeaderBtn:hover {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+#showPlaylistHeaderBtn.pulsating {
+    animation: simplePulse 1.6s ease-in-out infinite;
+}
+/* === END OF NEW STYLES === */
+
 .playlist-header {
     padding: 6px 0 4px 0;
     /* REMOVED border-bottom */

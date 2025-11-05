@@ -72,6 +72,12 @@ const playlistVideoList = document.getElementById('playlistVideoList');
 const playlistPlayAllBtn = document.getElementById('playlistPlayAllBtn');
 const playlistShuffleBtn = document.getElementById('playlistShuffleBtn');
 const closePlaylistBtn = document.getElementById('closePlaylistBtn');
+// === NEW: Add button, header, and state for playlist ===
+const showPlaylistHeaderBtn = document.getElementById('showPlaylistHeaderBtn');
+const playlistHeader = document.querySelector('.playlist-header');
+let isPlaylistHeaderCollapsed = false;
+let lastPlaylistScrollTop = 0;
+// === END OF NEW ===
 // Legacy references to prevent errors in existing code
 const playerShuffleBtn = { classList: { add: () => {}, remove: () => {} } }; // Mock object
 const playerPlayAllBtn = { classList: { add: () => {}, remove: () => {} } }; // Mock object
@@ -1302,6 +1308,7 @@ function openPlaylistOverlay() {
         return;
     }
     
+    togglePlaylistHeader(true); // === NEW: Ensure header is visible ===
     playlistOverlay.style.display = 'flex';
     triggerHaptic();
     populatePlaylistOverlay();
@@ -1314,6 +1321,7 @@ function openPlaylistOverlay() {
 }
 
 function closePlaylistOverlay() {
+    togglePlaylistHeader(true); // === NEW: Reset header on close ===
     playlistOverlay.style.display = 'none';
     triggerHaptic();
 }
@@ -1569,6 +1577,28 @@ function toggleSearchHeader(show) {
 }
 // === END OF NEW FUNCTION ===
 
+// === NEW: Core function to control PLAYLIST header visibility ===
+function togglePlaylistHeader(show) {
+    if (show) {
+        // Show the header
+        playlistVideoList.classList.remove('playlist-header-collapsed');
+        showPlaylistHeaderBtn.style.display = 'none';
+        showPlaylistHeaderBtn.classList.remove('pulsating');
+        isPlaylistHeaderCollapsed = false;
+        // After showing, reset scroll top to prevent immediate re-hide
+        lastPlaylistScrollTop = 0;
+        playlistVideoList.scrollTop = 0; // Scroll to top
+    } else {
+        // Hide the header
+        if (isPlaylistHeaderCollapsed) return; // Already hidden
+        playlistVideoList.classList.add('playlist-header-collapsed');
+        showPlaylistHeaderBtn.style.display = 'block';
+        showPlaylistHeaderBtn.classList.add('pulsating');
+        isPlaylistHeaderCollapsed = true;
+    }
+}
+// === END OF NEW FUNCTION ===
+
 youtubeSearchView.addEventListener('scroll', () => {
     if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
 
@@ -1608,6 +1638,30 @@ youtubeSearchView.addEventListener('scroll', () => {
         lastSearchScrollTop = scrollTop;
     } else {
         lastSearchScrollTop = 0; // Reset at top
+    }
+});
+
+// === NEW: Listener for the PLAYLIST expand icon ===
+showPlaylistHeaderBtn.addEventListener('click', () => {
+    togglePlaylistHeader(true); // Force-show the header
+});
+
+// === NEW: Scroll listener to hide the PLAYLIST header ===
+playlistVideoList.addEventListener('scroll', () => {
+    const scrollTop = playlistVideoList.scrollTop;
+    
+    // Check if scrolling up (flicking up to see more)
+    if (scrollTop > lastPlaylistScrollTop && scrollTop > 5) {
+        if (!isPlaylistHeaderCollapsed) {
+            togglePlaylistHeader(false); // Hide header
+        }
+    }
+    
+    // Store current scroll position for next event
+    if (scrollTop > 0) {
+        lastPlaylistScrollTop = scrollTop;
+    } else {
+        lastPlaylistScrollTop = 0; // Reset at top
     }
 });
 
