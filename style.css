@@ -1124,7 +1124,7 @@ button.rabbit-default:hover {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    max-height: 95vh;
+    max-height: 97vh;
     overflow-y: auto; /* REVERTED: Allow this container to scroll again */
 }
 
