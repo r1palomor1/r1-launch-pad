@@ -91,6 +91,7 @@ const playerVolumeSlider_playlist = document.getElementById('playerVolumeSlider_
 const playerVolumePopup = document.getElementById('playerVolumePopup');
 const playerVolumePopup_playlist = document.getElementById('playerVolumePopup_playlist');
 const searchModeVideosBtn = document.getElementById('searchModeVideos');
+const searchModePlaylistsBtn = document.getElementById('searchModePlaylists'); // <-- ADD THIS
 const searchModeIsGdBtn = document.getElementById('searchModeIsGd');
 const isGdInfoBtn = document.getElementById('isGdInfoBtn');
 const youtubeSearchViewOverlay = document.getElementById('youtubeSearchViewOverlay');
@@ -127,6 +128,7 @@ const VOLUME_STORAGE_KEY = 'r1VolumeLevel';
 let isAudioOnly = false;
 let isShuffleActive = false; // Add this line
 let youtubeNextPageUrl = null;
+let playlistNextPageToken = null; // <-- ADD THIS
 let isFetchingYoutubeResults = false;
 let uiHideTimeout = null;
 let isUIVisible = true;
@@ -1516,6 +1518,54 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
     }
 }
 
+// <-- ADD THIS ENTIRE NEW FUNCTION -->
+async function handlePlaylistSearch(query, continuationToken = null) {
+    if (isFetchingYoutubeResults) return;
+    isFetchingYoutubeResults = true;
+
+    if (!continuationToken) { // New search
+        youtubeSearchResultsContainer.innerHTML = '<p>Searching...</p>';
+        playlistNextPageToken = null;
+    } else { // Pagination
+        youtubeSearchLoader.style.display = 'block';
+    }
+
+    // Build the new API URL
+    let apiUrl = `https://r1-launch-pad.vercel.app/api/fetchPlaylist?`;
+    if (continuationToken) {
+        apiUrl += `continuation=${encodeURIComponent(continuationToken)}`;
+    } else if (query) {
+        apiUrl += `query=${encodeURIComponent(query)}`;
+    } else {
+        isFetchingYoutubeResults = false;
+        return;
+    }
+
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('API request failed');
+        
+        const data = await response.json();
+
+        if (!continuationToken) { // Clear "Searching..." on new search
+            youtubeSearchResultsContainer.innerHTML = '';
+        }
+
+        if (data.playlist_results && data.playlist_results.length > 0) {
+            // Your existing renderer already knows how to handle 'playlists' mode!
+            renderYouTubeResults(data.playlist_results, 'playlists'); 
+            playlistNextPageToken = data.continuation || null;
+        } else if (!continuationToken) {
+            youtubeSearchResultsContainer.innerHTML = '<p>No playlists found.</p>';
+        }
+    } catch (err) {
+        console.error("Error fetching playlists:", err);
+        youtubeSearchResultsContainer.innerHTML = '<p>Error loading results.</p>';
+    } finally {
+        isFetchingYoutubeResults = false;
+        youtubeSearchLoader.style.display = 'none';
+    }
+}
 
 // ✅  Option B: Auto-scan for Playlists
 window.onPluginMessage = async (e) => {
@@ -1600,17 +1650,6 @@ function togglePlaylistHeader(show) {
 }
 // === END OF NEW FUNCTION ===
 
-youtubeSearchView.addEventListener('scroll', () => {
-    if (isFetchingYoutubeResults || !youtubeNextPageUrl) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = youtubeSearchView;
-
-    if (scrollTop + clientHeight >= scrollHeight - 50) {
-        const query = youtubeSearchInput.value.trim();
-        handleYouTubeSearch(query, youtubeNextPageUrl);
-    }
-});
-
 youtubeSearchInput.addEventListener('focus', () => youtubeSearchViewOverlay.classList.add('input-focused'));
 youtubeSearchInput.addEventListener('blur', () => youtubeSearchViewOverlay.classList.remove('input-focused'));
 
@@ -1620,11 +1659,12 @@ showSearchHeaderBtn.addEventListener('click', () => {
     youtubeSearchInput.focus(); // Focus the input for the user
 });
 
-// === NEW: Scroll listener to hide the header ===
+// === NEW: Scroll listener to hide the header AND handle pagination ===
 youtubeSearchView.addEventListener('scroll', () => {
-    // This listener is separate from the infinite scroll one
+    // This listener handles BOTH header hiding and infinite scroll
     const scrollTop = youtubeSearchView.scrollTop;
     
+    // --- Logic for Hiding Header ---
     // Check if scrolling up (flicking up to see more)
     // We add a 5px buffer to prevent accidental hides
     if (scrollTop > lastSearchScrollTop && scrollTop > 5) {
@@ -1639,6 +1679,22 @@ youtubeSearchView.addEventListener('scroll', () => {
         lastSearchScrollTop = scrollTop;
     } else {
         lastSearchScrollTop = 0; // Reset at top
+    }
+
+    // --- Logic for Infinite Scroll Pagination ---
+    if (isFetchingYoutubeResults) return; // Universal guard
+
+    const { scrollHeight, clientHeight } = youtubeSearchView;
+    if (scrollTop + clientHeight < scrollHeight - 50) return; // Not at bottom
+
+    // Check which mode we're in and which token we have
+    if (currentSearchMode === 'videos' && youtubeNextPageUrl) {
+        const query = youtubeSearchInput.value.trim();
+        handleYouTubeSearch(query, youtubeNextPageUrl);
+    
+    } else if (currentSearchMode === 'playlists' && playlistNextPageToken) {
+        const query = youtubeSearchInput.value.trim();
+        handlePlaylistSearch(query, playlistNextPageToken); 
     }
 });
 
@@ -2738,6 +2794,10 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
     
         if (currentSearchMode === 'videos') {
             triggerYoutubeSearch();
+
+        } else if (currentSearchMode === 'playlists') { // <-- ADD THIS BLOCK
+            handlePlaylistSearch(query);
+
         } else if (currentSearchMode === 'is.gd') {
             youtubeSearchResultsContainer.innerHTML = '<p>Resolving link...</p>';
             const fullUrl = `https://is.gd/${query}`;
@@ -2815,6 +2875,7 @@ clearYoutubeSearchBtn.addEventListener('click', () => {
 searchModeVideosBtn.addEventListener('click', () => {
     currentSearchMode = 'videos';
     resetYouTubeSearch(); // <-- THIS IS THE FIX
+    playlistNextPageToken = null; // <-- ADD THIS
     toggleSearchHeader(true); // === NEW: Ensure header is visible ===
     youtubeSearchInput.placeholder = 'Search YouTube...';
     youtubeSearchGoBtn.textContent = 'Search';
@@ -2826,9 +2887,20 @@ searchModeVideosBtn.addEventListener('click', () => {
     }
 });
 
+// <-- ADD THIS ENTIRE NEW LISTENER -->
+searchModePlaylistsBtn.addEventListener('click', () => {
+    currentSearchMode = 'playlists';
+    resetYouTubeSearch(); 
+    playlistNextPageToken = null; 
+    toggleSearchHeader(true);
+    youtubeSearchInput.placeholder = 'Search Playlists...';
+    youtubeSearchGoBtn.textContent = 'Search';
+});
+
 searchModeIsGdBtn.addEventListener('click', () => {
     currentSearchMode = 'is.gd';
     resetYouTubeSearch();
+    playlistNextPageToken = null; // <-- ADD THIS
     toggleSearchHeader(true); // === NEW: Ensure header is visible ===
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     youtubeSearchGoBtn.textContent = 'Load';
