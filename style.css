@@ -1137,12 +1137,11 @@ button.rabbit-default:hover {
 }
 
 #youtubeSearchResultsContainer {
-    /* flex-grow: 1; */ /* <-- REMOVED */
-    height: 148px;     /* <-- SET FIXED HEIGHT */
-    min-height: 148px; /* <-- SET FIXED HEIGHT */
+    /* height: 148px; */     /* <-- REMOVED */
+    min-height: 148px; /* <-- KEPT */
     color: var(--icon-color);
     text-align: center;
-    overflow-y: auto;
+    /* overflow-y: auto; */ /* <-- REMOVED */
     outline: none;
 }
 
