@@ -3371,23 +3371,31 @@ async function saveVolumeToStorage(volume) {
 }
 
 async function loadVolumeFromStorage() {
-    let storedVolume = null;
+    let volumeValue = null; // Use a clearer variable name
     
     // Try R1 creation storage first
     try {
         if (window.creationStorage && window.creationStorage.plain) {
-            storedVolume = await window.creationStorage.plain.get(VOLUME_STORAGE_KEY);
+            const r1Result = await window.creationStorage.plain.get(VOLUME_STORAGE_KEY);
+            
+            // === THIS IS THE FIX ===
+            // R1 storage returns an object { value: "75" }, not just "75".
+            // We must check for the .value property.
+            if (r1Result?.value) {
+                volumeValue = r1Result.value;
+            }
         }
     } catch (e) {
         console.log('R1 storage not available, using localStorage');
     }
     
     // Fallback to localStorage if R1 storage is empty or fails
-    if (!storedVolume) {
-        storedVolume = localStorage.getItem(VOLUME_STORAGE_KEY);
+    if (!volumeValue) {
+        volumeValue = localStorage.getItem(VOLUME_STORAGE_KEY);
     }
     
-    return storedVolume ? parseInt(storedVolume) : 50; // Default to 50%
+    // Use 40 as the new default, per your suggestion
+    return volumeValue ? parseInt(volumeValue) : 40;
 }
 
 function onPlayerReady(event) {
