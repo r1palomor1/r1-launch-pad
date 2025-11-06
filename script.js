@@ -1663,10 +1663,14 @@ youtubeSearchInput.addEventListener('focus', () => {
 
 youtubeSearchInput.addEventListener('blur', () => {
     youtubeSearchViewOverlay.classList.remove('input-focused');
-    // Hide action buttons when input loses focus
+    // Hide action buttons when input loses focus (but allow a small delay for click events)
     const actionButtons = document.querySelector('.search-controls-actions');
-    if (actionButtons) actionButtons.style.opacity = '0';
-    if (actionButtons) actionButtons.style.pointerEvents = 'none';
+    setTimeout(() => {
+        if (actionButtons && document.activeElement !== youtubeSearchInput) {
+            actionButtons.style.opacity = '0';
+            actionButtons.style.pointerEvents = 'none';
+        }
+    }, 100);
 });
 
 // === NEW: Listener for the expand icon ===
@@ -2879,6 +2883,14 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
 youtubeSearchInput.addEventListener('input', () => {
         clearYoutubeSearchBtn.style.display = youtubeSearchInput.value.length > 0 ? 'flex' : 'none';
 });
+
+// === NEW: Keep buttons visible during click (prevent blur from hiding them) ===
+const actionButtons = document.querySelector('.search-controls-actions');
+if (actionButtons) {
+    actionButtons.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Prevent blur event from firing
+    });
+}
 
 clearYoutubeSearchBtn.addEventListener('click', () => {
         youtubeSearchInput.value = '';
