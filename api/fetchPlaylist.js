@@ -2,19 +2,22 @@ import { Innertube } from 'youtubei.js';
 
 // Helper function to format playlist search results for the frontend
 function formatPlaylistResults(data) {
-    // 1. Get the array of results
+    // 1. Get the array of results from the correct property
     const results = data.results?.map(item => {
         
         // 2. We only care about items that are Playlists
         if (item.content_type !== 'PLAYLIST') return null;
 
-        // 3. Extract the data using the exact paths from your JSON dump
+        // 3. Extract the data using the exact paths, but with MAXIMUM safety
         try {
             const playlist_id = item.content_id;
             const title = item.metadata?.title?.text;
-            const thumbnail = item.content_image?.primary_thumbnail?.image[0]?.url;
-            // The video count is nested deep in the 'overlays' array
-            const video_count = item.content_image?.overlays[0]?.badges[0]?.text || 'N/A';
+
+            // --- THIS IS THE FIX ---
+            // We add more '?' to safely handle empty or null arrays
+            const thumbnail = item.content_image?.primary_thumbnail?.image?.[0]?.url;
+            const video_count = item.content_image?.overlays?.[0]?.badges?.[0]?.text || 'N/A';
+            // --- END OF FIX ---
 
             // 4. If we have the essentials, return the object
             if (playlist_id && title && thumbnail) {
@@ -26,13 +29,13 @@ function formatPlaylistResults(data) {
                 };
             }
         } catch (e) {
-            // Log any parsing errors but don't crash
+            // Log any other weird errors but don't crash
             console.error("Failed to parse an item:", e.message);
             return null;
         }
         
         return null;
-    }).filter(Boolean); // 5. Filter out all the nulls (videos, etc.)
+    }).filter(Boolean); // 5. Filter out all the nulls (videos, bad items)
 
     return {
         playlist_results: results || [],
