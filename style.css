@@ -1233,8 +1233,8 @@ button.rabbit-default:hover {
 /* Main container for the radio options */
 .search-mode-selector {
     display: flex;
-    justify-content: flex-start; /* <-- CHANGED 'center' to 'flex-start' */
-    gap: 5px;
+    justify-content: center;
+    gap: 10px;
     margin: 0;
 }
 
@@ -1290,8 +1290,8 @@ button.rabbit-default:hover {
 
 .search-controls-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
+    justify-content: center;
+    gap: 65px;
     width: 100%;
 }
 
