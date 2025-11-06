@@ -223,11 +223,26 @@ function showGenericPrompt({ message, buttons }) {
             }
             button.onclick = () => {
                 genericPromptOverlay.style.display = 'none';
+                // === FIX: Restore search view visibility when alert closes ===
+                if (youtubeSearchViewOverlay.style.display === 'none') {
+                    youtubeSearchViewOverlay.style.display = 'flex';
+                }
+                // === END FIX ===
                 resolve(btnConfig.value);
             };
             genericPromptActions.appendChild(button);
         });
         genericPromptActions.style.justifyContent = buttons.length === 1 ? 'center' : 'space-between';
+        
+        // === FIX: Hide search view and blur input when showing alert to prevent keyboard ===
+        if (youtubeSearchViewOverlay && youtubeSearchViewOverlay.style.display === 'flex') {
+            youtubeSearchViewOverlay.style.display = 'none';
+            if (youtubeSearchInput) {
+                youtubeSearchInput.blur();
+            }
+        }
+        // === END FIX ===
+        
         genericPromptOverlay.style.display = 'flex';
     });
 }
@@ -2907,8 +2922,17 @@ clearYoutubeSearchBtn.addEventListener('click', () => {
 // --- ⬇️ MODIFIED: Radio Button Logic ⬇️ ---
 searchModeVideosBtn.addEventListener('click', () => {
     currentSearchMode = 'videos';
-    // === CHANGED: Don't reset search, just change mode ===
+    // === FIX: Clear playlist cards when switching to videos mode ===
+    // Keep video search results, but clear playlist results to prevent overlap
     playlistNextPageToken = null; // Clear playlist pagination
+    // Remove only playlist-type cards, not video cards
+    youtubeSearchResultsContainer.querySelectorAll('.youtube-result-card').forEach(card => {
+        // If it has no video ID or looks like a playlist card, remove it
+        if (!card.dataset.videoId && card.dataset.playlistId) {
+            card.remove();
+        }
+    });
+    // === END FIX ===
     toggleSearchHeader(true); // Ensure header is visible
     youtubeSearchInput.placeholder = 'Search YouTube...';
     youtubeSearchGoBtn.textContent = 'Search';
@@ -2923,8 +2947,17 @@ searchModeVideosBtn.addEventListener('click', () => {
 // <-- ADD THIS ENTIRE NEW LISTENER -->
 searchModePlaylistsBtn.addEventListener('click', () => {
     currentSearchMode = 'playlists';
-    // === CHANGED: Don't reset search, just change mode ===
+    // === FIX: Clear video cards when switching to playlists mode ===
+    // Keep playlist search results, but clear video results to prevent overlap
     youtubeNextPageUrl = null; // Clear video pagination
+    // Remove only video-type cards, not playlist cards
+    youtubeSearchResultsContainer.querySelectorAll('.youtube-result-card').forEach(card => {
+        // If it has a video ID, it's a video card - remove it
+        if (card.dataset.videoId && !card.dataset.playlistId) {
+            card.remove();
+        }
+    });
+    // === END FIX ===
     toggleSearchHeader(true);
     youtubeSearchInput.placeholder = 'Search Playlists...';
     youtubeSearchGoBtn.textContent = 'Search';
@@ -2932,9 +2965,10 @@ searchModePlaylistsBtn.addEventListener('click', () => {
 
 searchModeIsGdBtn.addEventListener('click', () => {
     currentSearchMode = 'is.gd';
-    // === CHANGED: Only reset for is.gd mode ===
-    resetYouTubeSearch(); // Clear search and results for is.gd
+    // === FIX: Clear ALL search results when switching to is.gd mode ===
+    resetYouTubeSearch(); // Clear search and ALL results for is.gd
     playlistNextPageToken = null;
+    // === END FIX ===
     toggleSearchHeader(true); // Ensure header is visible
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     youtubeSearchGoBtn.textContent = 'Load';
