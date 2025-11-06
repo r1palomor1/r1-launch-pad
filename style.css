@@ -1293,6 +1293,16 @@ button.rabbit-default:hover {
     justify-content: center;
     gap: 65px;
     width: 100%;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* Show buttons when input is focused */
+.youtube-search-view .search-input-wrapper input:focus ~ .search-controls-row .search-controls-actions,
+#youtubeSearchInput:focus ~ .search-controls-row .search-controls-actions {
+    opacity: 1;
+    pointer-events: all;
 }
 
 /* === NEW: Styles for collapsing headers === */

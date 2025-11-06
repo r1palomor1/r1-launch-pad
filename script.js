@@ -135,6 +135,7 @@ let isUIVisible = true;
 let tapHintTimeout = null;
 let isIntentionalPause = false; // <-- ADD THIS FLAG
 let currentlyPlayingPlaylistId = null; // <-- ADD THIS
+let isVideoLoadedFromPlaylistCard = false; // <-- Flag to prevent onPlayerReady from overriding intentional plays
 
 // --- ⬇️ ADDED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
 let currentPlaylist = [];       // The active playlist (can be shuffled)
@@ -781,6 +782,9 @@ function loadVideoFromPlaylist(video) {
     playerVideoTitle.textContent = video.title;
     
     // ⬇️ *** THIS IS THE FIX *** ⬇️
+    // Set flag to indicate we're intentionally loading a video
+    isVideoLoadedFromPlaylistCard = true;
+    
     // We load the new video ID and immediately tell the player
     // to play it. This ensures both commands are sent.
     if (player) {
@@ -1276,11 +1280,8 @@ function openYouTubeSearchView() {
         // We NO LONGER clear the input or results here.
     }
     
-    // Make container focusable but don't focus it initially - focus search input instead
+    // Make container focusable but don't focus it initially
     youtubeSearchResultsContainer.tabIndex = 0;
-    setTimeout(() => {
-        youtubeSearchInput.focus();
-    }, 100);
 }
 
 function closeYouTubeSearchView() {
@@ -1652,8 +1653,21 @@ function togglePlaylistHeader(show) {
 }
 // === END OF NEW FUNCTION ===
 
-youtubeSearchInput.addEventListener('focus', () => youtubeSearchViewOverlay.classList.add('input-focused'));
-youtubeSearchInput.addEventListener('blur', () => youtubeSearchViewOverlay.classList.remove('input-focused'));
+youtubeSearchInput.addEventListener('focus', () => {
+    youtubeSearchViewOverlay.classList.add('input-focused');
+    // Show action buttons when input has focus
+    const actionButtons = document.querySelector('.search-controls-actions');
+    if (actionButtons) actionButtons.style.opacity = '1';
+    if (actionButtons) actionButtons.style.pointerEvents = 'all';
+});
+
+youtubeSearchInput.addEventListener('blur', () => {
+    youtubeSearchViewOverlay.classList.remove('input-focused');
+    // Hide action buttons when input loses focus
+    const actionButtons = document.querySelector('.search-controls-actions');
+    if (actionButtons) actionButtons.style.opacity = '0';
+    if (actionButtons) actionButtons.style.pointerEvents = 'none';
+});
 
 // === NEW: Listener for the expand icon ===
 showSearchHeaderBtn.addEventListener('click', () => {
@@ -3487,12 +3501,13 @@ function onPlayerReady(event) {
     
     // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
     if (isManualPlaylist) {
-        // The player is ready and the fetch is complete.
-        // We CUE the first video, which loads it without playing.
-        if (player && currentPlaylist[0]) {
+        // Only cue the first video if we haven't intentionally loaded a video from a card click
+        if (!isVideoLoadedFromPlaylistCard && player && currentPlaylist[0]) {
             player.cueVideoById(currentPlaylist[0].id);
             playerVideoTitle.textContent = currentPlaylist[0].title;
         }
+        // Reset the flag after onPlayerReady runs so future plays work normally
+        isVideoLoadedFromPlaylistCard = false;
     } else {
     // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
         // For SINGLE songs, this logic is still fine.
