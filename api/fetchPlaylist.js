@@ -1,11 +1,53 @@
 import { Innertube } from 'youtubei.js';
 
+// Helper function to format playlist search results for the frontend
+function formatPlaylistResults(data) {
+    // 1. Get the array of results
+    const results = data.results?.map(item => {
+        
+        // 2. We only care about items that are Playlists
+        if (item.content_type !== 'PLAYLIST') return null;
+
+        // 3. Extract the data using the exact paths from your JSON dump
+        try {
+            const playlist_id = item.content_id;
+            const title = item.metadata?.title?.text;
+            const thumbnail = item.content_image?.primary_thumbnail?.image[0]?.url;
+            // The video count is nested deep in the 'overlays' array
+            const video_count = item.content_image?.overlays[0]?.badges[0]?.text || 'N/A';
+
+            // 4. If we have the essentials, return the object
+            if (playlist_id && title && thumbnail) {
+                return {
+                    playlist_id: playlist_id,
+                    title: title,
+                    thumbnail: thumbnail,
+                    video_count: video_count
+                };
+            }
+        } catch (e) {
+            // Log any parsing errors but don't crash
+            console.error("Failed to parse an item:", e.message);
+            return null;
+        }
+        
+        return null;
+    }).filter(Boolean); // 5. Filter out all the nulls (videos, etc.)
+
+    return {
+        playlist_results: results || [],
+        // 6. The continuation token is at the root of the data object
+        continuation: data.continuation || null
+    };
+}
+
 export default async function handler(req, res) {
-  // Set CORS headers
+  // Set CORS headers for all responses
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -14,41 +56,48 @@ export default async function handler(req, res) {
     const { id, query, continuation } = req.query;
     const youtube = await Innertube.create();
 
-    // === LOGIC 1: Fetch a specific playlist (Unchanged) ===
+    // === LOGIC 1: Fetch a specific playlist (Existing "is.gd" & Overlay Logic) ===
     if (id) {
         const playlist = await youtube.getPlaylist(id);
+
         if (!playlist.videos) {
             return res.status(404).json({ error: 'Playlist not found or is empty' });
         }
+
         const videos = playlist.videos.map(video => ({
             id: video.id,
             title: video.title.text,
-            thumb: video.thumbnails[video.thumbnails.length - 1].url,
+            thumb: video.thumbnails[video.thumbnails.length - 1].url, // Get highest res
         }));
+        
         const playlistTitle = playlist.info?.title || playlist.title?.text || 'YouTube Playlist';
-        return res.status(200).json({ title: playlistTitle, videos: videos });
-    
-    // === LOGIC 2: DEBUGGING - Return the ENTIRE Page 1 Object ===
-    } else if (query) {
-        
-        console.log("--- DEBUG: Fetching Page 1 ---");
-        const page1Results = await youtube.search(query, {
-            type: 'playlist'
-        });
-        
-        console.log("--- DEBUG: Returning RAW Page 1 object to browser ---");
 
-        // This is the key change. We are sending the WHOLE object.
         return res.status(200).json({
-            message: "DEBUG: This is the ENTIRE raw object from youtube.search()",
-            raw_search_results: page1Results 
+            title: playlistTitle,
+            videos: videos
         });
+    
+    // === LOGIC 2: Search for playlists (New "Playlists" Mode Logic) ===
+    } else if (query) {
+        const searchResults = await youtube.search(query, {
+            type: 'playlist' // This is the key change
+        });
+        
+        // This function will now correctly parse the 'searchResults' object
+        const formattedData = formatPlaylistResults(searchResults);
+        return res.status(200).json(formattedData);
 
-    // === LOGIC 3 & 4 (Unchanged) ===
+    // === LOGIC 3: Get next page of search results (New Pagination Logic) ===
     } else if (continuation) {
-        return res.status(400).json({ error: 'Continuation logic is disabled during debug.' });
+        // This logic was already correct
+        const nextPage = await youtube.getContinuation(continuation);
+        
+        const formattedData = formatPlaylistResults(nextPage);
+        return res.status(200).json(formattedData);
+    
+    // === LOGIC 4: No valid parameter provided ===
     } else {
-      return res.status(400).json({ error: 'A query or id is required' });
+      return res.status(400).json({ error: 'A query, id, or continuation token is required' });
     }
 
   } catch (error) {
