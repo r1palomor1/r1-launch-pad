@@ -2907,9 +2907,9 @@ clearYoutubeSearchBtn.addEventListener('click', () => {
 // --- ⬇️ MODIFIED: Radio Button Logic ⬇️ ---
 searchModeVideosBtn.addEventListener('click', () => {
     currentSearchMode = 'videos';
-    resetYouTubeSearch(); // <-- THIS IS THE FIX
-    playlistNextPageToken = null; // <-- ADD THIS
-    toggleSearchHeader(true); // === NEW: Ensure header is visible ===
+    // === CHANGED: Don't reset search, just change mode ===
+    playlistNextPageToken = null; // Clear playlist pagination
+    toggleSearchHeader(true); // Ensure header is visible
     youtubeSearchInput.placeholder = 'Search YouTube...';
     youtubeSearchGoBtn.textContent = 'Search';
     
@@ -2923,8 +2923,8 @@ searchModeVideosBtn.addEventListener('click', () => {
 // <-- ADD THIS ENTIRE NEW LISTENER -->
 searchModePlaylistsBtn.addEventListener('click', () => {
     currentSearchMode = 'playlists';
-    resetYouTubeSearch(); 
-    playlistNextPageToken = null; 
+    // === CHANGED: Don't reset search, just change mode ===
+    youtubeNextPageUrl = null; // Clear video pagination
     toggleSearchHeader(true);
     youtubeSearchInput.placeholder = 'Search Playlists...';
     youtubeSearchGoBtn.textContent = 'Search';
@@ -2932,9 +2932,10 @@ searchModePlaylistsBtn.addEventListener('click', () => {
 
 searchModeIsGdBtn.addEventListener('click', () => {
     currentSearchMode = 'is.gd';
-    resetYouTubeSearch();
-    playlistNextPageToken = null; // <-- ADD THIS
-    toggleSearchHeader(true); // === NEW: Ensure header is visible ===
+    // === CHANGED: Only reset for is.gd mode ===
+    resetYouTubeSearch(); // Clear search and results for is.gd
+    playlistNextPageToken = null;
+    toggleSearchHeader(true); // Ensure header is visible
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     youtubeSearchGoBtn.textContent = 'Load';
 
