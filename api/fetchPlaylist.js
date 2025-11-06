@@ -1,29 +1,16 @@
-import { Innertube } from 'youtubei.js';
+import { Innertube } in 'youtubei.js';
 
-// This function is temporarily UNUSED while we debug
+// This function is temporarily UNUSED
 function formatPlaylistResults(data) {
-    const results = data.contents?.map(item => {
-        if (item.type !== 'Playlist') return null;
-        return {
-            playlist_id: item.id,
-            title: item.title.text,
-            thumbnail: item.thumbnails[0]?.url || null,
-            video_count: item.video_count?.text || item.video_count || 'N/A'
-        };
-    }).filter(Boolean);
-    return {
-        playlist_results: results || [],
-        continuation: data.continuation || null
-    };
+    // ... (content doesn't matter, it's not being called)
 }
 
 export default async function handler(req, res) {
-  // Set CORS headers for all responses
+  // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -32,9 +19,8 @@ export default async function handler(req, res) {
     const { id, query, continuation } = req.query;
     const youtube = await Innertube.create();
 
-    // === LOGIC 1: Fetch a specific playlist (Existing "is.gd" & Overlay Logic) ===
+    // === LOGIC 1: Fetch a specific playlist (Unchanged) ===
     if (id) {
-        // ... (This logic remains unchanged and correct)
         const playlist = await youtube.getPlaylist(id);
         if (!playlist.videos) {
             return res.status(404).json({ error: 'Playlist not found or is empty' });
@@ -47,7 +33,7 @@ export default async function handler(req, res) {
         const playlistTitle = playlist.info?.title || playlist.title?.text || 'YouTube Playlist';
         return res.status(200).json({ title: playlistTitle, videos: videos });
     
-    // === LOGIC 2: DEBUGGING - Fetch 3 pages of raw data ===
+    // === LOGIC 2: DEBUGGING - Fetch and return 3 RAW pages ===
     } else if (query) {
         
         console.log("--- DEBUG: Fetching Page 1 ---");
@@ -55,44 +41,34 @@ export default async function handler(req, res) {
             type: 'playlist'
         });
         
-        // This array will hold all items from all pages
-        const all_contents = [...(page1Results.contents || [])];
-        
-        let page2Continuation = page1Results.continuation;
         let page2Results = null;
-        let page3Continuation = null;
         let page3Results = null;
 
+        const page2Continuation = page1Results.continuation;
         if (page2Continuation) {
             console.log("--- DEBUG: Fetching Page 2 ---");
             page2Results = await youtube.getContinuation(page2Continuation);
-            all_contents.push(...(page2Results.contents || []));
-            page3Continuation = page2Results.continuation;
         }
 
+        const page3Continuation = page2Results?.continuation;
         if (page3Continuation) {
             console.log("--- DEBUG: Fetching Page 3 ---");
             page3Results = await youtube.getContinuation(page3Continuation);
-            all_contents.push(...(page3Results.contents || []));
         }
 
-        console.log(`--- DEBUG: Total items fetched: ${all_contents.length} ---`);
+        console.log("--- DEBUG: Returning 3 full raw page objects to browser ---");
 
-        // Return a big debug object
+        // Return a big debug object with all 3 raw page results
         return res.status(200).json({
-            message: `DEBUG: Returning raw contents from 3 pages. Total items: ${all_contents.length}`,
-            page1_continuation: page1Results.continuation,
-            page2_continuation: page2Results?.continuation || null,
-            page3_continuation: page3Results?.continuation || null,
-            total_items_fetched: all_contents.length,
-            all_contents: all_contents // This is the full list of items
+            message: "DEBUG: Returning raw page objects. Inspect 'page1_raw_results', 'page2_raw_results', etc.",
+            page1_raw_results: page1Results,
+            page2_raw_results: page2Results,
+            page3_raw_results: page3Results
         });
 
-    // === LOGIC 3: Temporarily inactive ===
+    // === LOGIC 3 & 4 (Unchanged) ===
     } else if (continuation) {
         return res.status(400).json({ error: 'Continuation logic is disabled during debug.' });
-    
-    // === LOGIC 4: No valid parameter provided ===
     } else {
       return res.status(400).json({ error: 'A query or id is required' });
     }
