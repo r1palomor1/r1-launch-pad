@@ -1,9 +1,4 @@
-import { Innertube } in 'youtubei.js';
-
-// This function is temporarily UNUSED
-function formatPlaylistResults(data) {
-    // ... (content doesn't matter, it's not being called)
-}
+import { Innertube } from 'youtubei.js';
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -33,7 +28,7 @@ export default async function handler(req, res) {
         const playlistTitle = playlist.info?.title || playlist.title?.text || 'YouTube Playlist';
         return res.status(200).json({ title: playlistTitle, videos: videos });
     
-    // === LOGIC 2: DEBUGGING - Fetch and return 3 RAW pages ===
+    // === LOGIC 2: DEBUGGING - Return the ENTIRE Page 1 Object ===
     } else if (query) {
         
         console.log("--- DEBUG: Fetching Page 1 ---");
@@ -41,29 +36,12 @@ export default async function handler(req, res) {
             type: 'playlist'
         });
         
-        let page2Results = null;
-        let page3Results = null;
+        console.log("--- DEBUG: Returning RAW Page 1 object to browser ---");
 
-        const page2Continuation = page1Results.continuation;
-        if (page2Continuation) {
-            console.log("--- DEBUG: Fetching Page 2 ---");
-            page2Results = await youtube.getContinuation(page2Continuation);
-        }
-
-        const page3Continuation = page2Results?.continuation;
-        if (page3Continuation) {
-            console.log("--- DEBUG: Fetching Page 3 ---");
-            page3Results = await youtube.getContinuation(page3Continuation);
-        }
-
-        console.log("--- DEBUG: Returning 3 full raw page objects to browser ---");
-
-        // Return a big debug object with all 3 raw page results
+        // This is the key change. We are sending the WHOLE object.
         return res.status(200).json({
-            message: "DEBUG: Returning raw page objects. Inspect 'page1_raw_results', 'page2_raw_results', etc.",
-            page1_raw_results: page1Results,
-            page2_raw_results: page2Results,
-            page3_raw_results: page3Results
+            message: "DEBUG: This is the ENTIRE raw object from youtube.search()",
+            raw_search_results: page1Results 
         });
 
     // === LOGIC 3 & 4 (Unchanged) ===
