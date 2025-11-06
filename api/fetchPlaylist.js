@@ -3,17 +3,19 @@ import { Innertube } from 'youtubei.js';
 // Helper function to format playlist search results for the frontend
 function formatPlaylistResults(data) {
     const results = data.contents?.map(item => {
-        // We only care about PlaylistRenderers
-        if (!item.playlist) return null;
+        // === THIS IS THE FIX ===
+        // Explicitly check the item's type.
+        // The search returns a mix of Videos and Playlists.
+        if (item.type !== 'Playlist') return null;
         
+        // Now we are certain 'item' is a Playlist object
         return {
-            playlist_id: item.playlist.id,
-            title: item.playlist.title.text,
-            // Get the first thumbnail URL
-            thumbnail: item.playlist.thumbnails[0]?.url || null,
-            video_count: item.playlist.video_count.text || 'N/A'
+            playlist_id: item.id,
+            title: item.title.text,
+            thumbnail: item.thumbnails[0]?.url || null,
+            video_count: item.video_count?.text || item.video_count || 'N/A'
         };
-    }).filter(Boolean); // Filter out any null (non-playlist) items
+    }).filter(Boolean); // Filter out the nulls (videos)
 
     return {
         playlist_results: results || [],

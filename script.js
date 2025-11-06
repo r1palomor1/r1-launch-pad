@@ -1547,6 +1547,8 @@ async function handlePlaylistSearch(query, continuationToken = null) {
         
         const data = await response.json();
 
+        console.log('API Response Data:', data); // <-- ADD THIS LINE
+
         if (!continuationToken) { // Clear "Searching..." on new search
             youtubeSearchResultsContainer.innerHTML = '';
         }
