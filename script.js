@@ -148,6 +148,24 @@ let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
 const SAVED_PLAYLISTS_KEY = 'launchPadR1SavedPlaylists';
+
+// ===== STAGE 1: Mode-Specific Result Storage System =====
+// Ephemeral in-memory storage for Songs and Playlists modes
+// These are cleared automatically on page refresh or browser close
+let videosResults = {
+    html: null,           // Cached card HTML
+    searchTerm: '',       // Last search term for this mode
+    nextPageUrl: null     // Pagination token for YouTube Videos
+};
+
+let playlistsResults = {
+    html: null,           // Cached card HTML
+    searchTerm: '',       // Last search term for this mode
+    nextPageToken: null   // Pagination token for YouTube Playlists
+};
+
+// isGdResults already exists in localStorage - managed via renderSavedPlaylists()
+// ===== END OF STAGE 1 =====
 const HAS_ADDED_PLAYLIST_KEY = 'launchPadR1HasAddedPlaylist';
 let savedPlaylists = [];
 let hasEverAddedPlaylist = false; 
@@ -1278,21 +1296,35 @@ function resetYouTubeSearch() {
 }
 
 function openYouTubeSearchView() {
+    // Stage 5: Restore cached results from memory on overlay open
     youtubeSearchViewOverlay.style.display = 'flex';
     
     // === NEW: Ensure header is visible on open ===
     toggleSearchHeader(true);
     // === END OF NEW ===
 
-    // This function now just sets the state, it doesn't reset.
     if (currentSearchMode === 'isGd') {
         youtubeSearchInput.placeholder = 'Enter is.gd code...';
         youtubeSearchGoBtn.textContent = 'Load';
-        renderSavedPlaylists(); // This is still needed for highlighting
-    } else {
+        renderSavedPlaylists();
+    } else if (currentSearchMode === 'videos') {
         youtubeSearchInput.placeholder = 'Search YouTube...';
         youtubeSearchGoBtn.textContent = 'Search';
-        // We NO LONGER clear the input or results here.
+        // Stage 5: Restore videos cache
+        if (videosResults.html) {
+            youtubeSearchResultsContainer.innerHTML = videosResults.html;
+            youtubeSearchInput.value = videosResults.searchTerm;
+            youtubeNextPageUrl = videosResults.nextPageUrl;
+        }
+    } else if (currentSearchMode === 'playlists') {
+        youtubeSearchInput.placeholder = 'Search Playlists...';
+        youtubeSearchGoBtn.textContent = 'Search';
+        // Stage 5: Restore playlists cache
+        if (playlistsResults.html) {
+            youtubeSearchResultsContainer.innerHTML = playlistsResults.html;
+            youtubeSearchInput.value = playlistsResults.searchTerm;
+            playlistNextPageToken = playlistsResults.nextPageToken;
+        }
     }
     
     // Make container focusable but don't focus it initially
@@ -1301,9 +1333,10 @@ function openYouTubeSearchView() {
 
 function closeYouTubeSearchView() {
     youtubeSearchViewOverlay.style.display = 'none';
-    youtubeSearchInput.value = '';
+    // Stage 4: Keep search term and results (do NOT clear)
+    // youtubeSearchInput.value = ''; // REMOVED
+    // youtubeSearchResultsContainer.innerHTML = ''; // REMOVED
     youtubeSearchInput.placeholder = 'Search YouTube...'; // Reset placeholder
-    youtubeSearchResultsContainer.innerHTML = '';
 
     // ⬇️ ADD THIS ⬇️
     // Tell the UI to update when we return to the main view
@@ -1476,6 +1509,13 @@ function renderYouTubeResults(results, mode) {
         }
     });
     youtubeSearchResultsContainer.appendChild(fragment);
+
+    // === STAGE 7: Update cached HTML in storage ===
+    if (mode === 'videos') {
+        videosResults.html = youtubeSearchResultsContainer.innerHTML;
+    } else if (mode === 'playlists') {
+        playlistsResults.html = youtubeSearchResultsContainer.innerHTML;
+    }
 }
 
 function handleYouTubeSearch(query, nextPageUrl = null) {
@@ -1485,6 +1525,11 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
         return; // Stop the function immediately
     }
     // --- END OF ADDED CODE ---
+
+    // === STAGE 7: Use pagination token from videosResults if available ===
+    if (!nextPageUrl && videosResults.nextPageUrl) {
+        nextPageUrl = videosResults.nextPageUrl;
+    }
 
     if (isFetchingYoutubeResults) return; // Prevent multiple requests
     isFetchingYoutubeResults = true;
@@ -1536,6 +1581,11 @@ function handleYouTubeSearch(query, nextPageUrl = null) {
 
 // <-- ADD THIS ENTIRE NEW FUNCTION -->
 async function handlePlaylistSearch(query, continuationToken = null) {
+    // === STAGE 7: Use pagination token from playlistsResults if available ===
+    if (!continuationToken && playlistsResults.nextPageToken) {
+        continuationToken = playlistsResults.nextPageToken;
+    }
+
     if (isFetchingYoutubeResults) return;
     isFetchingYoutubeResults = true;
 
@@ -1573,6 +1623,8 @@ async function handlePlaylistSearch(query, continuationToken = null) {
             // Your existing renderer already knows how to handle 'playlists' mode!
             renderYouTubeResults(data.playlist_results, 'playlists'); 
             playlistNextPageToken = data.continuation || null;
+            // === STAGE 7: Update playlistsResults with new pagination token ===
+            playlistsResults.nextPageToken = playlistNextPageToken;
         } else if (!continuationToken) {
             youtubeSearchResultsContainer.innerHTML = '<p>No playlists found.</p>';
         }
@@ -2822,12 +2874,28 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
     const triggerYoutubeSearch = () => handleYouTubeSearch(youtubeSearchInput.value);
     youtubeSearchCancelBtn.addEventListener('click', closeYouTubeSearchView);
     
-    // --- ⬇️ MODIFIED: New Go Button Logic ⬇️ ---
+    // --- ⬇️ STAGE 3: SEARCH BUTTON WITH CACHE DETECTION ⬇️ ---
     youtubeSearchGoBtn.addEventListener('click', async () => {
         const query = youtubeSearchInput.value.trim();
         if (!query) return; // Do nothing if input is empty
     
-        // === NEW: Show "Searching..." and blur input ===
+        // Stage 3: Check if search term is new or repeated
+        let isNewSearch = false;
+        if (currentSearchMode === 'videos') {
+            isNewSearch = query !== videosResults.searchTerm;
+            if (isNewSearch) {
+                videosResults.html = null;
+                videosResults.nextPageUrl = null;
+            }
+        } else if (currentSearchMode === 'playlists') {
+            isNewSearch = query !== playlistsResults.searchTerm;
+            if (isNewSearch) {
+                playlistsResults.html = null;
+                playlistsResults.nextPageToken = null;
+            }
+        }
+
+        // === Show "Searching..." and blur input ===
         youtubeSearchResultsContainer.innerHTML = '<p style="text-align: center; color: var(--icon-color); padding: 20px;">Searching...</p>';
         youtubeSearchInput.blur(); // Remove focus from search bar
         // === END OF NEW CODE ===
@@ -2835,7 +2903,7 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
         if (currentSearchMode === 'videos') {
             triggerYoutubeSearch();
 
-        } else if (currentSearchMode === 'playlists') { // <-- ADD THIS BLOCK
+        } else if (currentSearchMode === 'playlists') {
             handlePlaylistSearch(query);
 
         } else if (currentSearchMode === 'is.gd') {
@@ -2919,65 +2987,87 @@ clearYoutubeSearchBtn.addEventListener('click', () => {
         youtubeSearchResultsContainer.innerHTML = ''; // Optional: Clear results when clearing text
 });
 
-// --- ⬇️ MODIFIED: Radio Button Logic ⬇️ ---
+// --- ⬇️ STAGE 2: CACHE-AWARE RADIO BUTTON LOGIC ⬇️ ---
 searchModeVideosBtn.addEventListener('click', () => {
+    // Stage 2: Save current mode results before switching
+    if (currentSearchMode === 'playlists') {
+        playlistsResults.html = youtubeSearchResultsContainer.innerHTML;
+        playlistsResults.searchTerm = youtubeSearchInput.value;
+    } else if (currentSearchMode === 'is.gd') {
+        // is.gd uses localStorage via renderSavedPlaylists - nothing to save here
+    }
+
+    // Switch to videos mode
     currentSearchMode = 'videos';
-    // === FIX: Clear playlist cards when switching to videos mode ===
-    // Keep video search results, but clear playlist results to prevent overlap
-    playlistNextPageToken = null; // Clear playlist pagination
-    // Remove only playlist-type cards, not video cards
-    youtubeSearchResultsContainer.querySelectorAll('.youtube-result-card').forEach(card => {
-        // If it has no video ID or looks like a playlist card, remove it
-        if (!card.dataset.videoId && card.dataset.playlistId) {
-            card.remove();
-        }
-    });
-    // === END FIX ===
-    toggleSearchHeader(true); // Ensure header is visible
+    youtubeNextPageUrl = null;
+    playlistNextPageToken = null;
+
+    // Stage 2: Restore videos cache if it exists
+    if (videosResults.html) {
+        youtubeSearchResultsContainer.innerHTML = videosResults.html;
+        youtubeSearchInput.value = videosResults.searchTerm;
+    } else {
+        youtubeSearchResultsContainer.innerHTML = '';
+        youtubeSearchInput.value = '';
+    }
+
+    toggleSearchHeader(true);
     youtubeSearchInput.placeholder = 'Search YouTube...';
     youtubeSearchGoBtn.textContent = 'Search';
-    
-    // Scroll to top to show search bar but keep focus on cards if they exist
     youtubeSearchView.scrollTop = 0;
-    if (youtubeSearchResultsContainer.querySelector('.youtube-result-card')) {
-        setTimeout(() => youtubeSearchResultsContainer.focus(), 100);
-    }
 });
 
-// <-- ADD THIS ENTIRE NEW LISTENER -->
 searchModePlaylistsBtn.addEventListener('click', () => {
+    // Stage 2: Save current mode results before switching
+    if (currentSearchMode === 'videos') {
+        videosResults.html = youtubeSearchResultsContainer.innerHTML;
+        videosResults.searchTerm = youtubeSearchInput.value;
+    } else if (currentSearchMode === 'is.gd') {
+        // is.gd uses localStorage - nothing to save here
+    }
+
+    // Switch to playlists mode
     currentSearchMode = 'playlists';
-    // === FIX: Clear video cards when switching to playlists mode ===
-    // Keep playlist search results, but clear video results to prevent overlap
-    youtubeNextPageUrl = null; // Clear video pagination
-    // Remove only video-type cards, not playlist cards
-    youtubeSearchResultsContainer.querySelectorAll('.youtube-result-card').forEach(card => {
-        // If it has a video ID, it's a video card - remove it
-        if (card.dataset.videoId && !card.dataset.playlistId) {
-            card.remove();
-        }
-    });
-    // === END FIX ===
+    youtubeNextPageUrl = null;
+    playlistNextPageToken = null;
+
+    // Stage 2: Restore playlists cache if it exists
+    if (playlistsResults.html) {
+        youtubeSearchResultsContainer.innerHTML = playlistsResults.html;
+        youtubeSearchInput.value = playlistsResults.searchTerm;
+    } else {
+        youtubeSearchResultsContainer.innerHTML = '';
+        youtubeSearchInput.value = '';
+    }
+
     toggleSearchHeader(true);
     youtubeSearchInput.placeholder = 'Search Playlists...';
     youtubeSearchGoBtn.textContent = 'Search';
+    youtubeSearchView.scrollTop = 0;
 });
 
 searchModeIsGdBtn.addEventListener('click', () => {
+    // Stage 2: Save current mode results before switching
+    if (currentSearchMode === 'videos') {
+        videosResults.html = youtubeSearchResultsContainer.innerHTML;
+        videosResults.searchTerm = youtubeSearchInput.value;
+    } else if (currentSearchMode === 'playlists') {
+        playlistsResults.html = youtubeSearchResultsContainer.innerHTML;
+        playlistsResults.searchTerm = youtubeSearchInput.value;
+    }
+
+    // Switch to is.gd mode
     currentSearchMode = 'is.gd';
-    // === FIX: Clear ALL search results when switching to is.gd mode ===
-    resetYouTubeSearch(); // Clear search and ALL results for is.gd
+    youtubeNextPageUrl = null;
     playlistNextPageToken = null;
-    // === END FIX ===
-    toggleSearchHeader(true); // Ensure header is visible
+
+    // Stage 2: Always render saved playlists for is.gd (uses localStorage)
+    youtubeSearchResultsContainer.innerHTML = '';
+    youtubeSearchInput.value = '';
+    toggleSearchHeader(true);
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     youtubeSearchGoBtn.textContent = 'Load';
-
-    // --- FINAL FIX ---
-    // Scroll to top BEFORE rendering anything.
     youtubeSearchView.scrollTop = 0;
-
-    // Render the playlists.
     renderSavedPlaylists();
 
     // After rendering, check if playlists were actually added to the DOM.
@@ -3651,3 +3741,18 @@ function onPlayerStateChange(event) {
         playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
     }
 }
+
+// --- ⬇️ STAGE 6: APP EXIT HANDLER ⬇️ ---
+window.addEventListener('beforeunload', () => {
+    // Clear ephemeral search result caches
+    videosResults.html = null;
+    videosResults.searchTerm = '';
+    videosResults.nextPageUrl = null;
+    
+    playlistsResults.html = null;
+    playlistsResults.searchTerm = '';
+    playlistsResults.nextPageToken = null;
+    
+    // isGdResults in localStorage is NOT cleared (persistent across sessions)
+});
+// --- ⬆️ END OF STAGE 6 ⬆️ ---
