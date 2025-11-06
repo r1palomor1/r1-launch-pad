@@ -2812,6 +2812,11 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
         const query = youtubeSearchInput.value.trim();
         if (!query) return; // Do nothing if input is empty
     
+        // === NEW: Show "Searching..." and blur input ===
+        youtubeSearchResultsContainer.innerHTML = '<p style="text-align: center; color: var(--icon-color); padding: 20px;">Searching...</p>';
+        youtubeSearchInput.blur(); // Remove focus from search bar
+        // === END OF NEW CODE ===
+    
         if (currentSearchMode === 'videos') {
             triggerYoutubeSearch();
 
