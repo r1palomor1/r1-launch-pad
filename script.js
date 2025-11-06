@@ -147,6 +147,7 @@ let isManualPlaylist = false;   // Flag to check if we are in manual mode
 let originalThemeState = { theme: 'rabbit', mode: 'dark' };
 let suggestionRequestCount = 0;
 let currentSearchMode = 'videos';
+let currentlyPlayingLink = '';
 const SAVED_PLAYLISTS_KEY = 'launchPadR1SavedPlaylists';
 
 // ===== STAGE 1: Mode-Specific Result Storage System =====
@@ -762,10 +763,6 @@ function renderSavedPlaylists() {
         const itemCard = document.createElement('div');
         itemCard.className = 'card youtube-result-card';
         itemCard.dataset.playlistId = playlist.id;
-        
-        if (playlist.id === currentlyPlayingPlaylistId) { // <-- ADD THIS
-            itemCard.classList.add('currently-playing'); // <-- ADD THIS
-        } // <-- ADD THIS
         itemCard.dataset.title = playlist.title;
         
         itemCard.innerHTML = `
@@ -777,6 +774,34 @@ function renderSavedPlaylists() {
             <div class="delete-playlist-btn" title="Delete Playlist">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"></path></svg>
             </div>`;
+        
+        itemCard.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-playlist-btn')) return;
+            
+            const playlistId = itemCard.dataset.playlistId;
+            const hasFocus = itemCard.classList.contains('currently-playing');
+            
+            document.querySelectorAll('.youtube-result-card.currently-playing').forEach(c => {
+                c.classList.remove('currently-playing');
+            });
+            
+            if (hasFocus) {
+                hideYouTubeSearchView();
+            } else {
+                itemCard.classList.add('currently-playing');
+                currentlyPlayingLink = playlistId;
+                hideYouTubeSearchView();
+            }
+            
+            const selectedPlaylist = savedPlaylists.find(p => p.id === playlistId);
+            if (selectedPlaylist) {
+                currentPlaylist = selectedPlaylist.videos;
+                currentPlaylistIndex = 0;
+                openPlayerView({ playlistId: playlistId, title: selectedPlaylist.title });
+                openPlaylistOverlay();
+            }
+        });
+        
         fragment.appendChild(itemCard);
     });
     youtubeSearchResultsContainer.appendChild(fragment);
@@ -1422,35 +1447,31 @@ function populatePlaylistOverlay() {
             }
         }
 
-        // ⬇️ *** THIS IS THE FIX *** ⬇️
         videoItem.addEventListener('click', () => {
-            if (index === currentPlaylistIndex && player) {
-                // Video is already playing, just go back to player
+            const hasFocus = videoItem.classList.contains('currently-playing');
+            
+            document.querySelectorAll('.youtube-result-card.currently-playing').forEach(c => {
+                c.classList.remove('currently-playing');
+            });
+            
+            if (hasFocus && index === currentPlaylistIndex && player) {
                 closePlaylistOverlay();
                 showPlayerUI();
-
-                // ⬇️ *** THIS IS THE FIX *** ⬇️
-                // Check if the player is currently playing
                 if (player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
-                    // If it is, restart the 4-second fade-out timer
                     startUIHideTimer();
                 }
-                // ⬆️ *** END OF FIX *** ⬆️
-
             } else {
-                // Clicked a new video, so load and play it
-                currentPlaylistIndex = index; // Set the new index
-                const newVideo = currentPlaylist[index]; // Get the video object
+                videoItem.classList.add('currently-playing');
+                currentlyPlayingLink = currentPlaylist[index].link || index.toString();
+                currentPlaylistIndex = index;
+                const newVideo = currentPlaylist[index];
                 if (newVideo) {
-                    // The helper function now handles loading AND playing
                     loadVideoFromPlaylist(newVideo);
                 }
-                // Close the overlay to show the player
                 closePlaylistOverlay();
             }
             triggerHaptic();
         });
-        // ⬆️ *** END OF FIX *** ⬆️
 
         fragment.appendChild(videoItem);
     });
@@ -2844,29 +2865,50 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
 
         if (card.dataset.videoLink) {
             // This is for a single video
-            hideYouTubeSearchView(); // <-- MOVED HERE
-            const videoId = getYoutubeVideoId(card.dataset.videoLink);
+            const videoLink = card.dataset.videoLink;
+            const hasFocus = card.classList.contains('currently-playing');
+            
+            // Remove focus from all other cards
+            document.querySelectorAll('.youtube-result-card.currently-playing').forEach(c => {
+                c.classList.remove('currently-playing');
+            });
+            
+            if (hasFocus) {
+                // Focused card clicked: navigate only
+                hideYouTubeSearchView();
+            } else {
+                // New card: apply focus and play
+                card.classList.add('currently-playing');
+                currentlyPlayingLink = videoLink;
+                hideYouTubeSearchView();
+            }
+            
+            const videoId = getYoutubeVideoId(videoLink);
             if (videoId) {
                 openPlayerView({ videoId: videoId, title: title });
             } else {
-                showAlert(`Could not find a valid video ID in the link: ${card.dataset.videoLink}`);
+                showAlert(`Could not find a valid video ID in the link: ${videoLink}`);
             }
                } else if (card.dataset.playlistId) {
                 // This is our new logic for a playlist
                 const playlistId = card.dataset.playlistId;
-                const title = card.dataset.title; // 🟨 ADDED: Get the title from the card
+                const title = card.dataset.title;
+                const hasFocus = card.classList.contains('currently-playing');
                 
-                // --- ⬇️ THIS IS THE FIX ⬇️ ---
-                hideYouTubeSearchView();
+                document.querySelectorAll('.youtube-result-card.currently-playing').forEach(c => {
+                    c.classList.remove('currently-playing');
+                });
                 
-                // 1. Open the player in the background. We MUST await this.
-                //    This function creates the player and fetches the playlist.
+                if (hasFocus) {
+                    hideYouTubeSearchView();
+                } else {
+                    card.classList.add('currently-playing');
+                    currentlyPlayingLink = playlistId;
+                    hideYouTubeSearchView();
+                }
+                
                 await openPlayerView({ playlistId: playlistId, title: title });
-
-                // 2. Now that the player is open and the playlist data is loaded,
-                //    open the playlist overlay on top of it.
                 openPlaylistOverlay();
-                // --- ⬆️ END OF FIX ⬆️ ---
             }
     }
 });
