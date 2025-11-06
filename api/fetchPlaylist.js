@@ -1,61 +1,85 @@
-// /api/fetchPlaylist.js
-
 import { Innertube } from 'youtubei.js';
 
-/**
- * Fetches a YouTube playlist and returns simplified JSON
- */
-export default async function handler(req, res) {
-  try {
-    const playlistId = req.query.id;
-    if (!playlistId) {
-      return res.status(400).json({ error: 'Missing playlist id' });
-    }
+// Helper function to format playlist search results for the frontend
+function formatPlaylistResults(data) {
+    const results = data.contents?.map(item => {
+        // We only care about PlaylistRenderers
+        if (!item.playlist) return null;
+        
+        return {
+            playlist_id: item.playlist.id,
+            title: item.playlist.title.text,
+            // Get the first thumbnail URL
+            thumbnail: item.playlist.thumbnails[0]?.url || null,
+            video_count: item.playlist.video_count.text || 'N/A'
+        };
+    }).filter(Boolean); // Filter out any null (non-playlist) items
 
-    // 1. Create a new Innertube session
+    return {
+        playlist_results: results || [],
+        continuation: data.continuation || null
+    };
+}
+
+export default async function handler(req, res) {
+  // Set CORS headers for all responses
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle preflight OPTIONS requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  try {
+    const { id, query, continuation } = req.query;
     const youtube = await Innertube.create();
 
-    // 2. Fetch the initial playlist data
-    const playlist = await youtube.getPlaylist(playlistId);
+    // === LOGIC 1: Fetch a specific playlist (Existing "is.gd" & Overlay Logic) ===
+    if (id) {
+        const playlist = await youtube.getPlaylist(id);
 
-    if (!playlist.videos) {
-      return res.status(404).json({ error: 'Playlist not found or is empty' });
+        if (!playlist.videos) {
+            return res.status(404).json({ error: 'Playlist not found or is empty' });
+        }
+
+        const videos = playlist.videos.map(video => ({
+            id: video.id,
+            title: video.title.text,
+            thumb: video.thumbnails[video.thumbnails.length - 1].url, // Get highest res
+        }));
+        
+        const playlistTitle = playlist.info?.title || playlist.title?.text || 'YouTube Playlist';
+
+        return res.status(200).json({
+            title: playlistTitle,
+            videos: videos
+        });
+    
+    // === LOGIC 2: Search for playlists (New "Playlists" Mode Logic) ===
+    } else if (query) {
+        const searchResults = await youtube.search(query, {
+            type: 'playlist' // This is the key change
+        });
+        
+        const formattedData = formatPlaylistResults(searchResults);
+        return res.status(200).json(formattedData);
+
+    // === LOGIC 3: Get next page of search results (New Pagination Logic) ===
+    } else if (continuation) {
+        const nextPage = await youtube.getContinuation(continuation);
+
+        const formattedData = formatPlaylistResults(nextPage);
+        return res.status(200).json(formattedData);
+    
+    // === LOGIC 4: No valid parameter provided ===
+    } else {
+      return res.status(400).json({ error: 'A query, id, or continuation token is required' });
     }
 
-    // ⬇️ *** THIS LINE HAS BEEN REMOVED *** ⬇️
-    // await playlist.videos.next(0); 
-    // ⬆️ *** IT WAS CAUSING THE CRASH *** ⬆️
-
-    // 3. Map the results (which now contain all videos)
-    const result = playlist.videos.map((v) => ({
-      id: v.id,
-      title: v.title.text,
-      // Get the highest resolution thumbnail (usually the last one)
-      thumb: v.thumbnails[v.thumbnails.length - 1].url,
-    }));
-
-    // Get the playlist's main title
-    const playlistTitle = playlist.info?.title || playlist.title?.text || playlist.title || 'YouTube Playlist';
-
-    // Wrap the results in an object
-    const responseData = {
-      title: playlistTitle,
-      videos: result
-    };
-
-    // Add CORS Headers to allow any domain to request this
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-    // Prevent caching of stale titles while allowing reasonable performance
-    res.setHeader('Cache-Control', 'no-cache, max-age=300'); // 5 minute cache
-    res.setHeader('ETag', `"${Date.now()}-${playlistId}"`); // Unique ETag per request
-    res.status(200).json(responseData); 
-  } catch (err) {
-    console.error('youtubei.js error:', err);
-    res
-      .status(500)
-      .json({ error: 'Failed to fetch playlist', details: err.message });
+  } catch (error) {
+    console.error('Vercel API Error:', error.message);
+    res.status(500).json({ error: 'Failed to fetch data from YouTube', details: error.message });
   }
 }
