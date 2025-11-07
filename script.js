@@ -215,16 +215,23 @@ function goHome() {
     renderLinks();
     scrollToTop();
 
-    // ⬇️ ADD THIS ⬇️
-    // Tell the UI to update when we return to the main view
+    // ⬇️ *** FIX: Force the bar to hide, then update the icon state *** ⬇️
     if (player && player.getPlayerState) {
         const state = player.getPlayerState();
+        // If player is active, force the bar to hide and only show the icon in the header
         if (state === YT.PlayerState.PLAYING) {
             updateNowPlayingUI('playing');
         } else if (state === YT.PlayerState.PAUSED) {
             updateNowPlayingUI('paused');
+        } else {
+             // If state is not playing/paused (e.g., stopped/ended), ensure everything is hidden.
+             updateNowPlayingUI('stopped');
         }
+    } else {
+        // If player is null, ensure all Now Playing elements are hidden.
+        updateNowPlayingUI('stopped');
     }
+    // ⬆️ *** END OF FIX *** ⬆️
 }
 
 function debounce(func, delay) {
@@ -1102,6 +1109,10 @@ function closePlayerView() {
     youtubePlayerContainer.innerHTML = '';
     clearTimeout(uiHideTimeout);
     showPlayerUI();
+
+    // ⬇️ *** FIX: Explicitly stop the now playing bar when closing the player *** ⬇️
+    updateNowPlayingUI('stopped');
+    // ⬆️ *** END OF FIX *** ⬆️
 }
 
 function hidePlayerUI() {
@@ -1403,6 +1414,10 @@ function openPlaylistOverlay() {
         return;
     }
     
+    // ⬇️ *** FIX: Hide the Now Playing bar when the overlay is open *** ⬇️
+    nowPlayingBar.style.display = 'none';
+    // ⬆️ *** END OF FIX *** ⬆️
+
     togglePlaylistHeader(true); // === NEW: Ensure header is visible ===
     playlistOverlay.style.display = 'flex';
     triggerHaptic();
