@@ -1180,7 +1180,45 @@ button.rabbit-default:hover {
     cursor: pointer;
     min-height: 44px;
     touch-action: manipulation;
+    position: relative; /* Add position: relative for the absolute heart icon */
 }
+
+/* ⬇️ *** ADD THIS NEW RULE FOR THE FAVORITE BUTTON *** ⬇️ */
+.add-favorite-btn {
+    position: absolute;
+    top: 2px;
+    right: 32px; /* Position next to the existing delete button */
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    color: var(--icon-color); /* Default gray color */
+    padding: 0;
+    touch-action: manipulation;
+}
+
+.add-favorite-btn:hover {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.add-favorite-btn.is-favorite {
+    color: var(--favorite-color); /* Gold color for saved state */
+    opacity: 1;
+}
+
+.add-favorite-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+/* ⬆️ *** END OF NEW RULE *** ⬆️ */
 
 /* ⬇️ ADD THIS RULE ⬇️ */
 .youtube-result-card.currently-playing {

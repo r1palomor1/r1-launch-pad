@@ -755,71 +755,69 @@ async function fetchPlaylistMetadata(playlistId) {
 }
 
 /**
- * Renders the list of saved playlists in the search results container.
+ * Renders the list of saved playlists/videos in the search results container.
  */
 function renderSavedPlaylists() {
     youtubeSearchResultsContainer.innerHTML = '';
     if (savedPlaylists.length === 0) {
-        youtubeSearchResultsContainer.innerHTML = '<p>Your saved playlists will appear here. Add one using the input above.</p>';
+        youtubeSearchResultsContainer.innerHTML = '<p>Your saved content will appear here. Tap the heart icon in Songs or Playlists mode to save.</p>';
         return;
     }
 
     // --- ⬇️ THIS IS THE NEW LOGIC ⬇️ ---
+    // Sort all saved content by title
     const sortedPlaylists = [...savedPlaylists].sort((a, b) => {
         return a.title.localeCompare(b.title);
     });
     // --- ⬆️ END OF NEW LOGIC ⬆️ ---
 
     const fragment = document.createDocumentFragment();
-    // --- ⬇️ MODIFIED: Use the new sorted array ⬇️ ---
-    sortedPlaylists.forEach(playlist => {
+    // --- ⬇️ MODIFIED: Handle both videos and playlists ⬇️ ---
+    sortedPlaylists.forEach(item => {
+        // Check if it looks like a playlist ID (start with PL or contains list=)
+        const isPlaylist = item.id.startsWith('PL') || item.id.includes('list='); 
         const itemCard = document.createElement('div');
         itemCard.className = 'card youtube-result-card';
-        itemCard.dataset.playlistId = playlist.id;
-        itemCard.dataset.title = playlist.title;
+        itemCard.dataset.id = item.id; // Universal ID field
+        itemCard.dataset.title = item.title;
+        
+        // Set specific data attributes for click handler
+        if (isPlaylist) {
+            itemCard.dataset.playlistId = item.id;
+        } else {
+            itemCard.dataset.videoLink = item.id;
+        }
+        
+        // ⬇️ ADDED: Apply focus if it matches the current state ⬇️
+        if (currentSearchMode === 'is.gd' && currentlyPlayingCardId === item.id) {
+            itemCard.classList.add('currently-playing');
+        }
+
+        const iconSvg = isPlaylist 
+            ? `<svg viewBox="0 0 24 24" fill="currentColor" style="width:1em; height:1em; vertical-align:-0.15em; margin-right:4px; opacity:0.7;"><path d="M3 10h11v2H3zm0-4h11v2H3zm0 8h7v2H3zm13-1v8l6-4z"></path></svg>`
+            : `<svg viewBox="0 0 24 24" fill="currentColor" style="width:1em; height:1em; vertical-align:-0.15em; margin-right:4px; opacity:0.7;"><path d="M8 5v14l11-7z"/></svg>`;
         
         itemCard.innerHTML = `
-            <img src="${playlist.thumb}" class="link-favicon" alt="Playlist thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
+            <img src="${item.thumb}" class="link-favicon" alt="${isPlaylist ? 'Playlist' : 'Video'} thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
             <div class="link-description">
-                <svg viewBox="0 0 24 24" fill="currentColor" style="width:1em; height:1em; vertical-align:-0.15em; margin-right:4px; opacity:0.7;"><path d="M3 10h11v2H3zm0-4h11v2H3zm0 8h7v2H3zm13-1v8l6-4z"></path></svg>
-                ${playlist.title}
+                ${iconSvg}
+                ${item.title}
             </div>
-            <div class="delete-playlist-btn" title="Delete Playlist">
+            <div class="delete-playlist-btn" title="Delete Saved Item">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"></path></svg>
             </div>`;
         
+        // This click handler is now redundant as the job is done by the main container listener, 
+        // but we leave it for the delete button's specific logic.
         itemCard.addEventListener('click', (e) => {
             if (e.target.closest('.delete-playlist-btn')) return;
-            
-            const playlistId = itemCard.dataset.playlistId;
-            const hasFocus = itemCard.classList.contains('currently-playing');
-            
-            document.querySelectorAll('.youtube-result-card.currently-playing').forEach(c => {
-                c.classList.remove('currently-playing');
-            });
-            
-            if (hasFocus) {
-                hideYouTubeSearchView();
-            } else {
-                itemCard.classList.add('currently-playing');
-                currentlyPlayingLink = playlistId;
-                hideYouTubeSearchView();
-            }
-            
-            const selectedPlaylist = savedPlaylists.find(p => p.id === playlistId);
-            if (selectedPlaylist) {
-                currentPlaylist = selectedPlaylist.videos;
-                currentPlaylistIndex = 0;
-                openPlayerView({ playlistId: playlistId, title: selectedPlaylist.title });
-                openPlaylistOverlay();
-            }
+            // The main container listener will handle playback
         });
         
         fragment.appendChild(itemCard);
     });
     youtubeSearchResultsContainer.appendChild(fragment);
 }
-
 /**
  * Saves the playlist array to local and creation storage.
  */
@@ -2878,40 +2876,88 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
 
     // Use a more specific listener on the container for result clicks
     youtubeSearchResultsContainer.addEventListener('click', async (e) => {
+    
+    // ⬇️ *** STAGE 3 FIX: Handle Add/Remove Favorite Button *** ⬇️
+    const favoriteBtn = e.target.closest('.add-favorite-btn');
+    if (favoriteBtn) {
+        e.stopPropagation(); // Prevent the click from launching the player
+        const itemId = favoriteBtn.dataset.itemId;
+        const itemTitle = favoriteBtn.dataset.itemTitle;
+        const isPlaylist = favoriteBtn.dataset.isPlaylist === 'true';
+
+        const index = savedPlaylists.findIndex(p => p.id === itemId);
+
+        if (index !== -1) {
+            // Item is saved, remove it
+            savedPlaylists.splice(index, 1);
+            favoriteBtn.classList.remove('is-favorite');
+            favoriteBtn.title = 'Save as Favorite';
+            await sayOnRabbit(`Removed ${itemTitle}`);
+        } else {
+            // Item is not saved, add it
+            let itemData;
+            let thumb = e.target.closest('.youtube-result-card')?.querySelector('.link-favicon')?.src || GENERIC_FAVICON_SRC;
+            
+            if (isPlaylist) {
+                // For a new playlist, we need to fetch the metadata (thumb)
+                const metadata = await fetchPlaylistMetadata(itemId);
+                itemData = { id: itemId, title: itemTitle, thumb: metadata?.thumb || thumb };
+            } else {
+                // For a video, we use the thumb already in the card
+                itemData = { id: itemId, title: itemTitle, thumb: thumb };
+            }
+
+            savedPlaylists.push(itemData);
+            favoriteBtn.classList.add('is-favorite');
+            favoriteBtn.title = 'Remove from Saved';
+            hasEverAddedPlaylist = true;
+            localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
+            await sayOnRabbit(`Saved ${itemTitle}`);
+        }
+        
+        await savePlaylistsToStorage();
+        triggerHaptic();
+        // If we are currently in the is.gd view, re-render to show the change
+        if (currentSearchMode === 'is.gd') {
+            renderSavedPlaylists();
+        }
+        return;
+    }
+    // ⬆️ *** END OF STAGE 3 FIX *** ⬆️
+
+
     const card = e.target.closest('.youtube-result-card');
     
-    // --- ⬇️ ADDED: Handle Playlist Delete Button ⬇️ ---
+    // --- ⬇️ STAGE 1 FIX: Handle Delete Button ⬇️ ---
     const deleteBtn = e.target.closest('.delete-playlist-btn');
     if (deleteBtn && card) {
         e.stopPropagation(); // Stop the click from launching the player
-        const playlistId = card.dataset.playlistId;
-        const playlistTitle = card.dataset.title;
+        // Use the universal ID
+        const itemId = card.dataset.videoLink || card.dataset.playlistId || card.dataset.id;
+        const itemTitle = card.dataset.title;
         
-        if (await showConfirm(`Delete "${playlistTitle}" from your saved playlists?`)) {
-            savedPlaylists = savedPlaylists.filter(p => p.id !== playlistId);
+        if (await showConfirm(`Delete "${itemTitle}" from your saved items?`)) {
+            savedPlaylists = savedPlaylists.filter(p => p.id !== itemId);
 
-            // --- THIS IS THE FIX ---
-            // If the user just deleted the last playlist, set the flag to false.
             if (savedPlaylists.length === 0) {
                 localStorage.setItem('launchPadR1LegacyHasPlaylists', 'false');
-                hasEverAddedPlaylist = false; // Also sync the main variable
+                hasEverAddedPlaylist = false; 
             }
-            // --- END OF FIX ---
 
             await savePlaylistsToStorage();
             renderSavedPlaylists();
             triggerHaptic();
-            await sayOnRabbit("Playlist deleted");
+            await sayOnRabbit("Item deleted");
             
-            // ⬇️ ADDED: Clear focus if the deleted item was the currently playing one ⬇️
-            if (currentlyPlayingCardId === playlistId) {
+            // Clear focus if the deleted item was the currently playing one 
+            if (currentlyPlayingCardId === itemId) {
                 currentlyPlayingCardId = null;
                 currentlyPlayingCardMode = null;
             }
         }
         return; // Stop further execution
     }
-    // --- ⬆️ END OF ADDED CODE ⬆️ ---
+    // --- ⬆️ END OF STAGE 1 FIX ⬆️ ---
     
     if (card) {
         // Get the ID (Video URL or Playlist ID) for the card
