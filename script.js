@@ -137,6 +137,11 @@ let isIntentionalPause = false; // <-- ADD THIS FLAG
 let currentlyPlayingPlaylistId = null; // <-- ADD THIS
 let isVideoLoadedFromPlaylistCard = false; // <-- Flag to prevent onPlayerReady from overriding intentional plays
 
+// --- ⬇️ ADDED FOR CARD FOCUS LOGIC ⬇️ ---
+let currentlyPlayingCardId = null; // The ID of the currently playing card (video URL or playlist ID)
+let currentlyPlayingCardMode = null; // The mode ('videos', 'playlists', 'is.gd') that owns the focused card
+// --- ⬆️ END OF ADDED CODE ⬇️ ---
+
 // --- ⬇️ ADDED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
 let currentPlaylist = [];       // The active playlist (can be shuffled)
 let originalPlaylist = [];      // A copy of the original, unshuffled playlist
@@ -1328,10 +1333,12 @@ function openYouTubeSearchView() {
     toggleSearchHeader(true);
     // === END OF NEW ===
 
-    if (currentSearchMode === 'isGd') {
+    if (currentSearchMode === 'is.gd') { // Note: using 'is.gd' for consistency
         youtubeSearchInput.placeholder = 'Enter is.gd code...';
         youtubeSearchGoBtn.textContent = 'Load';
         renderSavedPlaylists();
+        // ⬇️ SET FOCUS ⬇️
+        setFocusOnCurrentlyPlaying('is.gd');
     } else if (currentSearchMode === 'videos') {
         youtubeSearchInput.placeholder = 'Search YouTube...';
         youtubeSearchGoBtn.textContent = 'Search';
@@ -1340,7 +1347,12 @@ function openYouTubeSearchView() {
             youtubeSearchResultsContainer.innerHTML = videosResults.html;
             youtubeSearchInput.value = videosResults.searchTerm;
             youtubeNextPageUrl = videosResults.nextPageUrl;
+        } else {
+             // Clear input if no results to avoid confusing stale text
+            youtubeSearchInput.value = '';
         }
+        // ⬇️ SET FOCUS ⬇️
+        setFocusOnCurrentlyPlaying('videos');
     } else if (currentSearchMode === 'playlists') {
         youtubeSearchInput.placeholder = 'Search Playlists...';
         youtubeSearchGoBtn.textContent = 'Search';
@@ -1349,7 +1361,12 @@ function openYouTubeSearchView() {
             youtubeSearchResultsContainer.innerHTML = playlistsResults.html;
             youtubeSearchInput.value = playlistsResults.searchTerm;
             playlistNextPageToken = playlistsResults.nextPageToken;
+        } else {
+             // Clear input if no results to avoid confusing stale text
+            youtubeSearchInput.value = '';
         }
+        // ⬇️ SET FOCUS ⬇️
+        setFocusOnCurrentlyPlaying('playlists');
     }
     
     // Make container focusable but don't focus it initially
@@ -1497,6 +1514,12 @@ function renderYouTubeResults(results, mode) {
         
         // Make cards focusable for scroll wheel navigation
         itemCard.tabIndex = 0;
+        
+        // ⬇️ ADDED: Check and apply focus state on render ⬇️
+        const cardId = mode === 'videos' ? item.link : item.playlist_id;
+        if (currentlyPlayingCardMode === mode && currentlyPlayingCardId === cardId) {
+            itemCard.classList.add('currently-playing');
+        }
 
         if (mode === 'videos') {
             itemCard.dataset.videoLink = item.link; 
@@ -2854,64 +2877,66 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
             renderSavedPlaylists();
             triggerHaptic();
             await sayOnRabbit("Playlist deleted");
+            
+            // ⬇️ ADDED: Clear focus if the deleted item was the currently playing one ⬇️
+            if (currentlyPlayingCardId === playlistId) {
+                currentlyPlayingCardId = null;
+                currentlyPlayingCardMode = null;
+            }
         }
         return; // Stop further execution
     }
     // --- ⬆️ END OF ADDED CODE ⬆️ ---
     
     if (card) {
-        // hideYouTubeSearchView(); // <-- REMOVED FROM HERE
+        // Get the ID (Video URL or Playlist ID) for the card
+        const cardId = card.dataset.videoLink || card.dataset.playlistId;
         const title = card.dataset.title;
+        const isPlaylistCard = !!card.dataset.playlistId;
+        
+        // Determine if this is the currently playing card
+        const isSameCardPlaying = currentlyPlayingCardId === cardId && currentlyPlayingCardMode === currentSearchMode;
 
-        if (card.dataset.videoLink) {
-            // This is for a single video
-            const videoLink = card.dataset.videoLink;
-            const hasFocus = card.classList.contains('currently-playing');
-            
-            // Remove focus from all other cards
-            document.querySelectorAll('.youtube-result-card.currently-playing').forEach(c => {
-                c.classList.remove('currently-playing');
-            });
-            
-            if (hasFocus) {
-                // Focused card clicked: navigate only (do NOT restart playback)
-                hideYouTubeSearchView();
+        if (isSameCardPlaying) {
+            // Scenario 1: User clicks the currently playing/focused card
+            hideYouTubeSearchView();
+            internalPlayerOverlay.style.display = 'flex';
+            if (isPlaylistCard) {
+                // For a playlist, also open the overlay
+                openPlaylistOverlay();
+            }
+            showPlayerUI();
+            // Playback state is already handled by YT player/onPlayerStateChange
+            return;
+        }
+
+        // Scenario 2: User clicks a new card. Restart playback and focus.
+        
+        // 1. Clear previous focus and set new focus state
+        clearAllSearchCardFocus();
+        card.classList.add('currently-playing');
+        
+        // 2. Update global focus tracking variables
+        currentlyPlayingCardId = cardId;
+        currentlyPlayingCardMode = currentSearchMode;
+
+        hideYouTubeSearchView();
+        
+        if (!isPlaylistCard) {
+            // Single Video Logic
+            const videoId = getYoutubeVideoId(cardId);
+            if (videoId) {
+                openPlayerView({ videoId: videoId, title: title });
             } else {
-                // New card: apply focus and play
-                card.classList.add('currently-playing');
-                currentlyPlayingLink = videoLink;
-                hideYouTubeSearchView();
-                
-                const videoId = getYoutubeVideoId(videoLink);
-                if (videoId) {
-                    openPlayerView({ videoId: videoId, title: title });
-                } else {
-                    showAlert(`Could not find a valid video ID in the link: ${videoLink}`);
-                }
+                showAlert(`Could not find a valid video ID in the link: ${cardId}`);
             }
-               } else if (card.dataset.playlistId) {
-                // This is our new logic for a playlist
-                const playlistId = card.dataset.playlistId;
-                const title = card.dataset.title;
-                const hasFocus = card.classList.contains('currently-playing');
-                
-                document.querySelectorAll('.youtube-result-card.currently-playing').forEach(c => {
-                    c.classList.remove('currently-playing');
-                });
-                
-                if (hasFocus) {
-                    // Focused playlist clicked: navigate only (do NOT restart)
-                    hideYouTubeSearchView();
-                } else {
-                    // New playlist: apply focus and load
-                    card.classList.add('currently-playing');
-                    currentlyPlayingLink = playlistId;
-                    hideYouTubeSearchView();
-                    
-                    await openPlayerView({ playlistId: playlistId, title: title });
-                    openPlaylistOverlay();
-                }
-            }
+        } else {
+            // Playlist Logic
+            const playlistId = cardId;
+            currentlyPlayingLink = playlistId; // Legacy variable update
+            await openPlayerView({ playlistId: playlistId, title: title });
+            openPlaylistOverlay();
+        }
     }
 });
 
@@ -3059,6 +3084,7 @@ searchModeVideosBtn.addEventListener('click', () => {
     youtubeSearchInput.placeholder = 'Search YouTube...';
     youtubeSearchGoBtn.textContent = 'Search';
     youtubeSearchView.scrollTop = 0;
+    setFocusOnCurrentlyPlaying('videos'); // ⬇️ ADD THIS ⬇️
 });
 
 searchModePlaylistsBtn.addEventListener('click', () => {
@@ -3088,6 +3114,7 @@ searchModePlaylistsBtn.addEventListener('click', () => {
     youtubeSearchInput.placeholder = 'Search Playlists...';
     youtubeSearchGoBtn.textContent = 'Search';
     youtubeSearchView.scrollTop = 0;
+    setFocusOnCurrentlyPlaying('playlists'); // ⬇️ ADD THIS ⬇️
 });
 
 searchModeIsGdBtn.addEventListener('click', () => {
@@ -3113,9 +3140,11 @@ searchModeIsGdBtn.addEventListener('click', () => {
     youtubeSearchGoBtn.textContent = 'Load';
     youtubeSearchView.scrollTop = 0;
     renderSavedPlaylists();
+    setFocusOnCurrentlyPlaying('is.gd'); // ⬇️ ADD THIS ⬇️
 
     // After rendering, check if playlists were actually added to the DOM.
     setTimeout(() => {
+// ... (rest of is.gd logic)
         const hasCards = youtubeSearchResultsContainer.querySelector('.youtube-result-card');
         if (hasCards) {
             // If cards exist, focus the container for scrolling, but prevent the
@@ -3445,6 +3474,26 @@ document.querySelector('.playlist-video-count-wrapper').addEventListener('click'
 
     renderLinks();
 })();
+
+// ⬇️ *** ADD THIS NEW FUNCTION *** ⬇️
+function clearAllSearchCardFocus() {
+    // Clears focus from any card in the overlay, regardless of mode
+    document.querySelectorAll('#youtubeSearchResultsContainer .youtube-result-card').forEach(c => {
+        c.classList.remove('currently-playing');
+    });
+}
+
+function setFocusOnCurrentlyPlaying(mode) {
+    clearAllSearchCardFocus();
+    if (currentlyPlayingCardMode === mode && currentlyPlayingCardId) {
+        // Use a combined selector for video links and playlist IDs
+        const targetCard = document.querySelector(`#youtubeSearchResultsContainer .youtube-result-card[data-video-link="${currentlyPlayingCardId}"], #youtubeSearchResultsContainer .youtube-result-card[data-playlist-id="${currentlyPlayingCardId}"]`);
+        if (targetCard) {
+            targetCard.classList.add('currently-playing');
+        }
+    }
+}
+// ⬆️ *** END OF NEW FUNCTION *** ⬆️
 
 function togglePlayback() {
     if (!player || typeof player.getPlayerState !== 'function') return;
@@ -3797,6 +3846,9 @@ window.addEventListener('beforeunload', () => {
     playlistsResults.searchTerm = '';
     playlistsResults.nextPageToken = null;
     
-    // isGdResults in localStorage is NOT cleared (persistent across sessions)
+    // ⬇️ ADDED: Clear persistent focus state on exit ⬇️
+    currentlyPlayingCardId = null;
+    currentlyPlayingCardMode = null;
+    // ⬆️ END OF ADDED CODE ⬆️
 });
 // --- ⬆️ END OF STAGE 6 ⬆️ ---
