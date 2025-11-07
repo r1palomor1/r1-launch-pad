@@ -21,7 +21,7 @@
     --actions-landing-container-size: 32px; /* Landing page button containers */
     --actions-player-container-size: 38px;  /* Player page button containers */
     
-    --favorite-color: #FFD700;
+    --favorite-color: #e74c3c; /* ⬅️ NEW: Use Red for Saved/Favorite */
 
     /* Dynamic Sizing Variables */
     --font-size-base: clamp(14px, 4.2vw, 16px);
@@ -34,7 +34,6 @@
     --card-padding-y: clamp(8px, 2.2vw, 12px);
     --card-padding-x: clamp(10px, 2.8vw, 12px);
 }
-
 *, *::before, *::after {
     box-sizing: border-box;
 }
@@ -1187,9 +1186,9 @@ button.rabbit-default:hover {
 .add-favorite-btn {
     position: absolute;
     top: 2px;
-    right: 32px; /* Position next to the existing delete button */
-    width: 28px;
-    height: 28px;
+    right: 2px; /* ⬅️ CRITICAL FIX: Match the position of the Delete button */
+    width: 20px; /* ⬅️ CRITICAL FIX: Match the size of the Delete button container */
+    height: 20px; /* ⬅️ CRITICAL FIX: Match the size of the Delete button container */
     background: transparent;
     border-radius: 50%;
     display: flex;
@@ -1209,16 +1208,16 @@ button.rabbit-default:hover {
 }
 
 .add-favorite-btn.is-favorite {
-    color: var(--favorite-color); /* Gold color for saved state */
+    color: var(--favorite-color); /* ⬅️ Now uses the Red color defined in :root */
     opacity: 1;
 }
 
 .add-favorite-btn svg {
-    width: 18px;
-    height: 18px;
+    width: 14px; /* ⬅️ Adjusted size to fit the 20x20 area cleanly */
+    height: 14px;
     fill: currentColor;
 }
-/* ⬆️ *** END OF NEW RULE *** ⬆️ */
+/* ⬆️ *** END OF CORRECTED RULE *** ⬆️ */
 
 /* ⬇️ ADD THIS RULE ⬇️ */
 .youtube-result-card.currently-playing {
