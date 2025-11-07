@@ -2874,20 +2874,20 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
             });
             
             if (hasFocus) {
-                // Focused card clicked: navigate only
+                // Focused card clicked: navigate only (do NOT restart playback)
                 hideYouTubeSearchView();
             } else {
                 // New card: apply focus and play
                 card.classList.add('currently-playing');
                 currentlyPlayingLink = videoLink;
                 hideYouTubeSearchView();
-            }
-            
-            const videoId = getYoutubeVideoId(videoLink);
-            if (videoId) {
-                openPlayerView({ videoId: videoId, title: title });
-            } else {
-                showAlert(`Could not find a valid video ID in the link: ${videoLink}`);
+                
+                const videoId = getYoutubeVideoId(videoLink);
+                if (videoId) {
+                    openPlayerView({ videoId: videoId, title: title });
+                } else {
+                    showAlert(`Could not find a valid video ID in the link: ${videoLink}`);
+                }
             }
                } else if (card.dataset.playlistId) {
                 // This is our new logic for a playlist
@@ -2900,15 +2900,17 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
                 });
                 
                 if (hasFocus) {
+                    // Focused playlist clicked: navigate only (do NOT restart)
                     hideYouTubeSearchView();
                 } else {
+                    // New playlist: apply focus and load
                     card.classList.add('currently-playing');
                     currentlyPlayingLink = playlistId;
                     hideYouTubeSearchView();
+                    
+                    await openPlayerView({ playlistId: playlistId, title: title });
+                    openPlaylistOverlay();
                 }
-                
-                await openPlayerView({ playlistId: playlistId, title: title });
-                openPlaylistOverlay();
             }
     }
 });
