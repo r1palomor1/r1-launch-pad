@@ -1,5 +1,6 @@
 ﻿﻿/*
- Working app: Auto hide controls in modes and PL overlay.  Use side icon to show.
+ Working app: Good state to use.  Fix card focus within modes and overlay.
+    Auto hide controls in modes and PL overlay.  Use side icon to show.
     Vertical volume slider and standarize icons using vars.
     Move PL icon and now fades. Playlist area with video cards maxed 100 videos.  
     Redesigning Playlist Area to use yt-dlp and return json. Jump to PL overlay.
