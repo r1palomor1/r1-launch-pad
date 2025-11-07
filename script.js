@@ -775,17 +775,22 @@ function renderSavedPlaylists() {
     // --- ⬇️ MODIFIED: Handle both videos and playlists ⬇️ ---
     sortedPlaylists.forEach(item => {
         // Check if it looks like a playlist ID (start with PL or contains list=)
-        const isPlaylist = item.id.startsWith('PL') || item.id.includes('list='); 
+        // Note: is.gd links resolve to full YouTube links, so they are playlists
+        const isPlaylist = item.id.startsWith('PL') || item.id.includes('list=') || item.url?.includes('list=');
         const itemCard = document.createElement('div');
         itemCard.className = 'card youtube-result-card';
         itemCard.dataset.id = item.id; // Universal ID field
         itemCard.dataset.title = item.title;
         
-        // Set specific data attributes for click handler
+        // *** CRITICAL FIX: Set specific data attributes for the main container click handler ***
         if (isPlaylist) {
             itemCard.dataset.playlistId = item.id;
+            // IMPORTANT: Remove videoLink attribute if it exists
+            itemCard.removeAttribute('data-video-link');
         } else {
             itemCard.dataset.videoLink = item.id;
+            // IMPORTANT: Remove playlistId attribute if it exists
+            itemCard.removeAttribute('data-playlist-id');
         }
         
         // ⬇️ ADDED: Apply focus if it matches the current state ⬇️
@@ -1544,6 +1549,18 @@ function renderYouTubeResults(results, mode) {
         if (currentlyPlayingCardMode === mode && currentlyPlayingCardId === cardId) {
             itemCard.classList.add('currently-playing');
         }
+        // ⬆️ END OF ADDED CODE ⬆️
+        
+        // ⬇️ *** NEW LOGIC: Check if item is already saved (favorited) *** ⬇️
+        const idToCheck = item.playlist_id || item.link;
+        const isSaved = savedPlaylists.some(p => p.id === idToCheck);
+        const favoriteClass = isSaved ? ' is-favorite' : '';
+
+        const favoriteButtonHtml = `
+            <button class="add-favorite-btn${favoriteClass}" title="${isSaved ? 'Remove from Saved' : 'Save as Favorite'}" data-item-id="${idToCheck}" data-item-title="${item.title}" data-is-playlist="${!!item.playlist_id}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>
+            </button>`;
+        // ⬆️ *** END NEW LOGIC *** ⬆️
 
         if (mode === 'videos') {
             itemCard.dataset.videoLink = item.link; 
@@ -1551,7 +1568,8 @@ function renderYouTubeResults(results, mode) {
             const thumbnailUrl = item.thumbnail?.static || GENERIC_FAVICON_SRC;
             itemCard.innerHTML = `
                 <img src="${thumbnailUrl}" class="link-favicon" alt="Video thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
-                <div class="link-description">${item.title}</div>`;
+                <div class="link-description">${item.title}</div>
+                ${favoriteButtonHtml}`; // Add heart button
         } else if (mode === 'playlists') {
             itemCard.dataset.playlistId = item.playlist_id;
             itemCard.dataset.title = item.title;
@@ -1563,7 +1581,8 @@ function renderYouTubeResults(results, mode) {
                     <svg viewBox="0 0 24 24" fill="currentColor" style="width:1em; height:1em; vertical-align:-0.15em; margin-right:4px; opacity:0.7;"><path d="M3 10h11v2H3zm0-4h11v2H3zm0 8h7v2H3zm13-1v8l6-4z"></path></svg>
                     ${item.title}
                     <div style="font-size:0.8em; color:var(--icon-color); font-weight:normal;">${item.video_count} videos</div>
-                </div>`;
+                </div>
+                ${favoriteButtonHtml}`; // Add heart button
         }
         fragment.appendChild(itemCard);
         
@@ -1581,8 +1600,10 @@ function renderYouTubeResults(results, mode) {
     // === STAGE 7: Update cached HTML in storage ===
     if (mode === 'videos') {
         videosResults.html = youtubeSearchResultsContainer.innerHTML;
+        videosResults.searchTerm = youtubeSearchInput.value; // Also save the search term
     } else if (mode === 'playlists') {
         playlistsResults.html = youtubeSearchResultsContainer.innerHTML;
+        playlistsResults.searchTerm = youtubeSearchInput.value; // Also save the search term
     }
 }
 
