@@ -1465,28 +1465,38 @@ function populatePlaylistOverlay() {
         }
 
         videoItem.addEventListener('click', () => {
-            const hasFocus = videoItem.classList.contains('currently-playing');
-            
-            document.querySelectorAll('.youtube-result-card.currently-playing').forEach(c => {
-                c.classList.remove('currently-playing');
-            });
-            
-            if (hasFocus && index === currentPlaylistIndex && player) {
+            // Check if this video card is already the currently playing video
+            const isCurrentVideoPlaying = index === currentPlaylistIndex && player && 
+                                          player.getPlayerState && player.getPlayerState() !== YT.PlayerState.UNSTARTED;
+
+            // ⬇️ *** FIX: If already playing, just close the overlay and return to player. *** ⬇️
+            if (isCurrentVideoPlaying) {
                 closePlaylistOverlay();
                 showPlayerUI();
                 if (player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
                     startUIHideTimer();
                 }
-            } else {
-                videoItem.classList.add('currently-playing');
-                currentlyPlayingLink = currentPlaylist[index].link || index.toString();
-                currentPlaylistIndex = index;
-                const newVideo = currentPlaylist[index];
-                if (newVideo) {
-                    loadVideoFromPlaylist(newVideo);
-                }
-                closePlaylistOverlay();
+                return; // Crucial: Stop here to prevent restart
             }
+            // ⬆️ *** END OF FIX *** ⬆️
+
+            // Logic for selecting a *new* video (or the current one when player is stopped)
+            document.querySelectorAll('#playlistOverlay .youtube-result-card').forEach(c => {
+                c.classList.remove('now-playing');
+            });
+            
+            // Apply new highlight and load the video
+            videoItem.classList.add('now-playing');
+            videoItem.id = 'playlist-current-item'; // Re-set ID for smooth scroll helper
+            
+            currentlyPlayingLink = currentPlaylist[index].link || index.toString();
+            currentPlaylistIndex = index;
+            const newVideo = currentPlaylist[index];
+            if (newVideo) {
+                loadVideoFromPlaylist(newVideo);
+            }
+            
+            closePlaylistOverlay();
             triggerHaptic();
         });
 
@@ -2822,7 +2832,7 @@ function returnToSearchFromPlayer(focusInput = false) {
         youtubeSearchViewOverlay.style.display = 'flex';
         
         // Set the placeholders and content without focusing search input
-        if (currentSearchMode === 'isGd') {
+        if (currentSearchMode === 'isGd' || currentSearchMode === 'is.gd') {
             youtubeSearchInput.placeholder = 'Enter is.gd code...';
             youtubeSearchGoBtn.textContent = 'Load';
             renderSavedPlaylists(); // This is still needed for highlighting
@@ -2831,16 +2841,15 @@ function returnToSearchFromPlayer(focusInput = false) {
             youtubeSearchGoBtn.textContent = 'Search';
         }
         
+        // ⬇️ *** FIX: Explicitly set focus after the view is rendered/restored *** ⬇️
+        setFocusOnCurrentlyPlaying(currentSearchMode);
+        // ⬆️ *** END OF FIX *** ⬆️
+        
         // Make container focusable and focus it (since we're returning to cards)
         youtubeSearchResultsContainer.tabIndex = 0;
         setTimeout(() => {
             youtubeSearchResultsContainer.focus();
         }, 100);
-        
-        // Force re-render of saved playlists to ensure highlighting is applied
-        if (currentSearchMode === 'isGd' || currentSearchMode === 'is.gd') {
-            renderSavedPlaylists();
-        }
     }
 
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
