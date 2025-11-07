@@ -1,5 +1,5 @@
 ﻿﻿/*
- Working app: Good state to use.  Fix card focus within modes and overlay.
+ Working app: Good state to use.  Fix card focus within modes and Now Playing bar.
     Auto hide controls in modes and PL overlay.  Use side icon to show.
     Vertical volume slider and standarize icons using vars.
     Move PL icon and now fades. Playlist area with video cards maxed 100 videos.  
