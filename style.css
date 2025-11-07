@@ -1326,20 +1326,27 @@ button.rabbit-default:hover {
 }
 
 .search-controls-actions {
-    display: flex;
+    display: flex; /* <-- Original value, will be overridden */
     justify-content: center;
     gap: 65px;
     width: 100%;
+    
+    /* ⬇️ MODIFIED DEFAULT STATE TO HIDE AND COLLAPSE SPACE ⬇️ */
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    /* This line is the critical fix for the gap */
+    display: none; 
+    /* ⬆️ END MODIFIED STATE ⬆️ */
+    
+    transition: opacity 0.3s ease; /* Transition will still be active but only on opacity */
 }
 
-/* Show buttons when input is focused */
-.youtube-search-view .search-input-wrapper input:focus ~ .search-controls-row .search-controls-actions,
-#youtubeSearchInput:focus ~ .search-controls-row .search-controls-actions {
+/* Show action buttons when the search input is focused, guaranteeing the display: flex rule wins */
+.youtube-search-view .search-input-wrapper input:focus + #clearYoutubeSearchBtn ~ .search-controls-row .search-controls-actions,
+.youtube-search-view .search-input-wrapper #youtubeSearchInput:focus ~ .search-controls-row .search-controls-actions {
     opacity: 1;
     pointer-events: all;
+    display: flex !important; /* Use !important as a last resort to ensure visibility */
 }
 
 /* === NEW: Styles for collapsing headers === */

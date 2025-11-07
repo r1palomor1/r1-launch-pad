@@ -1813,20 +1813,34 @@ youtubeSearchInput.addEventListener('focus', () => {
     youtubeSearchViewOverlay.classList.add('input-focused');
     // Show action buttons when input has focus
     const actionButtons = document.querySelector('.search-controls-actions');
-    if (actionButtons) actionButtons.style.opacity = '1';
-    if (actionButtons) actionButtons.style.pointerEvents = 'all';
+    
+    if (actionButtons) {
+        // ⬇️ ADD THIS LINE ⬇️
+        actionButtons.style.display = 'flex'; // CRITICAL: Bring the element back into the layout
+        // ⬆️ END ADDED LINE ⬆️
+        
+        actionButtons.style.opacity = '1';
+        actionButtons.style.pointerEvents = 'all';
+    }
 });
 
 youtubeSearchInput.addEventListener('blur', () => {
     youtubeSearchViewOverlay.classList.remove('input-focused');
-    // Hide action buttons when input loses focus (but allow a small delay for click events)
     const actionButtons = document.querySelector('.search-controls-actions');
-    setTimeout(() => {
-        if (actionButtons && document.activeElement !== youtubeSearchInput) {
-            actionButtons.style.opacity = '0';
-            actionButtons.style.pointerEvents = 'none';
-        }
-    }, 100);
+    
+    // Step 1: Hide actions immediately, but with a transition delay
+    if (actionButtons) {
+        actionButtons.style.opacity = '0';
+        actionButtons.style.pointerEvents = 'none';
+        
+        // Step 2: Use a timeout that matches or exceeds the CSS transition (0.3s)
+        setTimeout(() => {
+            // Only hide display if the input is still blurred and opacity is 0
+            if (document.activeElement !== youtubeSearchInput && actionButtons.style.opacity === '0') {
+                actionButtons.style.display = 'none'; // CRITICAL: Collapse the element
+            }
+        }, 350); // 350ms to allow the 0.3s transition to complete
+    }
 });
 
 // === NEW: Listener for the expand icon ===
