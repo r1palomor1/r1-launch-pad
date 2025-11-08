@@ -3541,6 +3541,9 @@ playerFavoriteBtn.addEventListener('click', async (e) => {
         // Item is saved, remove it
         savedPlaylists.splice(index, 1);
         favoriteBtn.classList.remove('is-favorite');
+        // ⬇️ *** THE CRITICAL FIX: Reset fill color to the dim default *** ⬇️
+        favoriteBtn.querySelector('svg').style.fill = 'var(--icon-color)';
+        // ⬆️ *** END OF CRITICAL FIX *** ⬆️
         await sayOnRabbit(`Removed ${itemTitle}`);
     } else {
         // Item is not saved, add it
@@ -3561,6 +3564,9 @@ playerFavoriteBtn.addEventListener('click', async (e) => {
 
         savedPlaylists.push(itemData);
         favoriteBtn.classList.add('is-favorite');
+        // ⬇️ *** ADD THIS LINE for immediate visual update on add *** ⬇️
+        favoriteBtn.querySelector('svg').style.fill = 'var(--primary-color)';
+        // ⬆️ *** END OF ADDED LINE *** ⬆️
         hasEverAddedPlaylist = true;
         localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
         await sayOnRabbit(`Saved ${itemTitle}`);
