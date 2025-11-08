@@ -3533,6 +3533,27 @@ playerHomeIcon.addEventListener('click', () => {
 // --- ⬆️ END OF ADDED CODE ⬆️ ---
 
 // --- ⬇️ ADD NEW LISTENER FOR PLAYER FAVORITE BUTTON ⬇️ ---
+/**
+ * Force immediate style update on the favorite button
+ * This ensures the color change reflects instantly without waiting for CSS transitions
+ */
+function syncFavoriteBtnStyle() {
+    if (!playerFavoriteBtn) return;
+    
+    const svg = playerFavoriteBtn.querySelector('svg');
+    if (!svg) return;
+    
+    // Temporarily remove transition to force immediate style update
+    const originalTransition = svg.style.transition;
+    svg.style.transition = 'none';
+    
+    // Trigger reflow to apply changes immediately
+    void svg.offsetHeight;
+    
+    // Restore transition after reflow
+    svg.style.transition = originalTransition;
+}
+
 playerFavoriteBtn.addEventListener('click', async () => {
     if (!currentlyPlayingCardId) {
         await showAlert("Cannot save: No video or playlist is currently loaded.");
@@ -3576,9 +3597,9 @@ playerFavoriteBtn.addEventListener('click', async () => {
     }
     
     await savePlaylistsToStorage();
+    syncFavoriteBtnStyle(); // Force immediate style sync before UI transitions
     triggerHaptic();
-    showPlayerUI(); // Reset hide timer on interaction
-    startUIHideTimer();
+    // Don't show UI - favorite action runs silently in background
 });
 // --- ⬆️ END OF NEW LISTENER ⬆️ ---
 
