@@ -1332,8 +1332,7 @@ function startUIHideTimer() {
         'playerBackBtn_playlist','playerSearchBtn_playlist',
         'playerPlayPauseBtn_playlist','playerAudioOnlyBtn_playlist',
         'playerPrevBtn','playerNextBtn','playerPlaylistBtn',
-        'playerFavoriteBtn', // ⬅️ ADDED THIS
-
+       
         // Shared/overlay bits
         'playerHomeIcon','stopPlayingBtn'
     ];
@@ -3566,9 +3565,7 @@ playerFavoriteBtn.addEventListener('click', async () => {
     
     await savePlaylistsToStorage();
     triggerHaptic();
-    showPlayerUI(); // Reset hide timer on interaction
-    startUIHideTimer();
-});
+    });
 // --- ⬆️ END OF NEW LISTENER ⬆️ ---
 
 // ⬇️ *** ADD THIS NEW LISTENER FOR THE COUNTER *** ⬇️
