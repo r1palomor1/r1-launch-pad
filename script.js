@@ -2946,13 +2946,12 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
         const index = savedPlaylists.findIndex(p => p.id === itemId);
 
         if (index !== -1) {
-            // Item is saved, remove it
-            savedPlaylists.splice(index, 1);
-            favoriteBtn.classList.remove('is-favorite');
-            favoriteBtn.title = 'Save as Favorite';
-            await sayOnRabbit(`Removed ${itemTitle}`);
-        } else {
-            // Item is not saved, add it
+        // Item is saved, remove it
+        savedPlaylists.splice(index, 1);
+        favoriteBtn.classList.remove('is-favorite'); // <--- ADD THIS LINE
+        await sayOnRabbit(`Removed ${itemTitle}`);
+    } else {
+        // Item is not saved, add it
             let itemData;
             let thumb = e.target.closest('.youtube-result-card')?.querySelector('.link-favicon')?.src || GENERIC_FAVICON_SRC;
             
