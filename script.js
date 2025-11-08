@@ -1332,7 +1332,6 @@ function startUIHideTimer() {
         'playerBackBtn_playlist','playerSearchBtn_playlist',
         'playerPlayPauseBtn_playlist','playerAudioOnlyBtn_playlist',
         'playerPrevBtn','playerNextBtn','playerPlaylistBtn',
-        'playerFavoriteBtn', // ⬅️ ADDED THIS
 
         // Shared/overlay bits
         'playerHomeIcon','stopPlayingBtn'
@@ -3554,7 +3553,9 @@ function syncFavoriteBtnStyle() {
     svg.style.transition = originalTransition;
 }
 
-playerFavoriteBtn.addEventListener('click', async () => {
+playerFavoriteBtn.addEventListener('click', async (e) => {
+    e.stopPropagation(); // Prevent event from bubbling up
+    
     if (!currentlyPlayingCardId) {
         await showAlert("Cannot save: No video or playlist is currently loaded.");
         return;
@@ -3674,13 +3675,13 @@ document.querySelector('.playlist-video-count-wrapper').addEventListener('click'
     });
     // --- End of Scroll Wheel Navigation ---
 
-    // --- Player overlay: ONLY tap hint bar shows UI ---
+    // --- Tap hint bar: ONLY way to show UI when collapsed ---
     const tapHintElement = document.getElementById('tapHint');
     if (tapHintElement) {
         tapHintElement.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             if (!isUIVisible && player) {
-                e.preventDefault();
-                e.stopPropagation();
                 showPlayerUI();
                 if (player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
                     startUIHideTimer();
