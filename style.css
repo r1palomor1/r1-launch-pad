@@ -1795,8 +1795,8 @@ button.rabbit-default:hover {
 }
 
 #playerFavoriteBtn svg {
-    width: var(--actions-player-icon-size);
-    height: var(--actions-player-icon-size);
+    width: 14px; /* ⬅️ Changed to 14px to match card icon size */
+    height: 14px; /* ⬅️ Changed to 14px to match card icon size */
     fill: var(--icon-color); /* Use subtle color */
     opacity: 0.6; /* Make it semi-transparent */
     transition: fill 0.2s ease;
