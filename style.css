@@ -1337,7 +1337,7 @@ button.rabbit-default:hover {
     position: sticky;
     top: 37px; /* Height of the search input + gap */
     background-color: var(--bg-color);
-    z-index: 10;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -1372,8 +1372,7 @@ button.rabbit-default:hover {
 /* === NEW: Styles for collapsing headers === */
 .search-input-wrapper,
 .search-controls-row {
-    /* Add smooth transition */
-    transition: all 0.3s ease-in-out;
+    /* REMOVED transition: all 0.3s ease-in-out; */
     transform: translateY(0);
     opacity: 1;
     visibility: visible;
@@ -1381,10 +1380,8 @@ button.rabbit-default:hover {
 
 .youtube-search-view.header-collapsed .search-input-wrapper,
 .youtube-search-view.header-collapsed .search-controls-row {
-    /* Hide the headers */
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-100%);
+    /* Force instant disappearance and collapse space */
+    display: none; /* ⬅️ CRITICAL: Forces instant removal from flow */
     height: 0;
     padding: 0;
     margin: 0;
