@@ -1773,6 +1773,48 @@ button.rabbit-default:hover {
 }
 /* ⬆️ END OF ADDED STYLES ⬆️ */
 
+/* ⬇️ *** ADD NEW STYLES FOR FAVORITE BUTTON *** ⬇️ */
+#playerFavoriteBtn {
+    position: absolute;
+    top: max(2px, env(safe-area-inset-top)); /* Align top edge */
+    right: max(47px, calc(47px + env(safe-area-inset-right))); /* ⬅️ POSITIONED LEFT OF PLAYLIST BUTTON */
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: var(--actions-player-container-size);
+    height: var(--actions-player-container-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1100;
+    opacity: 0; /* Hidden by default */
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+#playerFavoriteBtn svg {
+    width: var(--actions-player-icon-size);
+    height: var(--actions-player-icon-size);
+    fill: var(--icon-color); /* Use subtle color */
+    opacity: 0.6; /* Make it semi-transparent */
+    transition: fill 0.2s ease;
+}
+
+#playerFavoriteBtn:hover svg {
+    fill: var(--primary-color); /* Highlight on hover */
+    opacity: 1;
+}
+
+/* Style when the video is already saved/favorited */
+#playerFavoriteBtn.is-favorite svg {
+    fill: var(--favorite-color); /* Use the red favorite color */
+    opacity: 1;
+}
+/* ⬆️ *** END OF NEW STYLES *** ⬆️ */
+
+
 /* ⬇️ *** ADD THESE NEW STYLES *** ⬇️ */
 #playerPlaylistBtn {
     position: absolute;

@@ -67,6 +67,7 @@ const playerSearchBtn_playlist = document.getElementById('playerSearchBtn_playli
 const playerPrevBtn = document.getElementById('playerPrevBtn');
 const playerNextBtn = document.getElementById('playerNextBtn');
 const playerPlaylistBtn = document.getElementById('playerPlaylistBtn');
+const playerFavoriteBtn = document.getElementById('playerFavoriteBtn');
 const playerHomeIcon = document.getElementById('playerHomeIcon');
 const playlistOverlay = document.getElementById('playlistOverlay');
 const playlistTitle = document.getElementById('playlistTitle');
@@ -1150,13 +1151,22 @@ function hidePlayerUI() {
     }
     // --- ⬆️ END OF ADDED CODE ⬆️ ---
 
-    // ⬇️ *** THIS IS THE FIX *** ⬇️
-    // Also show the playlist icon, but only if we are in playlist mode
+    // ⬇️ *** MODIFIED: Show floating icons when main UI is hidden *** ⬇️
+    // Show Playlist button only if in playlist mode
     if (playerPlaylistBtn && isManualPlaylist) {
         playerPlaylistBtn.style.opacity = '1';
         playerPlaylistBtn.style.pointerEvents = 'auto';
     }
-    // ⬆️ *** END OF FIX *** ⬆️
+    
+    // Show Favorite button (always visible when UI collapsed)
+    if (playerFavoriteBtn) { 
+        playerFavoriteBtn.style.opacity = '1';
+        playerFavoriteBtn.style.pointerEvents = 'auto';
+        // Check if the currently playing video is already saved and reflect status
+        const isCurrentlySaved = savedPlaylists.some(p => p.id === currentlyPlayingCardId);
+        playerFavoriteBtn.classList.toggle('is-favorite', isCurrentlySaved); // ⬅️ ADDED THIS
+    }
+    // ⬆️ *** END OF MODIFIED CODE *** ⬆️
     
     // Show tap hint after UI fades
     showTapHint();
@@ -1191,16 +1201,19 @@ function showPlayerUI() {
     }
     // --- ⬆️ END OF ADDED CODE ⬆️ ---
 
-    // ⬇️ *** THIS IS THE FIX *** ⬇️
-    // Always hide the floating playlist icon when the main UI is visible
+    // ⬇️ *** MODIFIED: Always hide floating icons when main UI is visible *** ⬇️
     if (playerPlaylistBtn) {
         playerPlaylistBtn.style.opacity = '0';
         playerPlaylistBtn.style.pointerEvents = 'none';
     }
-    // ⬆️ *** END OF FIX *** ⬆️
+    if (playerFavoriteBtn) { // ⬅️ ADDED THIS
+        playerFavoriteBtn.style.opacity = '0';
+        playerFavoriteBtn.style.pointerEvents = 'none';
+    }
+    // ⬆️ *** END OF MODIFIED CODE *** ⬆️
     
     // Hide tap hint when UI shows again
-    hideTapHint();    
+    hideTapHint();  
     // Sync audio button state when UI reappears
     if (isAudioOnly) {
         playerAudioOnlyBtn.classList.add('active');
@@ -1319,6 +1332,7 @@ function startUIHideTimer() {
         'playerBackBtn_playlist','playerSearchBtn_playlist',
         'playerPlayPauseBtn_playlist','playerAudioOnlyBtn_playlist',
         'playerPrevBtn','playerNextBtn','playerPlaylistBtn',
+        'playerFavoriteBtn', // ⬅️ ADDED THIS
 
         // Shared/overlay bits
         'playerHomeIcon','stopPlayingBtn'
@@ -3496,6 +3510,56 @@ playerHomeIcon.addEventListener('click', () => {
     triggerHaptic();
 });
 // --- ⬆️ END OF ADDED CODE ⬆️ ---
+
+// --- ⬇️ ADD NEW LISTENER FOR PLAYER FAVORITE BUTTON ⬇️ ---
+playerFavoriteBtn.addEventListener('click', async () => {
+    if (!currentlyPlayingCardId) {
+        await showAlert("Cannot save: No video or playlist is currently loaded.");
+        return;
+    }
+    
+    const itemId = currentlyPlayingCardId;
+    const itemTitle = playerVideoTitle.textContent.replace(/^Playing: /, '');
+    const isPlaylist = isManualPlaylist;
+
+    const favoriteBtn = playerFavoriteBtn;
+    const index = savedPlaylists.findIndex(p => p.id === itemId);
+    
+    if (index !== -1) {
+        // Item is saved, remove it
+        savedPlaylists.splice(index, 1);
+        favoriteBtn.classList.remove('is-favorite');
+        await sayOnRabbit(`Removed ${itemTitle}`);
+    } else {
+        // Item is not saved, add it
+        let itemData;
+        let thumb = GENERIC_FAVICON_SRC;
+
+        if (isPlaylist) {
+            // Fetch metadata to get a thumbnail for the saved list
+            const metadata = await fetchPlaylistMetadata(itemId);
+            thumb = metadata?.thumb || GENERIC_FAVICON_SRC;
+            itemData = { id: itemId, title: itemTitle, thumb: thumb, url: `https://www.youtube.com/playlist?list=${itemId}` };
+        } else {
+            // For a single video, we must construct the thumbnail URL from the ID
+            const videoId = getYoutubeVideoId(itemId) || itemId;
+            thumb = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+            itemData = { id: itemId, title: itemTitle, thumb: thumb, url: `https://www.youtube.com/watch?v=${videoId}` };
+        }
+
+        savedPlaylists.push(itemData);
+        favoriteBtn.classList.add('is-favorite');
+        hasEverAddedPlaylist = true;
+        localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
+        await sayOnRabbit(`Saved ${itemTitle}`);
+    }
+    
+    await savePlaylistsToStorage();
+    triggerHaptic();
+    showPlayerUI(); // Reset hide timer on interaction
+    startUIHideTimer();
+});
+// --- ⬆️ END OF NEW LISTENER ⬆️ ---
 
 // ⬇️ *** ADD THIS NEW LISTENER FOR THE COUNTER *** ⬇️
 document.querySelector('.playlist-video-count-wrapper').addEventListener('click', () => {
