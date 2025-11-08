@@ -2898,15 +2898,25 @@ function returnToSearchFromPlayer(focusInput = false) {
         if (currentSearchMode === 'isGd' || currentSearchMode === 'is.gd') {
             youtubeSearchInput.placeholder = 'Enter is.gd code...';
             youtubeSearchGoBtn.textContent = 'Load';
-            renderSavedPlaylists(); // This is still needed for highlighting
+            renderSavedPlaylists(); // ⬅️ THIS WILL REFRESH THE FAVORITES LIST
         } else {
             youtubeSearchInput.placeholder = 'Search YouTube...';
             youtubeSearchGoBtn.textContent = 'Search';
+            
+            // ⬇️ NEW: Re-render search results to sync favorite status ⬇️
+            const query = youtubeSearchInput.value.trim();
+            if (currentSearchMode === 'videos' && videosResults.html) {
+                // Rerender video results using cached data, forcing re-evaluation of favorite status
+                handleYouTubeSearch(query); 
+            } else if (currentSearchMode === 'playlists' && playlistsResults.html) {
+                // Rerender playlist results using cached data, forcing re-evaluation
+                handlePlaylistSearch(query); 
+            }
+            // ⬆️ END NEW ⬆️
         }
         
-        // ⬇️ *** FIX: Explicitly set focus after the view is rendered/restored *** ⬇️
+        // *** FIX: Explicitly set focus after the view is rendered/restored ***
         setFocusOnCurrentlyPlaying(currentSearchMode);
-        // ⬆️ *** END OF FIX *** ⬆️
         
         // Make container focusable and focus it (since we're returning to cards)
         youtubeSearchResultsContainer.tabIndex = 0;
@@ -3292,7 +3302,7 @@ isGdInfoBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // Stop bubbling
     
     // Create the multi-line message
-const message = "1. This section now holds your saved Favorites — songs or playlists you’ve marked with a ❤️.\n\n" +
+const message = "1. This section now holds your saved Favorites — songs or playlists you’ve marked with a ★.\n\n" +
                 "2. You can also load YouTube playlists using an is.gd short code:\n" +
                 "   a. On another device, copy your YouTube playlist link.\n" +
                 "   b. Go to is.gd and paste the link.\n" +
