@@ -1131,7 +1131,8 @@ button.rabbit-default:hover {
 #showSearchHeaderBtn {
     position: absolute;
     top: 8px; /* Match the panel's padding */
-    left: 8px; /* Match the panel's padding */
+    right: 4px; /* ⬅️ CHANGED to right */
+    left: auto; /* ⬅️ ADDED: Ensure no left positioning conflict */
     z-index: 5; /* Sit on top of results, but below headers if they are visible */
     
     background: transparent;

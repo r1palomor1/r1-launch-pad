@@ -3284,7 +3284,7 @@ const message = "1. This section now holds your saved Favorites — songs or pla
                 "   b. Go to is.gd and paste the link.\n" +
                 "   c. Tap “Shorten” to get a short code (the part after is.gd/).\n" +
                 "   d. Enter that code here and tap “Load.”\n" +
-                "   e. Wait about 1 or 2 minutes while the playlist loads.";
+                "   e. Wait 1 or 2 minutes while the playlist loads.";
                     
     showAlert(message);
 });
