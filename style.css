@@ -1130,7 +1130,7 @@ button.rabbit-default:hover {
 /* === NEW STYLES FOR COLLAPSIBLE HEADER ICON === */
 #showSearchHeaderBtn {
     position: absolute;
-    top: 8px; /* Match the panel's padding */
+    top: 0px; /* Match the panel's padding */
     right: 4px; /* ⬅️ CHANGED to right */
     left: auto; /* ⬅️ ADDED: Ensure no left positioning conflict */
     z-index: 5; /* Sit on top of results, but below headers if they are visible */
