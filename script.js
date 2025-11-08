@@ -3521,7 +3521,11 @@ playerHomeIcon.addEventListener('click', () => {
 // --- ⬆️ END OF ADDED CODE ⬆️ ---
 
 // --- ⬇️ ADD NEW LISTENER FOR PLAYER FAVORITE BUTTON ⬇️ ---
-playerFavoriteBtn.addEventListener('click', async () => {
+playerFavoriteBtn.addEventListener('click', async (e) => {
+    // ⬇️ *** THE CRITICAL FIX: Stop the click from bubbling up *** ⬇️
+    e.stopPropagation(); 
+    // ⬆️ *** END OF CRITICAL FIX *** ⬆️
+    
     if (!currentlyPlayingCardId) {
         await showAlert("Cannot save: No video or playlist is currently loaded.");
         return;
