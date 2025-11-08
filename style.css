@@ -1704,13 +1704,12 @@ button.rabbit-default:hover {
     height: 35px; /* Match the hidden controls tap area */
     display: flex;
     opacity: 0; /* The whole bar fades in/out */
-    pointer-events: none; /* Initially not clickable */
+    pointer-events: none;
     z-index: 1000;
     transition: opacity 0.3s ease, gap 0.3s ease 0.3s;
     align-items: center;
     justify-content: center;
     gap: 0px; /* Default gap to 0 */
-    cursor: pointer; /* Always show pointer since it's the main interaction */
 }
 
 #tapHint img {

@@ -1,4 +1,4 @@
-﻿﻿/*
+﻿﻿﻿﻿﻿﻿/*
  Working app: Favorites icon for Songs and Playlists.  Saved to Favorites radio button.
     Auto hide controls in modes and PL overlay.  Use side icon to show.
     Vertical volume slider and standarize icons using vars.
@@ -68,57 +68,6 @@ const playerPrevBtn = document.getElementById('playerPrevBtn');
 const playerNextBtn = document.getElementById('playerNextBtn');
 const playerPlaylistBtn = document.getElementById('playerPlaylistBtn');
 const playerFavoriteBtn = document.getElementById('playerFavoriteBtn');
-
-// --- ⬇️ ADDED: Favorite Button Logic ⬇️ ---
-playerFavoriteBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevent UI from showing
-    triggerHaptic();
-
-    // Toggle the visual state
-    playerFavoriteBtn.classList.toggle('is-favorite');
-    
-    // Force the theme to update immediately
-    syncFavoriteBtnStyle();
-
-    // Find the item in the main search results and toggle its star too
-    const card = document.querySelector(`.youtube-result-card[data-id="${currentlyPlayingCardId}"]`);
-    if (card) {
-        const favBtn = card.querySelector('.add-favorite-btn');
-        if (favBtn) {
-            favBtn.classList.toggle('is-favorite', playerFavoriteBtn.classList.contains('is-favorite'));
-        }
-    }
-    
-    // Update the underlying saved playlists data
-    const isNowFavorite = playerFavoriteBtn.classList.contains('is-favorite');
-    const existingIndex = savedPlaylists.findIndex(p => p.id === currentlyPlayingCardId);
-
-    if (isNowFavorite && existingIndex === -1) {
-        // Add to saved playlists
-        const title = playerVideoTitle.textContent;
-        const isPlaylist = isManualPlaylist;
-        // We need a thumbnail. Let's try to get it from the current video.
-        let thumb = GENERIC_FAVICON_SRC;
-        if (isPlaylist && originalPlaylist.length > 0) {
-            thumb = originalPlaylist[0].thumb;
-        } else if (!isPlaylist && player) {
-            const videoData = player.getVideoData();
-            if (videoData && videoData.video_id) {
-                 thumb = `https://i.ytimg.com/vi/${videoData.video_id}/hqdefault.jpg`;
-            }
-        }
-        
-        savedPlaylists.push({ id: currentlyPlayingCardId, title, thumb, isPlaylist });
-        
-    } else if (!isNowFavorite && existingIndex > -1) {
-        // Remove from saved playlists
-        savedPlaylists.splice(existingIndex, 1);
-    }
-
-    savePlaylistsToStorage();
-});
-// --- ⬆️ END OF ADDED CODE ⬆️ ---
-
 const playerHomeIcon = document.getElementById('playerHomeIcon');
 const playlistOverlay = document.getElementById('playlistOverlay');
 const playlistTitle = document.getElementById('playlistTitle');
@@ -828,7 +777,7 @@ function renderSavedPlaylists() {
     sortedPlaylists.forEach(item => {
         // Check if it looks like a playlist ID (start with PL or contains list=)
         // Note: is.gd links resolve to full YouTube links, so they are playlists
-        const isPlaylist = item.id.startsWith('PL') || item.id.includes('list=');
+        const isPlaylist = item.id.startsWith('PL') || item.id.includes('list=') || item.url?.includes('list=');
         const itemCard = document.createElement('div');
         itemCard.className = 'card youtube-result-card';
         itemCard.dataset.id = item.id; // Universal ID field
@@ -1174,20 +1123,23 @@ function hidePlayerUI() {
     isUIVisible = false;
     const header = document.querySelector('#internalPlayerOverlay .player-header');
     const controls = document.querySelector('#internalPlayerOverlay .player-controls');
-
-    // Hide header
+    
+    // 1. Collapse header
     if (header) {
+        header.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         header.style.opacity = '0';
         header.style.height = '0';
-        header.style.padding = '0';
+        header.style.padding = '0'; 
         header.style.visibility = 'hidden';
         header.style.pointerEvents = 'none';
     }
-    // Hide controls
+    
+    // 2. Collapse controls partially
     if (controls) {
+        controls.style.transition = 'opacity 0.35s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease';
         controls.style.opacity = '0';
-        controls.style.height = '0';
-        controls.style.padding = '0';
+        controls.style.height = '35px'; 
+        controls.style.padding = '0'; 
         controls.style.visibility = 'hidden';
         controls.style.pointerEvents = 'none';
     }
@@ -1209,7 +1161,10 @@ function hidePlayerUI() {
     // Show Favorite button (always visible when UI collapsed)
     if (playerFavoriteBtn) { 
         playerFavoriteBtn.style.opacity = '1';
-        playerFavoriteBtn.style.pointerEvents = 'auto'; // It should be clickable
+        playerFavoriteBtn.style.pointerEvents = 'auto';
+        // Check if the currently playing video is already saved and reflect status
+        const isCurrentlySaved = savedPlaylists.some(p => p.id === currentlyPlayingCardId);
+        playerFavoriteBtn.classList.toggle('is-favorite', isCurrentlySaved); // ⬅️ ADDED THIS
     }
     // ⬆️ *** END OF MODIFIED CODE *** ⬆️
     
@@ -1251,7 +1206,7 @@ function showPlayerUI() {
         playerPlaylistBtn.style.opacity = '0';
         playerPlaylistBtn.style.pointerEvents = 'none';
     }
-    if (playerFavoriteBtn) {
+    if (playerFavoriteBtn) { // ⬅️ ADDED THIS
         playerFavoriteBtn.style.opacity = '0';
         playerFavoriteBtn.style.pointerEvents = 'none';
     }
@@ -1261,21 +1216,12 @@ function showPlayerUI() {
     hideTapHint();  
     // Sync audio button state when UI reappears
     if (isAudioOnly) {
-        (document.getElementById('playerAudioOnlyBtn_playlist') || document.getElementById('playerAudioOnlyBtn')).classList.add('active');
+        playerAudioOnlyBtn.classList.add('active');
+        playerAudioOnlyBtn_playlist.classList.add('active');
     } else {
-        (document.getElementById('playerAudioOnlyBtn_playlist') || document.getElementById('playerAudioOnlyBtn')).classList.remove('active');
+        playerAudioOnlyBtn.classList.remove('active');
+        playerAudioOnlyBtn_playlist.classList.remove('active');
     }
-}
-
-// Add a specific listener for the tap hint to show the UI
-const tapHintElement = document.getElementById('tapHint');
-if (tapHintElement) {
-    tapHintElement.addEventListener('click', () => {
-        if (!isUIVisible) { // Only trigger if UI is hidden
-            showPlayerUI();
-            startUIHideTimer(); // Restart the timer once UI is shown
-        }
-    });
 }
 
 function showTapHint() {
@@ -1283,9 +1229,6 @@ function showTapHint() {
     if (!hintElement) return;
     const hintIcon = hintElement.querySelector('img');
     if (!hintIcon) return;
-
-    // Make it clickable
-    hintElement.style.pointerEvents = 'auto';
 
     // Fade in the whole hint bar (which contains the text)
     hintElement.style.opacity = '1'; 
@@ -1315,9 +1258,6 @@ function showTapHint() {
 function hideTapHint() {
     const hintElement = document.getElementById('tapHint');
     if (hintElement) {
-        // Make it NOT clickable when hidden
-        hintElement.style.pointerEvents = 'none';
-
         // Fade out the entire bar (text) and shrink the gap
         hintElement.style.opacity = '0'; 
         hintElement.style.gap = '0px';
@@ -1334,28 +1274,6 @@ function hideTapHint() {
 }
 
 // --- ⬇️ ADD THIS NEW FUNCTION ⬇️ ---
-/**
- * Forces the favorite button's theme to re-apply instantly.
- * This is a workaround for a rendering bug where the color doesn't update
- * when the button's class changes while its parent is hidden.
- */
-function syncFavoriteBtnStyle() {
-    if (!playerFavoriteBtn) return;
-
-    const svg = playerFavoriteBtn.querySelector('svg');
-    if (!svg) return;
-
-    // 1. Temporarily disable the transition to make the change instant
-    svg.style.transition = 'none';
-
-    // 2. Force a "reflow" of the element. Reading a property like offsetHeight
-    //    makes the browser recalculate the element's style.
-    void svg.offsetHeight; 
-
-    // 3. Re-enable the transition so future hovers/clicks are smooth.
-    svg.style.transition = '';
-}
-
 /**
  * Controls the visibility of all "Now Playing" UI elements
  * based on player state and current view.
@@ -1414,7 +1332,7 @@ function startUIHideTimer() {
         'playerBackBtn_playlist','playerSearchBtn_playlist',
         'playerPlayPauseBtn_playlist','playerAudioOnlyBtn_playlist',
         'playerPrevBtn','playerNextBtn','playerPlaylistBtn',
-        'playerFavoriteBtn', // <-- Add this ID
+        'playerFavoriteBtn', // ⬅️ ADDED THIS
 
         // Shared/overlay bits
         'playerHomeIcon','stopPlayingBtn'
@@ -1567,7 +1485,7 @@ function populatePlaylistOverlay() {
             <img src="${video.thumb || GENERIC_FAVICON_SRC}" class="link-favicon" alt="Video thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
             <div class="link-description">${video.title}</div>`;
 
-        // // Apply "now-playing" highlighting
+        // Apply "now-playing" highlighting
         if (index === currentPlaylistIndex) {
             videoItem.id = 'playlist-current-item';
             videoItem.classList.add('now-playing');
@@ -1939,6 +1857,356 @@ youtubeSearchInput.addEventListener('blur', () => {
     }
 });
 
+// === NEW: Listener for the expand icon ===
+showSearchHeaderBtn.addEventListener('click', () => {
+    toggleSearchHeader(true); // Force-show the header
+    youtubeSearchInput.focus(); // Focus the input for the user
+});
+
+// === NEW: Scroll listener to hide the header AND handle pagination ===
+youtubeSearchView.addEventListener('scroll', () => {
+    // This listener handles BOTH header hiding and infinite scroll
+    const scrollTop = youtubeSearchView.scrollTop;
+    
+    // --- Logic for Hiding Header ---
+    // Check if scrolling up (flicking up to see more)
+    // We add a 5px buffer to prevent accidental hides
+    if (scrollTop > lastSearchScrollTop && scrollTop > 5) {
+        if (!isSearchHeaderCollapsed) {
+            toggleSearchHeader(false); // Hide header
+        }
+    }
+    
+    // Store current scroll position for next event
+    // Only update if not at the very top
+    if (scrollTop > 0) {
+        lastSearchScrollTop = scrollTop;
+    } else {
+        lastSearchScrollTop = 0; // Reset at top
+    }
+
+    // --- Logic for Infinite Scroll Pagination ---
+    if (isFetchingYoutubeResults) return; // Universal guard
+
+    const { scrollHeight, clientHeight } = youtubeSearchView;
+    if (scrollTop + clientHeight < scrollHeight - 50) return; // Not at bottom
+
+    // Check which mode we're in and which token we have
+    if (currentSearchMode === 'videos' && youtubeNextPageUrl) {
+        const query = youtubeSearchInput.value.trim();
+        handleYouTubeSearch(query, youtubeNextPageUrl);
+    
+    } else if (currentSearchMode === 'playlists' && playlistNextPageToken) {
+        const query = youtubeSearchInput.value.trim();
+        handlePlaylistSearch(query, playlistNextPageToken); 
+    }
+});
+
+// === NEW: Listener for the PLAYLIST expand icon ===
+showPlaylistHeaderBtn.addEventListener('click', () => {
+    togglePlaylistHeader(true); // Force-show the header
+});
+
+// === NEW: Scroll listener to hide the PLAYLIST header ===
+playlistVideoList.addEventListener('scroll', () => {
+    const scrollTop = playlistVideoList.scrollTop;
+    
+    // Check if scrolling up (flicking up to see more)
+    if (scrollTop > lastPlaylistScrollTop && scrollTop > 5) {
+        if (!isPlaylistHeaderCollapsed) {
+            togglePlaylistHeader(false); // Hide header
+        }
+    }
+    
+    // Store current scroll position for next event
+    if (scrollTop > 0) {
+        lastPlaylistScrollTop = scrollTop;
+    } else {
+        lastPlaylistScrollTop = 0; // Reset at top
+    }
+});
+
+function createFormHTML(linkData = {}, isForEditing = false) {
+    const { description = '', url = 'https://', category = 'Other' } = linkData;
+    const categoryOptions = categories.map(cat => `<option value="${cat}" ${category === cat ? 'selected' : ''}>${cat}</option>`).join('');
+    const inputClassPrefix = isForEditing ? 'edit' : 'new';
+    const saveButtonClass = isForEditing ? 'save-btn' : 'save-new-btn';
+    return `
+        <div class="link-info">
+            <input type="text" class="${inputClassPrefix}-description" value="${description}" placeholder="Description">
+            <input type="text" class="${inputClassPrefix}-url" value="${url}" placeholder="URL (e.g., https://...)">
+            <select class="${inputClassPrefix}-category">${categoryOptions}</select>
+            <div class="form-actions">
+                <button class="cancel-btn secondary">Cancel</button>
+                <button class="${saveButtonClass}">${isForEditing ? 'Save' : 'Add'}</button>
+            </div>
+        </div>`;
+}
+
+function editLink(li, index) {
+    const link = links[index];
+    li.innerHTML = createFormHTML(link, true);
+    li.querySelector('.save-btn').addEventListener('click', async () => {
+        const newDescription = li.querySelector('.edit-description').value.trim();
+        const newUrl = normalizeUrl(li.querySelector('.edit-url').value.trim());
+        const newCategory = li.querySelector('.edit-category').value;
+        if (newDescription && newUrl) {
+            links[index] = { ...links[index], description: newDescription, url: newUrl, category: newCategory };
+            saveLinks();
+            searchHandler(searchInput.value);
+        } else {
+            await showAlert('Description and URL cannot be empty or invalid.');
+        }
+    });
+    li.querySelector('.cancel-btn').addEventListener('click', () => searchHandler(searchInput.value));
+}
+
+async function showAddForm(prefillData = {}) {
+    const existingNewInput = document.querySelector('.new-description');
+    if (existingNewInput) {
+        const existingForm = existingNewInput.closest('.link-item');
+        if (prefillData.description) existingForm.querySelector('.new-description').value = prefillData.description;
+        if (prefillData.url) existingForm.querySelector('.new-url').value = prefillData.url;
+        existingForm.querySelector('.new-description').focus();
+        return;
+    }
+    const li = document.createElement('li');
+    li.className = 'card';
+    li.innerHTML = createFormHTML(prefillData, false);
+    cardContainer.appendChild(li);
+    li.scrollIntoView({ behavior: 'smooth' });
+    if (prefillData.description) {
+        li.querySelector('.new-category').focus();
+    } else {
+        li.querySelector('.new-description')?.focus();
+    }
+    const saveHandler = async () => {
+        const description = li.querySelector('.new-description').value.trim();
+        const url = li.querySelector('.new-url').value.trim();
+        const category = li.querySelector('.new-category').value;
+        await addNewLink({ description, url, category });
+    };
+    li.querySelector('.save-new-btn').addEventListener('click', saveHandler);
+    li.querySelector('.cancel-btn').addEventListener('click', () => {
+        li.remove();
+        searchInput.value = ''; // Clear search on cancel
+        cardContainer.innerHTML = `<div class="search-prompt">Search your links or add from the web.</div>`;
+        clearSearchBtn.style.display = 'none';
+        cancelSearchBtn.style.display = 'flex';
+        searchInput.focus();
+    });
+}
+
+async function handleAddFromQuery(description, url) {
+    if (!description) return;
+    cardContainer.innerHTML = '';
+    let prefillData = {};
+    if (description.includes(' ')) {
+        prefillData = { description: description.replace(/\b\w/g, l => l.toUpperCase()), url: url || 'https://' };
+    } else {
+        const finalUrl = url || (() => {
+            const hasProtocol = description.startsWith('http://') || description.startsWith('https://');
+            const looksLikeDomain = description.includes('.');
+            return hasProtocol ? description : (looksLikeDomain ? `https://${description}` : `https://www.${description}.com`);
+            // R1 Hardware Events
+    window.addEventListener('sideButtonSinglePress', (event) => {
+        if (internalPlayerOverlay.style.display === 'flex') {
+            event.preventDefault();
+            togglePlayback();
+        } else if (favoriteLinkIds.size > 0) {
+            event.preventDefault();
+            openFavoritesDialog();
+        }
+    });
+
+    window.addEventListener('sideButtonDoublePress', (event) => {
+        event.preventDefault();
+        goHome();
+    });
+
+    async function init() {
+        await loadLinksFromR1();
+        renderLinks();
+        await applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
+        
+        // Initialize volume controls
+        currentVolume = await loadVolumeFromStorage(); // <-- ADD AWAIT
+        lastVolume = currentVolume;
+        updateVolumeControls(currentVolume);
+        updateMuteButtonIcon(false);
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+})();
+        const finalDescription = description.split('.')[0].replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\b\w/g, l => l.toUpperCase());
+        prefillData = { description: finalDescription, url: finalUrl, category: 'Other' };
+    }
+    prefillData.url = normalizeUrl(prefillData.url);
+    await showAddForm(prefillData);
+}
+
+async function addNewLink(linkData) {
+    const normalizedUrl = normalizeUrl(linkData.url);
+    if (!linkData || !linkData.description || !normalizedUrl) {
+        await showAlert('Please provide a description and a full URL.');
+        return false;
+    }
+    links.push({ ...linkData, url: normalizedUrl, id: `link-${Date.now()}` });
+    saveLinks();
+    const newCategory = linkData.category || 'Other';
+    collapsedCategories = collapsedCategories.filter(c => c !== newCategory);
+    localStorage.setItem('launchPadR1CollapsedCategories', JSON.stringify(collapsedCategories));
+    searchInput.value = '';
+    renderLinks();
+    await sayOnRabbit(`Added ${linkData.description}`);
+    return true;
+}
+
+async function performExternalSearch(queryOverride) {
+    const query = queryOverride || searchInput.value.trim();
+    if (query) {
+        cardContainer.innerHTML = `<div class="search-prompt">Launching web search for "${query}"...</div>`;
+        const searchUrl = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+        await launchUrlOnRabbit(searchUrl, `search for ${query}`);
+    } else {
+        searchHandler('');
+    }
+}
+
+function renderCombinedResults(query, apiSuggestions, localResults) {
+    const fragment = document.createDocumentFragment();
+    let hasContent = false;
+    if (localResults.length > 0) {
+        const header = document.createElement('h3');
+        header.className = 'category-header';
+        header.textContent = 'In Your Links';
+        fragment.appendChild(header);
+        hasContent = true;
+        localResults.forEach(link => fragment.appendChild(renderLinkItem(link)));
+    }
+    const existingUrls = new Set(links.map(link => link.url.replace(/\/$/, '')));
+    const filteredApiSuggestions = apiSuggestions.filter(sugg => !existingUrls.has(sugg.link.replace(/\/$/, '')));
+    if (filteredApiSuggestions.length > 0) {
+        const header = document.createElement('h3');
+        header.className = 'category-header';
+        header.textContent = 'Web Suggestions';
+        if (hasContent) header.style.marginTop = '15px';
+        fragment.appendChild(header);
+        hasContent = true;
+        filteredApiSuggestions.slice(0, 4).forEach(sugg => {
+            const suggLi = document.createElement('li');
+            suggLi.className = 'card add-suggestion-item';
+            suggLi.innerHTML = `<img src="https://www.google.com/s2/favicons?sz=64&domain_url=${getHostname(sugg.link)}" class="link-favicon" alt="Favicon" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}'; this.style.padding='3px';"><div class="link-description">Add: ${sugg.title}</div>`;
+            suggLi.addEventListener('click', () => handleAddFromQuery(sugg.title, sugg.link));
+            fragment.appendChild(suggLi);
+        });
+    }
+    const webSearchLi = document.createElement('li');
+    webSearchLi.className = 'card web-search-item';
+    webSearchLi.innerHTML = `<div class="link-favicon" style="display: flex; align-items: center; justify-content: center;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--primary-color)" width="20" height="20"><path d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0 1 11 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 0 1-1.969 5.617zm-2.006-.742A6.977 6.977 0 0 0 18 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 0 0 4.875-1.975l.15-.15z"/></svg></div><div class="link-description">Search for "${query}" on the web</div>`;
+    webSearchLi.addEventListener('click', () => performExternalSearch(query));
+    fragment.appendChild(webSearchLi);
+    cardContainer.innerHTML = '';
+    cardContainer.appendChild(fragment);
+}
+
+function handleOSMessage(e, requestQuery) {
+    const currentQueryInBox = searchInput.value.trim();
+    if (requestQuery.toLowerCase() !== currentQueryInBox.toLowerCase()) return; // Ignore stale results
+
+    try {
+        const data = e.data ? (typeof e.data == "string" ? JSON.parse(e.data) : e.data) : null;
+        if (data && data.organic_results) {
+            const localResults = links.filter(link => link.description.toLowerCase().includes(requestQuery.toLowerCase()) || link.url.toLowerCase().includes(requestQuery.toLowerCase()));
+            renderCombinedResults(requestQuery, data.organic_results, localResults);
+        } else {
+            renderCombinedResults(requestQuery, [], localResults);
+        }
+    } catch (err) { console.error("Error parsing plugin message:", err); }
+}
+
+function searchHandler(query) {
+    query = query.trim();
+    if (!query) {
+        renderLinks(links);
+        return;
+    }
+    if (typeof PluginMessageHandler !== "undefined") {
+        window.onPluginMessage = (e) => handleOSMessage(e, query);
+        PluginMessageHandler.postMessage(JSON.stringify({
+            message: JSON.stringify({ query_params: { engine: "google", q: query, hl: "en" }, useLocation: false }),
+            useSerpAPI: true
+        }));
+    } else {
+        const mockApiResults = [{ title: `Mock Result for '${query}'`, link: `https://www.example.com/search?q=${query}` }, { title: "The Verge - Tech News", link: "https://www.theverge.com" }, { title: "Hacker News", link: "https://news.ycombinator.com" }];
+        const localResults = links.filter(link => link.description.toLowerCase().includes(query.toLowerCase()) || link.url.toLowerCase().includes(query.toLowerCase()));
+        setTimeout(() => {
+            if (query.toLowerCase() === searchInput.value.trim().toLowerCase()) {
+                renderCombinedResults(query, mockApiResults, localResults);
+            }
+        }, 200);
+    }
+}
+
+searchBtn.addEventListener('click', () => performExternalSearch());
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performExternalSearch();
+});
+
+const debouncedSearch = debounce(searchHandler, 400);
+searchInput.addEventListener('input', () => {
+    const query = searchInput.value;
+    clearSearchBtn.style.display = query.length > 0 ? 'flex' : 'none';
+    if (mainView.classList.contains('input-mode-active')) {
+        cancelSearchBtn.style.display = query.length > 0 ? 'none' : 'flex';
+    }
+    debouncedSearch(query);
+});
+
+cancelSearchBtn.addEventListener('click', () => {
+    if (window.getComputedStyle(cancelSearchBtn).display === 'none') return;
+    searchInput.value = '';
+    clearSearchBtn.style.display = 'none';
+    cancelSearchBtn.style.display = 'none';
+    searchHandler('');
+    searchInput.blur();
+    scrollToTop();
+});
+
+mainView.addEventListener('focusin', (e) => {
+    if (e.target.id === 'searchInput') {
+        mainView.classList.add('input-mode-active');
+        const query = e.target.value.trim();
+        cancelSearchBtn.style.display = query.length > 0 ? 'none' : 'flex';
+        clearSearchBtn.style.display = query.length > 0 ? 'flex' : 'none';
+        if (query === '') {
+            cardContainer.innerHTML = `<div class="search-prompt">Search your links or add from the web.</div>`;
+        }
+        setTimeout(() => {
+            document.querySelector('.search-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+});
+
+mainView.addEventListener('focusout', (e) => {
+    if (e.target.id === 'searchInput') {
+        setTimeout(() => {
+            const isADialogOpen = ['flex', 'block'].includes(themeDialogOverlay.style.display) ||
+                                  ['flex', 'block'].includes(deletePromptOverlay.style.display) ||
+                                  ['flex', 'block'].includes(favoritesPromptOverlay.style.display) ||
+                                  ['flex', 'block'].includes(genericPromptOverlay.style.display);
+            if (isADialogOpen) return;
+            const isSearchInputEmpty = searchInput.value.trim() === '';
+            const isEditingOrAdding = !!document.querySelector('.edit-description, .new-description');
+            if (!isEditingOrAdding && isSearchInputEmpty) {
+                mainView.classList.remove('input-mode-active');
+                searchHandler('');
+            }
+        }, 150);
+    }
+});
+
 clearSearchBtn.addEventListener('click', () => {
     searchInput.value = '';
     clearSearchBtn.style.display = 'none';
@@ -2063,7 +2331,7 @@ function updateModifierSelectionUI() {
     });
 }
 
-// *** DEFINITIVE FIX: Central function to all Studio previews ***
+// *** DEFINITIVE FIX: Central function for all Studio previews ***
 async function updateStudioPreview() {
     if (!isStudioMode || !studioBaseColor) return;
     
@@ -2382,22 +2650,22 @@ function setupThemeDialogListeners() {
   mode: currentLuminanceMode
 };
 
-                // Persist on device first
-                if (window.creationStorage?.plain?.set) {
-                  try {
-                    await window.creationStorage.plain.set('launchPadR1CustomTheme', JSON.stringify(customTheme));
-                  } catch (e) {
-                    // ignore and use localStorage fallback
-                  }
-                }
+// Persist on device first
+if (window.creationStorage?.plain?.set) {
+  try {
+    await window.creationStorage.plain.set('launchPadR1CustomTheme', JSON.stringify(customTheme));
+  } catch (e) {
+    // ignore and use localStorage fallback
+  }
+}
 
-                // Webview fallback
-                localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
+// Webview fallback
+localStorage.setItem('launchPadR1CustomTheme', JSON.stringify(customTheme));
 
-                await applyTheme({ name: `custom:${customTheme.baseColor}`, modifier: customTheme.modifier }, true, true);
-                await sayOnRabbit("Custom theme saved.");
-                isStudioMode = false;
-                closeThemeDialog();
+await applyTheme({ name: `custom:${customTheme.baseColor}`, modifier: customTheme.modifier }, true, true);
+await sayOnRabbit("Custom theme saved.");
+isStudioMode = false;
+closeThemeDialog();
 
             } else {
                 themeDialogError.textContent = 'Error: No base color selected.';
@@ -2462,9 +2730,10 @@ function setupThemeDialogListeners() {
         }
     });
 }
+
 function openDeleteDialog() {
     const deleteModeRadios = document.querySelectorAll('input[name="delete-mode"]');
-    const CHECKBOX_UNCHECKED_SVG = `<svg class="icon-checkbox-unchecked" viewBox="0 0 24 24" fill="currentColor"><path d="M19 5v14H5V5h14c1.1 0 2 .9 2 2v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V7H1V5h3V3c0-1.1.9-2 2-2h12c1.1 0 2 .9 2 2v2h3v2h-3z"/></svg>`;
+    const CHECKBOX_UNCHECKED_SVG = `<svg class="icon-checkbox-unchecked" viewBox="0 0 24 24" fill="currentColor"><path d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>`;
     const CHECKBOX_CHECKED_SVG = `<svg class="icon-checkbox-checked" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`;
     const FAVORITE_SVG = `<svg class="icon-favorite" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>`;
     let selectedIds = new Set();
@@ -2549,9 +2818,7 @@ deleteAllBtn.addEventListener('click', async () => {
                 continue;
             }
             confirmMessage = `Are you sure you want to delete ${linksToDelete.size} non-favorite link(s)?`;
-        } else if (result.mode === 'selected') {
-            confirmMessage = `Are you sure you want to delete ${linksToDelete.size} selected link(s)?`;
-        }
+        } else if (result.mode === 'selected') confirmMessage = `Are you sure you want to delete ${linksToDelete.size} selected link(s)?`;
         if (await showConfirm(confirmMessage)) {
             links = links.filter(link => !linksToDelete.has(link.id));
             const remainingLinkIds = new Set(links.map(l => l.id));
@@ -2596,9 +2863,11 @@ logo.addEventListener('click', goHome);
         if (storedFlag === 'true') {
             hasEverAddedPlaylist = true;
         }
+        // ⬆️ END OF FLAG LOADING ⬆️
+
     } catch (e) {
-        console.error("Error loading saved playlists or flag:", e);
-        savedPlaylists = []; // Ensure it's an array on error
+        console.error("Could not load saved playlists:", e);
+        savedPlaylists = [];
     }
     // --- ⬆️ END OF ADDED CODE ⬆️ ---
 
@@ -2611,4 +2880,1157 @@ logo.addEventListener('click', goHome);
     setupThemeDialogListeners();
     await applyTheme({ name: currentThemeName }, true, true);
     updateModeToggleUI();
+deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
+function returnToSearchFromPlayer(focusInput = false) {
+    internalPlayerOverlay.style.display = 'none';
+    hideTapHint();
+
+    if (focusInput) {
+        // "Search" button: Reset the view for a new search
+        resetYouTubeSearch(); // <-- EXPLICITLY RESET
+        openYouTubeSearchView();
+        youtubeSearchInput.focus();
+    } else {
+        // "Back" button: Just show the existing view
+        youtubeSearchViewOverlay.style.display = 'flex';
+        
+        // Set the placeholders and content without focusing search input
+        if (currentSearchMode === 'isGd' || currentSearchMode === 'is.gd') {
+            youtubeSearchInput.placeholder = 'Enter is.gd code...';
+            youtubeSearchGoBtn.textContent = 'Load';
+            renderSavedPlaylists(); // ⬅️ THIS WILL REFRESH THE FAVORITES LIST
+        } else {
+            youtubeSearchInput.placeholder = 'Search YouTube...';
+            youtubeSearchGoBtn.textContent = 'Search';
+            
+            // ⬇️ NEW: Re-render search results to sync favorite status ⬇️
+            const query = youtubeSearchInput.value.trim();
+            if (currentSearchMode === 'videos' && videosResults.html) {
+                // Rerender video results using cached data, forcing re-evaluation of favorite status
+                handleYouTubeSearch(query); 
+            } else if (currentSearchMode === 'playlists' && playlistsResults.html) {
+                // Rerender playlist results using cached data, forcing re-evaluation
+                handlePlaylistSearch(query); 
+            }
+            // ⬆️ END NEW ⬆️
+        }
+        
+        // *** FIX: Explicitly set focus after the view is rendered/restored ***
+        setFocusOnCurrentlyPlaying(currentSearchMode);
+        
+        // Make container focusable and focus it (since we're returning to cards)
+        youtubeSearchResultsContainer.tabIndex = 0;
+        setTimeout(() => {
+            youtubeSearchResultsContainer.focus();
+        }, 100);
+    }
+
+    nowPlayingTitle.textContent = playerVideoTitle.textContent;
+    updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
+}
+    favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
+    genericPromptOverlay.addEventListener('click', e => e.stopPropagation());
+    
+playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
+
+    // Use a more specific listener on the container for result clicks
+    youtubeSearchResultsContainer.addEventListener('click', async (e) => {
+    
+    // ⬇️ *** STAGE 3 FIX: Handle Add/Remove Favorite Button *** ⬇️
+    const favoriteBtn = e.target.closest('.add-favorite-btn');
+    if (favoriteBtn) {
+        e.stopPropagation(); // Prevent the click from launching the player
+        const itemId = favoriteBtn.dataset.itemId;
+        const itemTitle = favoriteBtn.dataset.itemTitle;
+        const isPlaylist = favoriteBtn.dataset.isPlaylist === 'true';
+
+        const index = savedPlaylists.findIndex(p => p.id === itemId);
+
+        if (index !== -1) {
+            // Item is saved, remove it
+            savedPlaylists.splice(index, 1);
+            favoriteBtn.classList.remove('is-favorite');
+            favoriteBtn.title = 'Save as Favorite';
+            await sayOnRabbit(`Removed ${itemTitle}`);
+        } else {
+            // Item is not saved, add it
+            let itemData;
+            let thumb = e.target.closest('.youtube-result-card')?.querySelector('.link-favicon')?.src || GENERIC_FAVICON_SRC;
+            
+            if (isPlaylist) {
+                // For a new playlist, we need to fetch the metadata (thumb)
+                const metadata = await fetchPlaylistMetadata(itemId);
+                itemData = { id: itemId, title: itemTitle, thumb: metadata?.thumb || thumb };
+            } else {
+                // For a video, we use the thumb already in the card
+                itemData = { id: itemId, title: itemTitle, thumb: thumb };
+            }
+
+            savedPlaylists.push(itemData);
+            favoriteBtn.classList.add('is-favorite');
+            favoriteBtn.title = 'Remove from Saved';
+            hasEverAddedPlaylist = true;
+            localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
+            await sayOnRabbit(`Saved ${itemTitle}`);
+        }
+        
+        await savePlaylistsToStorage();
+        triggerHaptic();
+        // If we are currently in the is.gd view, re-render to show the change
+        if (currentSearchMode === 'is.gd') {
+            renderSavedPlaylists();
+        }
+        return;
+    }
+    // ⬆️ *** END OF STAGE 3 FIX *** ⬆️
+
+
+    const card = e.target.closest('.youtube-result-card');
+    
+    // --- ⬇️ STAGE 1 FIX: Handle Delete Button ⬇️ ---
+    const deleteBtn = e.target.closest('.delete-playlist-btn');
+    if (deleteBtn && card) {
+        e.stopPropagation(); // Stop the click from launching the player
+        // Use the universal ID
+        const itemId = card.dataset.videoLink || card.dataset.playlistId || card.dataset.id;
+        const itemTitle = card.dataset.title;
+        
+        if (await showConfirm(`Delete "${itemTitle}" from your saved items?`)) {
+            savedPlaylists = savedPlaylists.filter(p => p.id !== itemId);
+
+            if (savedPlaylists.length === 0) {
+                localStorage.setItem('launchPadR1LegacyHasPlaylists', 'false');
+                hasEverAddedPlaylist = false; 
+            }
+
+            await savePlaylistsToStorage();
+            renderSavedPlaylists();
+            triggerHaptic();
+            await sayOnRabbit("Item deleted");
+            
+            // Clear focus if the deleted item was the currently playing one 
+            if (currentlyPlayingCardId === itemId) {
+                currentlyPlayingCardId = null;
+                currentlyPlayingCardMode = null;
+            }
+        }
+        return; // Stop further execution
+    }
+    // --- ⬆️ END OF STAGE 1 FIX ⬆️ ---
+    
+    if (card) {
+        // Get the ID (Video URL or Playlist ID) for the card
+        const cardId = card.dataset.videoLink || card.dataset.playlistId;
+        const title = card.dataset.title;
+        const isPlaylistCard = !!card.dataset.playlistId;
+        
+        // Determine if this is the currently playing card
+        const isSameCardPlaying = currentlyPlayingCardId === cardId && currentlyPlayingCardMode === currentSearchMode;
+
+        if (isSameCardPlaying) {
+            // Scenario 1: User clicks the currently playing/focused card
+            hideYouTubeSearchView();
+            internalPlayerOverlay.style.display = 'flex';
+            if (isPlaylistCard) {
+                // For a playlist, also open the overlay
+                openPlaylistOverlay();
+            }
+            showPlayerUI();
+            // Playback state is already handled by YT player/onPlayerStateChange
+            return;
+        }
+
+        // Scenario 2: User clicks a new card. Restart playback and focus.
+        
+        // 1. Clear previous focus and set new focus state
+        clearAllSearchCardFocus();
+        card.classList.add('currently-playing');
+        
+        // 2. Update global focus tracking variables
+        currentlyPlayingCardId = cardId;
+        currentlyPlayingCardMode = currentSearchMode;
+
+        hideYouTubeSearchView();
+        
+        if (!isPlaylistCard) {
+            // Single Video Logic
+            const videoId = getYoutubeVideoId(cardId);
+            if (videoId) {
+                openPlayerView({ videoId: videoId, title: title });
+            } else {
+                showAlert(`Could not find a valid video ID in the link: ${cardId}`);
+            }
+        } else {
+            // Playlist Logic
+            const playlistId = cardId;
+            currentlyPlayingLink = playlistId; // Legacy variable update
+            await openPlayerView({ playlistId: playlistId, title: title });
+            openPlaylistOverlay();
+        }
+    }
+});
+
+    const triggerYoutubeSearch = () => handleYouTubeSearch(youtubeSearchInput.value);
+    youtubeSearchCancelBtn.addEventListener('click', closeYouTubeSearchView);
+    
+    // --- ⬇️ STAGE 3: SEARCH BUTTON WITH CACHE DETECTION ⬇️ ---
+    youtubeSearchGoBtn.addEventListener('click', async () => {
+        const query = youtubeSearchInput.value.trim();
+        if (!query) return; // Do nothing if input is empty
+    
+        // Stage 3: Check if search term is new or repeated
+        let isNewSearch = false;
+        if (currentSearchMode === 'videos') {
+            isNewSearch = query !== videosResults.searchTerm;
+            if (isNewSearch) {
+                videosResults.html = null;
+                videosResults.nextPageUrl = null;
+            }
+        } else if (currentSearchMode === 'playlists') {
+            isNewSearch = query !== playlistsResults.searchTerm;
+            if (isNewSearch) {
+                playlistsResults.html = null;
+                playlistsResults.nextPageToken = null;
+            }
+        }
+
+        // === Show "Searching..." and blur input ===
+        youtubeSearchResultsContainer.innerHTML = '<p style="text-align: center; color: var(--icon-color); padding: 20px;">Searching...</p>';
+        youtubeSearchInput.blur(); // Remove focus from search bar
+        // === END OF NEW CODE ===
+    
+        if (currentSearchMode === 'videos') {
+            triggerYoutubeSearch();
+
+        } else if (currentSearchMode === 'playlists') {
+            handlePlaylistSearch(query);
+
+        } else if (currentSearchMode === 'is.gd') {
+            youtubeSearchResultsContainer.innerHTML = '<p>Resolving link...</p>';
+            const fullUrl = `https://is.gd/${query}`;
+            const resolvedUrl = await resolveShortUrl(fullUrl);
+    
+            if (!resolvedUrl) {
+                youtubeSearchResultsContainer.innerHTML = '<p>Failed to resolve link. Check the code and try again.</p>';
+                return;
+            }
+            
+            const host = getHostname(resolvedUrl);
+            if (!host.includes('youtube.com') && !host.includes('youtu.be')) {
+                youtubeSearchResultsContainer.innerHTML = "<p>This link does not lead to YouTube.</p>";
+                return;
+            }
+
+            const playlistId = getYoutubePlaylistId(resolvedUrl);
+            if (!playlistId) {
+                youtubeSearchResultsContainer.innerHTML = "<p>This link is not a valid playlist. Please use 'Songs' mode for single videos.</p>";
+                return;
+            }
+            
+            // Check if already saved
+            if (savedPlaylists.some(p => p.id === playlistId)) {
+                youtubeSearchResultsContainer.innerHTML = '<p>This playlist is already in your library.</p>';
+                setTimeout(renderSavedPlaylists, 2000); // Show existing list
+                youtubeSearchInput.value = '';
+                return;
+            }
+
+            // Not saved, so let's fetch, save, and render
+            youtubeSearchResultsContainer.innerHTML = '<p>Fetching playlist info...</p>';
+            const metadata = await fetchPlaylistMetadata(playlistId);
+            
+            if (metadata) {
+                const playlistData = { id: playlistId, title: metadata.title, thumb: metadata.thumb, url: resolvedUrl };
+                savedPlaylists.push(playlistData);
+                hasEverAddedPlaylist = true;
+                // --- THIS IS THE FIX ---
+                // Set the simple, reliable localStorage flag.
+                localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
+                // --- END OF FIX ---
+                await savePlaylistsToStorage();
+                renderSavedPlaylists();
+                youtubeSearchInput.value = '';
+            } else {
+                youtubeSearchResultsContainer.innerHTML = '<p>Failed to fetch playlist info. Try again.</p>';
+            }
+        }
+    });
+    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+    
+    youtubeSearchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            // Prevent form submission if it's in a form
+            e.preventDefault();
+            // --- ⬇️ MODIFIED: Trigger the new Go button logic ⬇️ ---
+            youtubeSearchGoBtn.click();
+            // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+        }
+    });
+
+youtubeSearchInput.addEventListener('input', () => {
+        clearYoutubeSearchBtn.style.display = youtubeSearchInput.value.length > 0 ? 'flex' : 'none';
+});
+
+// === NEW: Keep buttons visible during click (prevent blur from hiding them) ===
+const actionButtons = document.querySelector('.search-controls-actions');
+if (actionButtons) {
+    actionButtons.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Prevent blur event from firing
+    });
+}
+
+clearYoutubeSearchBtn.addEventListener('click', () => {
+        youtubeSearchInput.value = '';
+        clearYoutubeSearchBtn.style.display = 'none';
+        youtubeSearchInput.focus();
+        youtubeSearchResultsContainer.innerHTML = ''; // Optional: Clear results when clearing text
+});
+
+// --- ⬇️ STAGE 2: CACHE-AWARE RADIO BUTTON LOGIC ⬇️ ---
+searchModeVideosBtn.addEventListener('click', () => {
+    // Stage 2: Save current mode results before switching
+    if (currentSearchMode === 'playlists') {
+        playlistsResults.html = youtubeSearchResultsContainer.innerHTML;
+        playlistsResults.searchTerm = youtubeSearchInput.value;
+    } else if (currentSearchMode === 'is.gd') {
+        // is.gd uses localStorage via renderSavedPlaylists - nothing to save here
+    }
+
+    // Switch to videos mode
+    currentSearchMode = 'videos';
+    youtubeNextPageUrl = null;
+    playlistNextPageToken = null;
+
+    // Stage 2: Restore videos cache if it exists
+    if (videosResults.html) {
+        youtubeSearchResultsContainer.innerHTML = videosResults.html;
+        youtubeSearchInput.value = videosResults.searchTerm;
+    } else {
+        youtubeSearchResultsContainer.innerHTML = '';
+        youtubeSearchInput.value = '';
+    }
+
+    toggleSearchHeader(true);
+    youtubeSearchInput.placeholder = 'Search YouTube...';
+    youtubeSearchGoBtn.textContent = 'Search';
+    youtubeSearchView.scrollTop = 0;
+    setFocusOnCurrentlyPlaying('videos'); // ⬇️ ADD THIS ⬇️
+});
+
+searchModePlaylistsBtn.addEventListener('click', () => {
+    // Stage 2: Save current mode results before switching
+    if (currentSearchMode === 'videos') {
+        videosResults.html = youtubeSearchResultsContainer.innerHTML;
+        videosResults.searchTerm = youtubeSearchInput.value;
+    } else if (currentSearchMode === 'is.gd') {
+        // is.gd uses localStorage - nothing to save here
+    }
+
+    // Switch to playlists mode
+    currentSearchMode = 'playlists';
+    youtubeNextPageUrl = null;
+    playlistNextPageToken = null;
+
+    // Stage 2: Restore playlists cache if it exists
+    if (playlistsResults.html) {
+        youtubeSearchResultsContainer.innerHTML = playlistsResults.html;
+        youtubeSearchInput.value = playlistsResults.searchTerm;
+    } else {
+        youtubeSearchResultsContainer.innerHTML = '';
+        youtubeSearchInput.value = '';
+    }
+
+    toggleSearchHeader(true);
+    youtubeSearchInput.placeholder = 'Search Playlists...';
+    youtubeSearchGoBtn.textContent = 'Search';
+    youtubeSearchView.scrollTop = 0;
+    setFocusOnCurrentlyPlaying('playlists'); // ⬇️ ADD THIS ⬇️
+});
+
+searchModeIsGdBtn.addEventListener('click', () => {
+    // Stage 2: Save current mode results before switching
+    if (currentSearchMode === 'videos') {
+        videosResults.html = youtubeSearchResultsContainer.innerHTML;
+        videosResults.searchTerm = youtubeSearchInput.value;
+    } else if (currentSearchMode === 'playlists') {
+        playlistsResults.html = youtubeSearchResultsContainer.innerHTML;
+        playlistsResults.searchTerm = youtubeSearchInput.value;
+    }
+
+    // Switch to is.gd mode
+    currentSearchMode = 'is.gd';
+    youtubeNextPageUrl = null;
+    playlistNextPageToken = null;
+
+    // Stage 2: Always render saved playlists for is.gd (uses localStorage)
+    youtubeSearchResultsContainer.innerHTML = '';
+    youtubeSearchInput.value = '';
+    toggleSearchHeader(true);
+    youtubeSearchInput.placeholder = 'Enter is.gd code...';
+    youtubeSearchGoBtn.textContent = 'Load';
+    youtubeSearchView.scrollTop = 0;
+    renderSavedPlaylists();
+    setFocusOnCurrentlyPlaying('is.gd'); // ⬇️ ADD THIS ⬇️
+
+    // After rendering, check if playlists were actually added to the DOM.
+    setTimeout(() => {
+// ... (rest of is.gd logic)
+        const hasCards = youtubeSearchResultsContainer.querySelector('.youtube-result-card');
+        if (hasCards) {
+            // If cards exist, focus the container for scrolling, but prevent the
+            // browser's default behavior of scrolling the focused element into view.
+            youtubeSearchResultsContainer.focus({ preventScroll: true });
+        } else {
+            // If no cards exist, focus the input field for the user.
+            youtubeSearchInput.focus();
+        }
+    }, 100); // A small delay ensures the DOM is updated.
+
+    // --- THIS IS THE FIX ---
+    // Check both the main variable AND our new backup flag.
+    const hasPlaylistsInBackup = localStorage.getItem('launchPadR1LegacyHasPlaylists');
+    if ((hasEverAddedPlaylist || hasPlaylistsInBackup === 'true') && savedPlaylists.length === 0) {
+        const alertMessage = "Playlists Not Loading?\n\nIf your saved playlists aren't appearing, please exit the app and clear the device cache by pressing the side button 5 times. Re-opening the app should restore them.";
+        showAlert(alertMessage); // This uses your existing showAlert function
+    }
+    // --- END OF FIX ---
+});
+
+// --- ⬇️ ADDED: Info Button Listener ⬇️ ---
+isGdInfoBtn.addEventListener('click', (e) => {
+    e.preventDefault(); // Prevent label from firing
+    e.stopPropagation(); // Stop bubbling
+    
+    // Create the multi-line message
+const message = "1. This section now holds your saved Favorites — songs or playlists you’ve marked with a ★.\n\n" +
+                "2. You can also load YouTube playlists using an is.gd short code:\n" +
+                "   a. On another device, copy your YouTube playlist link.\n" +
+                "   b. Go to is.gd and paste the link.\n" +
+                "   c. Tap “Shorten” to get a short code (the part after is.gd/).\n" +
+                "   d. Enter that code here and tap “Load.”\n" +
+                "   e. Wait 1 or 2 minutes while the playlist loads.";
+                    
+    showAlert(message);
+});
+// --- ⬆️ END OF ADDED/MODIFIED CODE ⬆️ ---
+
+playerSearchBtn.addEventListener('click', () => returnToSearchFromPlayer(true));
+
+// Event Listeners for playlist controls
+playerBackBtn_playlist.addEventListener('click', () => returnToSearchFromPlayer(false));
+
+// --- Playlist Button (replaces Shuffle and Play All) ---
+playerPlaylistBtn.addEventListener('click', () => {
+    if (!player || !isManualPlaylist) return;
+    triggerHaptic();
+    openPlaylistOverlay();
+});
+
+// Playlist overlay event listeners
+closePlaylistBtn.addEventListener('click', closePlaylistOverlay);
+
+playlistPlayAllBtn.addEventListener('click', () => {
+    if (!player || !isManualPlaylist) return;
+    triggerHaptic();
+    
+    // Reset Shuffle state
+    isShuffleActive = false;
+    playlistShuffleBtn.classList.remove('active');
+    
+    // Visually indicate Play All is active
+    playlistPlayAllBtn.classList.add('active');
+    setTimeout(() => playlistPlayAllBtn.classList.remove('active'), 2000);
+    
+    // Restore original playlist & restart
+    currentPlaylist = [...originalPlaylist];
+    currentPlaylistIndex = 0;
+    loadVideoFromPlaylist(currentPlaylist[0]);
+    if (player) player.playVideo();
+    
+    closePlaylistOverlay();
+    sayOnRabbit("Playing all from start");
+});
+
+playlistShuffleBtn.addEventListener('click', () => {
+    if (!player || !isManualPlaylist) return;
+    triggerHaptic();
+    
+    if (!isShuffleActive) {
+        // Enable shuffle
+        isShuffleActive = true;
+        playlistShuffleBtn.classList.add('active');
+        playlistPlayAllBtn.classList.remove('active'); // Ensure Play All is not active
+        originalPlaylist = [...currentPlaylist];
+        
+        // Shuffle while keeping current video first
+        const currentVideo = currentPlaylist[currentPlaylistIndex];
+        const remaining = currentPlaylist.filter((_, i) => i !== currentPlaylistIndex);
+        for (let i = remaining.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+        }
+        currentPlaylist = [currentVideo, ...remaining];
+        currentPlaylistIndex = 0;
+        
+        loadVideoFromPlaylist(currentPlaylist[0]);
+        if (player) player.playVideo();
+        sayOnRabbit("Shuffle enabled");
+    } else {
+        // Disable shuffle
+        isShuffleActive = false;
+        playlistShuffleBtn.classList.remove('active');
+        
+        const currentVideo = currentPlaylist[currentPlaylistIndex];
+        currentPlaylist = [...originalPlaylist];
+        
+        // Restore index to current video
+        const idx = currentPlaylist.findIndex(v => v.id === currentVideo?.id);
+        currentPlaylistIndex = idx >= 0 ? idx : 0;
+        
+        loadVideoFromPlaylist(currentPlaylist[currentPlaylistIndex]);
+        if (player) player.playVideo();
+        sayOnRabbit("Shuffle disabled");
+    }
+    
+    closePlaylistOverlay();
+});
+playerPrevBtn.addEventListener('click', playPreviousVideoInList); // Use our new function
+playerPlayPauseBtn_playlist.addEventListener('click', togglePlayback);
+
+// --- Audio-Only (Playlist mode) — mirror Songs mode (no mute/unmute) ---
+playerAudioOnlyBtn_playlist.addEventListener('click', () => {
+    isAudioOnly = !isAudioOnly;
+
+    // Hide/show video layer; overlay shows "Audio Only" per CSS
+    playerContainer.classList.toggle('audio-only', isAudioOnly);
+
+    // Button highlight to theme
+    playerAudioOnlyBtn_playlist.classList.toggle('active', isAudioOnly);
+
+    triggerHaptic();
+    sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
+});
+
+playerNextBtn.addEventListener('click', playNextVideoInList); // Use our new function
+
+playerSearchBtn_playlist.addEventListener('click', () => returnToSearchFromPlayer(true));
+
+    playerPlayPauseBtn.addEventListener('click', togglePlayback);
+
+        // This is the corrected listener for the Audio Only button
+playerAudioOnlyBtn.addEventListener('click', () => {
+    isAudioOnly = !isAudioOnly;
+    playerContainer.classList.toggle('audio-only', isAudioOnly);
+    playerAudioOnlyBtn.classList.toggle('active', isAudioOnly);
+    triggerHaptic();
+    sayOnRabbit(isAudioOnly ? "Audio only" : "Video enabled");
+});
+
+// Volume Control Event Listeners
+playerMuteBtn.addEventListener('click', () => showVolumePopup('song'));
+playerMuteBtn_playlist.addEventListener('click', () => showVolumePopup('playlist'));
+playerVolumeSlider.addEventListener('input', handleVolumeChange);
+playerVolumeSlider_playlist.addEventListener('input', handleVolumeChange);
+
+// Additional events to ensure continuous timer reset during sliding
+playerVolumeSlider.addEventListener('mousemove', resetUITimer);
+playerVolumeSlider_playlist.addEventListener('mousemove', resetUITimer);
+playerVolumeSlider.addEventListener('touchmove', resetUITimer);
+playerVolumeSlider_playlist.addEventListener('touchmove', resetUITimer);
+
+// Helper function for fallback timer reset
+function resetUITimer() {
+    showPlayerUI();
+    // Additional fallback
+    if (typeof clearTimeout !== 'undefined' && typeof uiHideTimeout !== 'undefined') {
+        clearTimeout(uiHideTimeout);
+        uiHideTimeout = setTimeout(() => {
+            if (typeof hidePlayerUI === 'function') {
+                hidePlayerUI();
+            }
+        }, 4000);
+    }
+}
+
+// Click outside to hide volume popup
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.volume-icon-container')) {
+        const wasVolumePopupVisible = playerVolumePopup.style.display === 'flex' || 
+                                     playerVolumePopup_playlist.style.display === 'flex';
+        hideVolumePopup();
+        
+        // If volume popup was visible and user clicked to close it, restart UI timer
+        if (wasVolumePopupVisible && internalPlayerOverlay.style.display === 'flex') {
+            if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                startUIHideTimer();
+            }
+        }
+    }
+});
+
+// --- ⬇️ ADD THIS NEW LISTENER ⬇️ ---
+nowPlayingIcon.addEventListener('click', () => {
+    // This function will be shared by the icon and the bar
+    openPlayerFromNowPlaying();
+});
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
+
+// This is the listener for the Now Playing bar
+nowPlayingBar.addEventListener('click', () => {
+    openPlayerFromNowPlaying();
+});
+
+// --- ⬇️ ADD THIS NEW HELPER FUNCTION ⬇️ ---
+function openPlayerFromNowPlaying() {
+    youtubeSearchViewOverlay.style.display = 'none';
+    mainView.classList.remove('input-mode-active');
+    internalPlayerOverlay.style.display = 'flex'; // Show the player again
+    
+    // Hide both elements
+    nowPlayingBar.style.display = 'none';
+    nowPlayingIcon.style.display = 'none';
+
+    showPlayerUI(); // Always show controls when re-entering
+    
+    // Restart the hide timer if it's currently playing
+    if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+        startUIHideTimer();
+    }
+}
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
+
+// Stop button listener - stops playback completely
+stopPlayingBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent triggering the bar's click event
+    if (player) {
+        currentlyPlayingPlaylistId = null; // <-- ADD THIS
+        player.stopVideo();
+        updateNowPlayingUI('stopped'); // <-- USE NEW FUNCTION
+        triggerHaptic();
+        sayOnRabbit("Playback stopped");
+    }
+});
+
+// --- ⬇️ ADD THIS NEW LISTENER ⬇️ ---
+playerHomeIcon.addEventListener('click', () => {
+    // We REMOVED player.stopVideo() and updateNowPlayingUI('stopped')
+    internalPlayerOverlay.style.display = 'none'; // Hide player overlay
+    hideTapHint(); // Ensure hint is hidden
+    goHome(); // Navigate home (goHome will call updateNowPlayingUI based on the current state)
+    triggerHaptic();
+});
+// --- ⬆️ END OF ADDED CODE ⬆️ ---
+
+// --- ⬇️ ADD NEW LISTENER FOR PLAYER FAVORITE BUTTON ⬇️ ---
+playerFavoriteBtn.addEventListener('click', async () => {
+    if (!currentlyPlayingCardId) {
+        await showAlert("Cannot save: No video or playlist is currently loaded.");
+        return;
+    }
+    
+    const itemId = currentlyPlayingCardId;
+    const itemTitle = playerVideoTitle.textContent.replace(/^Playing: /, '');
+    const isPlaylist = isManualPlaylist;
+
+    const favoriteBtn = playerFavoriteBtn;
+    const index = savedPlaylists.findIndex(p => p.id === itemId);
+    
+    if (index !== -1) {
+        // Item is saved, remove it
+        savedPlaylists.splice(index, 1);
+        favoriteBtn.classList.remove('is-favorite');
+        await sayOnRabbit(`Removed ${itemTitle}`);
+    } else {
+        // Item is not saved, add it
+        let itemData;
+        let thumb = GENERIC_FAVICON_SRC;
+
+        if (isPlaylist) {
+            // Fetch metadata to get a thumbnail for the saved list
+            const metadata = await fetchPlaylistMetadata(itemId);
+            thumb = metadata?.thumb || GENERIC_FAVICON_SRC;
+            itemData = { id: itemId, title: itemTitle, thumb: thumb, url: `https://www.youtube.com/playlist?list=${itemId}` };
+        } else {
+            // For a single video, we must construct the thumbnail URL from the ID
+            const videoId = getYoutubeVideoId(itemId) || itemId;
+            thumb = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+            itemData = { id: itemId, title: itemTitle, thumb: thumb, url: `https://www.youtube.com/watch?v=${videoId}` };
+        }
+
+        savedPlaylists.push(itemData);
+        favoriteBtn.classList.add('is-favorite');
+        hasEverAddedPlaylist = true;
+        localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
+        await sayOnRabbit(`Saved ${itemTitle}`);
+    }
+    
+    await savePlaylistsToStorage();
+    triggerHaptic();
+    showPlayerUI(); // Reset hide timer on interaction
+    startUIHideTimer();
+});
+// --- ⬆️ END OF NEW LISTENER ⬆️ ---
+
+// ⬇️ *** ADD THIS NEW LISTENER FOR THE COUNTER *** ⬇️
+document.querySelector('.playlist-video-count-wrapper').addEventListener('click', () => {
+    const currentItem = document.getElementById('playlist-current-item');
+    if (currentItem) {
+        currentItem.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center' // This centers the item in the list
+        });
+        triggerHaptic();
+    }
+});
+// ⬆️ *** END OF NEW LISTENER *** ⬆️
+
+    // Use the correct 'sideClick' event based on the SDK demo.
+    window.addEventListener('sideClick', (event) => {
+        if (internalPlayerOverlay.style.display === 'flex') {
+            // Prevent any default OS action for the click.
+            event.preventDefault();
+            togglePlayback();
+        }
+    });
+
+    // --- Scroll Wheel Navigation ---
+    // Uses the correct event names found in the SDK documentation.
+    // This now handles both the main list and lists within dialogs.
+    const SCROLL_AMOUNT_MAIN = 120; // Pixels to scroll on the main page.
+    const SCROLL_AMOUNT_DIALOG = 80; // A smaller scroll amount for lists in dialogs.
+
+    function getActiveScrollTarget() {
+        // Check for volume popup first - highest priority for scroll wheel
+        if (playerVolumePopup.style.display === 'flex' || playerVolumePopup_playlist.style.display === 'flex') {
+            return 'volume'; // Special identifier for volume control
+        }
+        
+        if (themeDialogOverlay.style.display === 'flex') return themeColorList;
+        if (deletePromptOverlay.style.display === 'flex') return deleteLinksList;
+        if (favoritesPromptOverlay.style.display === 'flex') return favoritesList;
+        if (youtubeSearchViewOverlay.style.display === 'flex' || youtubeSearchViewOverlay.style.display !== 'none') return youtubeSearchResultsContainer;
+        if (playlistOverlay.style.display !== 'none') return playlistVideoList;
+        
+        // Check if we are on the main view and not in input mode or another overlay.
+        const onMainView = internalPlayerOverlay.style.display === 'none' &&
+                           genericPromptOverlay.style.display === 'none' &&
+                           !mainView.classList.contains('input-mode-active');
+        
+        if (onMainView) return window;
+
+        return null; // No active target to scroll.
+    }
+
+    window.addEventListener('scrollUp', () => {
+        const target = getActiveScrollTarget();
+        if (target === 'volume') {
+            // Increase volume by 5 when scrolling up
+            adjustVolumeByScroll(5);
+        } else if (target) {
+            target.scrollBy({ top: -(target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG), behavior: 'smooth' });
+        }
+    });
+
+    window.addEventListener('scrollDown', () => {
+        const target = getActiveScrollTarget();
+        if (target === 'volume') {
+            // Decrease volume by 5 when scrolling down
+            adjustVolumeByScroll(-5);
+        } else if (target) {
+            target.scrollBy({ top: (target === window ? SCROLL_AMOUNT_MAIN : SCROLL_AMOUNT_DIALOG), behavior: 'smooth' });
+        }
+    });
+    // --- End of Scroll Wheel Navigation ---
+
+        // --- Player overlay tap to show UI ---
+    internalPlayerOverlay.addEventListener('click', (e) => {
+        if (!isUIVisible && player) {
+            e.preventDefault();
+            e.stopPropagation();
+            showPlayerUI();
+            if (player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                startUIHideTimer();
+            }
+        }
+    });
+
+    renderLinks();
 })();
+
+// ⬇️ *** ADD THIS NEW FUNCTION *** ⬇️
+function clearAllSearchCardFocus() {
+    // Clears focus from any card in the overlay, regardless of mode
+    document.querySelectorAll('#youtubeSearchResultsContainer .youtube-result-card').forEach(c => {
+        c.classList.remove('currently-playing');
+    });
+}
+
+function setFocusOnCurrentlyPlaying(mode) {
+    clearAllSearchCardFocus();
+    if (currentlyPlayingCardMode === mode && currentlyPlayingCardId) {
+        // Use a combined selector for video links and playlist IDs
+        const targetCard = document.querySelector(`#youtubeSearchResultsContainer .youtube-result-card[data-video-link="${currentlyPlayingCardId}"], #youtubeSearchResultsContainer .youtube-result-card[data-playlist-id="${currentlyPlayingCardId}"]`);
+        if (targetCard) {
+            targetCard.classList.add('currently-playing');
+        }
+    }
+}
+// ⬆️ *** END OF NEW FUNCTION *** ⬆️
+
+function togglePlayback() {
+    if (!player || typeof player.getPlayerState !== 'function') return;
+    triggerHaptic();
+    const playerState = player.getPlayerState();
+    if (playerState === YT.PlayerState.PLAYING) {
+        isIntentionalPause = true; // <-- ADD THIS
+        player.pauseVideo();
+    } else {
+        player.playVideo();
+    }
+}
+
+// Volume Control Functions
+function adjustVolumeByScroll(delta) {
+    // Get current volume from the active slider
+    const currentSlider = playerVolumePopup.style.display === 'flex' ? 
+                         playerVolumeSlider : playerVolumeSlider_playlist;
+    
+    const currentValue = parseInt(currentSlider.value);
+    const newVolume = Math.max(0, Math.min(100, currentValue + delta));
+    
+    // Update the volume using existing logic
+    currentVolume = newVolume;
+    
+    // Trigger haptic feedback and UI updates
+    triggerHaptic();
+    showPlayerUI(); // Reset the 4-second timer
+    
+    // Reset popup auto-hide timer and keep UI visible while popup is open
+    clearTimeout(volumeSliderTimeout);
+    clearTimeout(uiHideTimeout); // Prevent UI from hiding while volume popup is active
+    volumeSliderTimeout = setTimeout(() => {
+        hideVolumePopup();
+        // Only restart UI timer after popup closes
+        if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+            startUIHideTimer();
+        }
+    }, 3000);
+    
+    // Update player volume if available
+    if (player && typeof player.setVolume === 'function') {
+        try {
+            if (newVolume === 0) {
+                player.mute();
+                updateMuteButtonIcon(true);
+            } else {
+                player.unMute();
+                player.setVolume(newVolume);
+                updateMuteButtonIcon(false);
+                lastVolume = newVolume;
+            }
+            
+            // Update both sliders and displays to stay in sync
+            updateVolumeControls(newVolume);
+            saveVolumeToStorage(newVolume);
+        } catch (e) {
+            console.warn("Volume change blocked");
+        }
+    }
+}
+
+function showVolumePopup(mode) {
+    triggerHaptic();
+    showPlayerUI(); // Reset the 4-second timer
+    
+    const popup = mode === 'playlist' ? playerVolumePopup_playlist : playerVolumePopup;
+    const otherPopup = mode === 'playlist' ? playerVolumePopup : playerVolumePopup_playlist;
+    
+    // Hide other popup if open
+    hideVolumePopup();
+    
+    // Show this popup
+    popup.style.display = 'flex';
+    // Force reflow for transition
+    popup.offsetHeight;
+    popup.classList.add('show');
+    
+    // Clear UI timer while popup is active and set auto-hide timer for popup
+    clearTimeout(uiHideTimeout);
+    clearTimeout(volumeSliderTimeout);
+    volumeSliderTimeout = setTimeout(() => {
+        hideVolumePopup();
+        // Restart UI timer after popup closes
+        if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+            startUIHideTimer();
+        }
+    }, 3000);
+}
+
+function hideVolumePopup() {
+    playerVolumePopup.classList.remove('show');
+    playerVolumePopup_playlist.classList.remove('show');
+    
+    setTimeout(() => {
+        if (!playerVolumePopup.classList.contains('show')) {
+            playerVolumePopup.style.display = 'none';
+        }
+        if (!playerVolumePopup_playlist.classList.contains('show')) {
+            playerVolumePopup_playlist.style.display = 'none';
+        }
+    }, 200); // Match transition duration
+    
+    clearTimeout(volumeSliderTimeout);
+}
+
+function handleVolumeChange(e) {
+    const newVolume = parseInt(e.target.value);
+    currentVolume = newVolume;
+    
+    // FALLBACK SOLUTION: Force timer reset multiple ways
+    triggerHaptic(); // Same as other controls
+    showPlayerUI(); // Reset the 4-second timer
+    
+    // ADDITIONAL FALLBACK: Clear and manually restart the UI timer
+    if (typeof clearTimeout !== 'undefined' && typeof uiHideTimeout !== 'undefined') {
+        clearTimeout(uiHideTimeout);
+        // Force UI to stay visible and restart timer
+        const playerControls = document.querySelector('.player-controls');
+        const playerVideoTitle = document.getElementById('playerVideoTitle');
+        if (playerControls) playerControls.style.opacity = '1';
+        if (playerVideoTitle) playerVideoTitle.style.opacity = '1';
+        
+        // Restart the 4-second timer manually
+        uiHideTimeout = setTimeout(() => {
+            if (typeof hidePlayerUI === 'function') {
+                hidePlayerUI();
+            }
+        }, 4000);
+    }
+    
+    // Reset popup auto-hide timer on every movement
+    clearTimeout(volumeSliderTimeout);
+    volumeSliderTimeout = setTimeout(() => {
+        hideVolumePopup();
+    }, 3000);
+    
+    if (!player || typeof player.setVolume !== 'function') return;
+    
+    try {
+        if (newVolume === 0) {
+            player.mute();
+            updateMuteButtonIcon(true);
+        } else {
+            player.unMute();
+            player.setVolume(newVolume);
+            updateMuteButtonIcon(false);
+            lastVolume = newVolume;
+        }
+        
+        // Update both sliders and displays to stay in sync
+        updateVolumeControls(newVolume);
+        saveVolumeToStorage(newVolume);
+    } catch (e) {
+        console.warn("Volume change blocked");
+    }
+}
+
+function updateMuteButtonIcon(isMuted) {
+    const icon = isMuted ? VOLUME_MUTED_ICON_SVG : VOLUME_HIGH_ICON_SVG;
+    playerMuteBtn.innerHTML = icon;
+    playerMuteBtn_playlist.innerHTML = icon;
+}
+
+function updateVolumeControls(volume) {
+    // Update sliders
+    playerVolumeSlider.value = volume;
+    playerVolumeSlider_playlist.value = volume;
+    
+    // Update visual fill
+    updateSliderFill(playerVolumeSlider);
+    updateSliderFill(playerVolumeSlider_playlist);
+    
+    // Update level displays
+    document.querySelectorAll('.volume-level-display').forEach(display => {
+        display.textContent = volume;
+    });
+}
+
+function updateSliderFill(slider) {
+    const percentage = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+    slider.style.background = `linear-gradient(to top, rgba(255, 255, 255, 0.1) 0%, var(--primary-color) ${percentage}%)`;
+}
+
+async function saveVolumeToStorage(volume) {
+    const volumeString = volume.toString();
+    
+    // Save to localStorage (as fallback)
+    localStorage.setItem(VOLUME_STORAGE_KEY, volumeString);
+    
+    // Save to R1 creation storage (if available)
+    try {
+        if (window.creationStorage && window.creationStorage.plain) {
+            await window.creationStorage.plain.set(VOLUME_STORAGE_KEY, volumeString);
+        }
+    } catch (e) {
+        console.log('R1 storage not available, using localStorage only');
+    }
+}
+
+async function loadVolumeFromStorage() {
+    let volumeValue = null; // Use a clearer variable name
+    
+    // Try R1 creation storage first
+    try {
+        if (window.creationStorage && window.creationStorage.plain) {
+            const r1Result = await window.creationStorage.plain.get(VOLUME_STORAGE_KEY);
+            
+            // === THIS IS THE FIX ===
+            // R1 storage returns an object { value: "75" }, not just "75".
+            // We must check for the .value property.
+            if (r1Result?.value) {
+                volumeValue = r1Result.value;
+            }
+        }
+    } catch (e) {
+        console.log('R1 storage not available, using localStorage');
+    }
+    
+    // Fallback to localStorage if R1 storage is empty or fails
+    if (!volumeValue) {
+        volumeValue = localStorage.getItem(VOLUME_STORAGE_KEY);
+    }
+    
+    // Use 40 as the new default, per your suggestion
+    return volumeValue ? parseInt(volumeValue) : 40;
+}
+
+function onPlayerReady(event) {
+    // This function fires as soon as the player has loaded the video/playlist data.
+    
+    // Initialize volume controls with stored volume
+    try {
+        player.setVolume(currentVolume);
+        updateVolumeControls(currentVolume);
+        updateMuteButtonIcon(false);
+    } catch (e) {
+        console.warn("Volume initialization failed due to autoplay policy");
+    }
+    
+    // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+    if (isManualPlaylist) {
+        // Only cue the first video if we haven't intentionally loaded a video from a card click
+        if (!isVideoLoadedFromPlaylistCard && player && currentPlaylist[0]) {
+            player.cueVideoById(currentPlaylist[0].id);
+            playerVideoTitle.textContent = currentPlaylist[0].title;
+        }
+        // Reset the flag after onPlayerReady runs so future plays work normally
+        isVideoLoadedFromPlaylistCard = false;
+    } else {
+    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+        // For SINGLE songs, this logic is still fine.
+        const videoData = player.getVideoData();
+        if (videoData && videoData.title) {
+            playerVideoTitle.textContent = videoData.title;
+        }
+    }
+}
+
+// toggleShuffle function removed - shuffle functionality moved to playlist overlay
+
+function onPlayerStateChange(event) {
+    // ⬇️ *** ADD THESE TWO LINES *** ⬇️
+    const countWrapper = document.querySelector('.playlist-video-count-wrapper');
+    const countElement = document.getElementById('playlistVideoCountText');
+
+    if (event.data === YT.PlayerState.PLAYING) {
+        let currentTitle = '';
+
+        // --- ⬇️ MODIFIED FOR MANUAL PLAYLIST CONTROL ⬇️ ---
+        if (isManualPlaylist) {
+            // In manual mode, get title from our array
+            if (currentPlaylist[currentPlaylistIndex]) {
+                currentTitle = currentPlaylist[currentPlaylistIndex].title;
+                playerVideoTitle.textContent = currentTitle;
+
+                // ⬇️ *** ADD THIS BLOCK *** ⬇️
+                // Update the counter dynamically
+                if (countElement) {
+                    countElement.textContent = `${currentPlaylistIndex + 1} / ${currentPlaylist.length}`;
+                }
+                if (countWrapper) {
+                    countWrapper.classList.add('pulsating');
+                }
+                // ⬆️ *** END OF BLOCK *** ⬆️
+            }
+        } else {
+            // Original logic for single songs
+            const videoData = player.getVideoData();
+            if (videoData && videoData.title) {
+                currentTitle = videoData.title;
+                playerVideoTitle.textContent = currentTitle;
+            }
+        }
+        // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+
+        nowPlayingTitle.textContent = currentTitle;
+        updateNowPlayingUI('playing');
+
+        playerPlayPauseBtn.innerHTML = PAUSE_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PAUSE_ICON_SVG;
+        
+        showPlayerUI();
+        startUIHideTimer();
+
+    } else if (event.data === YT.PlayerState.PAUSED ) {
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+        clearTimeout(uiHideTimeout);
+        
+        if (isIntentionalPause) {
+            showPlayerUI();
+            isIntentionalPause = false; 
+        }
+        
+        updateNowPlayingUI('paused');
+
+        if (countWrapper) countWrapper.classList.remove('pulsating'); // <-- ADD THIS
+
+    } else if (event.data === YT.PlayerState.ENDED ) {
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG; 
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+        clearTimeout(uiHideTimeout);
+        
+        if (countWrapper) countWrapper.classList.remove('pulsating'); // <-- ADD THIS
+        
+        if (isManualPlaylist) {
+            playNextVideoInList();
+        } else {
+            showPlayerUI();
+            updateNowPlayingUI('stopped');
+        }
+
+    } else if (event.data === YT.PlayerState.BUFFERING) {
+        // This state is unreliable for title updates, do nothing here.
+    } else if (event.data === YT.PlayerState.UNSTARTED) {
+        playerPlayPauseBtn.innerHTML = PLAY_ICON_SVG;
+        playerPlayPauseBtn_playlist.innerHTML = PLAY_ICON_SVG;
+    }
+}
+
+// --- ⬇️ STAGE 6: APP EXIT HANDLER ⬇️ ---
+window.addEventListener('beforeunload', () => {
+    // Clear ephemeral search result caches
+    videosResults.html = null;
+    videosResults.searchTerm = '';
+    videosResults.nextPageUrl = null;
+    
+    playlistsResults.html = null;
+    playlistsResults.searchTerm = '';
+    playlistsResults.nextPageToken = null;
+    
+    // ⬇️ ADDED: Clear persistent focus state on exit ⬇️
+    currentlyPlayingCardId = null;
+    currentlyPlayingCardMode = null;
+    // ⬆️ END OF ADDED CODE ⬆️
+});
+// --- ⬆️ END OF STAGE 6 ⬆️ ---
