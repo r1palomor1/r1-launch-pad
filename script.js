@@ -3278,11 +3278,13 @@ isGdInfoBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // Stop bubbling
     
     // Create the multi-line message
-    const message = "1. On another device, copy your YouTube playlist link.\n" +
-                    "2. Go to is.gd and paste the link.\n" +
-                    "3. Tap “Shorten” to get a short code (after is.gd/).\n" +
-                    "4. Enter that code here and tap “Load.”\n" +
-                    "5. Wait about 1 minute while the playlist loads.";
+const message = "1. This section now holds your saved Favorites — songs or playlists you’ve marked with a ❤️.\n\n" +
+                "2. You can also load YouTube playlists using an is.gd short code:\n\n" +
+                "   a. On another device, copy your YouTube playlist link.\n" +
+                "   b. Go to is.gd and paste the link.\n" +
+                "   c. Tap “Shorten” to get a short code (the part after is.gd/).\n" +
+                "   d. Enter that code here and tap “Load.”\n" +
+                "   e. Wait about 1 or 2 minutes while the playlist loads.";
                     
     showAlert(message);
 });
