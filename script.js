@@ -2951,11 +2951,14 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
         savedPlaylists.splice(index, 1);
         favoriteBtn.classList.remove('is-favorite');
         
-        // ⬇️ CRITICAL FIX: Explicitly clear the SVG fill style ⬇️
+        // ⬇️ CRITICAL FIX: Explicitly set the icon's color to the dimmed state ⬇️
         const svg = favoriteBtn.querySelector('svg');
         if (svg) {
-            // Clearing the inline style forces the element to inherit from CSS rules again.
-            svg.style.fill = ''; 
+            // 1. Force the fill color to the dimmed state
+            svg.style.fill = 'var(--icon-color)';
+            
+            // 2. Also reset opacity just to be safe
+            svg.style.opacity = '0.6';
         }
         // ⬆️ END CRITICAL FIX ⬆️
         
