@@ -1795,8 +1795,8 @@ button.rabbit-default:hover {
 }
 
 #playerFavoriteBtn svg {
-    width: 14px; /* ⬅️ Changed to 14px to match card icon size */
-    height: 14px; /* ⬅️ Changed to 14px to match card icon size */
+    width: var(--actions-player-icon-size);
+    height: var(--actions-player-icon-size);
     fill: var(--icon-color); /* Use subtle color */
     opacity: 0.6; /* Make it semi-transparent */
     transition: fill 0.2s ease;
@@ -1809,7 +1809,7 @@ button.rabbit-default:hover {
 
 /* Style when the video is already saved/favorited */
 #playerFavoriteBtn.is-favorite svg {
-    fill: var(--primary-color); /* ⬅️ CHANGED to use the app's theme color */
+    fill: var(--favorite-color); /* Use the red favorite color */
     opacity: 1;
 }
 /* ⬆️ *** END OF NEW STYLES *** ⬆️ */

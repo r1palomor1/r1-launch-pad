@@ -1,4 +1,4 @@
-﻿﻿/*
+﻿﻿﻿﻿/*
  Working app: Favorites icon for Songs and Playlists.  Saved to Favorites radio button.
     Auto hide controls in modes and PL overlay.  Use side icon to show.
     Vertical volume slider and standarize icons using vars.
@@ -2898,25 +2898,15 @@ function returnToSearchFromPlayer(focusInput = false) {
         if (currentSearchMode === 'isGd' || currentSearchMode === 'is.gd') {
             youtubeSearchInput.placeholder = 'Enter is.gd code...';
             youtubeSearchGoBtn.textContent = 'Load';
-            renderSavedPlaylists(); // ⬅️ THIS WILL REFRESH THE FAVORITES LIST
+            renderSavedPlaylists(); // This is still needed for highlighting
         } else {
             youtubeSearchInput.placeholder = 'Search YouTube...';
             youtubeSearchGoBtn.textContent = 'Search';
-            
-            // ⬇️ NEW: Re-render search results to sync favorite status ⬇️
-            const query = youtubeSearchInput.value.trim();
-            if (currentSearchMode === 'videos' && videosResults.html) {
-                // Rerender video results using cached data, forcing re-evaluation of favorite status
-                handleYouTubeSearch(query); 
-            } else if (currentSearchMode === 'playlists' && playlistsResults.html) {
-                // Rerender playlist results using cached data, forcing re-evaluation
-                handlePlaylistSearch(query); 
-            }
-            // ⬆️ END NEW ⬆️
         }
         
-        // *** FIX: Explicitly set focus after the view is rendered/restored ***
+        // ⬇️ *** FIX: Explicitly set focus after the view is rendered/restored *** ⬇️
         setFocusOnCurrentlyPlaying(currentSearchMode);
+        // ⬆️ *** END OF FIX *** ⬆️
         
         // Make container focusable and focus it (since we're returning to cards)
         youtubeSearchResultsContainer.tabIndex = 0;
@@ -3247,7 +3237,7 @@ searchModePlaylistsBtn.addEventListener('click', () => {
     setFocusOnCurrentlyPlaying('playlists'); // ⬇️ ADD THIS ⬇️
 });
 
-searchModeIsGdBtn.addEventListener('click', async () => { // ⬅️ ADD ASYNC HERE
+searchModeIsGdBtn.addEventListener('click', () => {
     // Stage 2: Save current mode results before switching
     if (currentSearchMode === 'videos') {
         videosResults.html = youtubeSearchResultsContainer.innerHTML;
@@ -3268,7 +3258,6 @@ searchModeIsGdBtn.addEventListener('click', async () => { // ⬅️ ADD ASYNC HE
     toggleSearchHeader(true);
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
     youtubeSearchGoBtn.textContent = 'Load';
-    await loadPlaylistsFromStorage(); // ⬅️ CRITICAL: Force reload saved data from storage
     youtubeSearchView.scrollTop = 0;
     renderSavedPlaylists();
     setFocusOnCurrentlyPlaying('is.gd'); // ⬇️ ADD THIS ⬇️
@@ -3303,7 +3292,7 @@ isGdInfoBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // Stop bubbling
     
     // Create the multi-line message
-const message = "1. This section now holds your saved Favorites — songs or playlists you’ve marked with a ★.\n\n" +
+const message = "1. This section now holds your saved Favorites — songs or playlists you’ve marked with a ❤️.\n\n" +
                 "2. You can also load YouTube playlists using an is.gd short code:\n" +
                 "   a. On another device, copy your YouTube playlist link.\n" +
                 "   b. Go to is.gd and paste the link.\n" +
@@ -3567,41 +3556,10 @@ playerFavoriteBtn.addEventListener('click', async () => {
     
     await savePlaylistsToStorage();
     triggerHaptic();
-    // showPlayerUI(); // REMOVED to keep controls hidden
-    // startUIHideTimer(); // REMOVED to keep controls hidden
+    showPlayerUI(); // Reset hide timer on interaction
+    startUIHideTimer();
 });
 // --- ⬆️ END OF NEW LISTENER ⬆️ ---
-
-// --- ⬇️ ADD NEW FUNCTION: Force load of playlists from storage ⬇️ ---
-async function loadPlaylistsFromStorage() {
-    try {
-        let storedPlaylists = localStorage.getItem(SAVED_PLAYLISTS_KEY);
-        if (window.creationStorage) {
-            const r1Playlists = await window.creationStorage.plain.get(SAVED_PLAYLISTS_KEY);
-            if (r1Playlists?.value) {
-                storedPlaylists = r1Playlists.value;
-            }
-        }
-        if (storedPlaylists) {
-            savedPlaylists = JSON.parse(storedPlaylists);
-        } else {
-            savedPlaylists = []; // Ensure it's an empty array if nothing is found
-        }
-
-        // We also update the flag for safety
-        let storedFlag = localStorage.getItem(HAS_ADDED_PLAYLIST_KEY);
-        if (window.creationStorage) {
-            const r1Flag = await window.creationStorage.plain.get(HAS_ADDED_PLAYLIST_KEY);
-            if (r1Flag?.value) storedFlag = r1Flag.value;
-        }
-        hasEverAddedPlaylist = storedFlag === 'true';
-
-    } catch (e) {
-        console.error("Error loading saved playlists data from storage:", e);
-        savedPlaylists = [];
-    }
-}
-// --- ⬆️ END OF NEW FUNCTION ⬆️ ---
 
 // ⬇️ *** ADD THIS NEW LISTENER FOR THE COUNTER *** ⬇️
 document.querySelector('.playlist-video-count-wrapper').addEventListener('click', () => {
