@@ -3279,7 +3279,7 @@ isGdInfoBtn.addEventListener('click', (e) => {
     
     // Create the multi-line message
 const message = "1. This section now holds your saved Favorites — songs or playlists you’ve marked with a ❤️.\n\n" +
-                "2. You can also load YouTube playlists using an is.gd short code:\n\n" +
+                "2. You can also load YouTube playlists using an is.gd short code:\n" +
                 "   a. On another device, copy your YouTube playlist link.\n" +
                 "   b. Go to is.gd and paste the link.\n" +
                 "   c. Tap “Shorten” to get a short code (the part after is.gd/).\n" +

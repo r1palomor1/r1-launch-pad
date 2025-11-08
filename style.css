@@ -1337,7 +1337,7 @@ button.rabbit-default:hover {
     position: sticky;
     top: 37px; /* Height of the search input + gap */
     background-color: var(--bg-color);
-    z-index: 1;
+    z-index: 10;
     display: flex;
     flex-direction: column;
     gap: 20px;
