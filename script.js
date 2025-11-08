@@ -3674,17 +3674,22 @@ document.querySelector('.playlist-video-count-wrapper').addEventListener('click'
     });
     // --- End of Scroll Wheel Navigation ---
 
-        // --- Player overlay tap to show UI ---
-    internalPlayerOverlay.addEventListener('click', (e) => {
-        if (!isUIVisible && player) {
-            e.preventDefault();
-            e.stopPropagation();
-            showPlayerUI();
-            if (player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
-                startUIHideTimer();
+    // --- Player overlay: ONLY tap hint bar shows UI ---
+    const tapHintElement = document.getElementById('tapHint');
+    if (tapHintElement) {
+        tapHintElement.addEventListener('click', (e) => {
+            if (!isUIVisible && player) {
+                e.preventDefault();
+                e.stopPropagation();
+                showPlayerUI();
+                if (player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                    startUIHideTimer();
+                }
             }
-        }
-    });
+        });
+        // Make tap hint clickable
+        tapHintElement.style.cursor = 'pointer';
+    }
 
     renderLinks();
 })();
