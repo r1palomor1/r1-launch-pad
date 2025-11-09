@@ -1280,6 +1280,16 @@ function hideTapHint() {
  * @param {'playing' | 'paused' | 'stopped'} state 
  */
 function updateNowPlayingUI(state) {
+    // ⬇️ *** CRITICAL FIX: Guard against showing the bar inside the player *** ⬇️
+    if (internalPlayerOverlay.style.display === 'flex') {
+        nowPlayingBar.style.display = 'none';
+        nowPlayingIcon.style.display = 'none';
+        nowPlayingIcon.classList.remove('pulsating');
+        nowPlayingBarIcon.classList.remove('pulsating');
+        return; // Stop execution immediately
+    }
+    // ⬆️ *** END OF CRITICAL FIX *** ⬆️
+    
     // Check which view is active
     const isMainView = (mainView.style.display !== 'none' || mainView.classList.contains('input-mode-active')) &&
                        youtubeSearchViewOverlay.style.display === 'none';
@@ -1296,6 +1306,7 @@ function updateNowPlayingUI(state) {
             nowPlayingIcon.style.display = 'flex';
             nowPlayingBar.style.display = 'none';
         } else {
+            // This is the Search View / Playlist Overlay state
             nowPlayingIcon.style.display = 'none';
             nowPlayingBar.style.display = 'flex';
         }
@@ -1306,6 +1317,7 @@ function updateNowPlayingUI(state) {
             nowPlayingIcon.style.display = 'flex';
             nowPlayingBar.style.display = 'none';
         } else {
+            // This is the Search View / Playlist Overlay state
             nowPlayingIcon.style.display = 'none';
             nowPlayingBar.style.display = 'flex';
         }
