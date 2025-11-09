@@ -3040,6 +3040,9 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
         if (isSameCardPlaying) {
             // Scenario 1: User clicks the currently playing/focused card
             hideYouTubeSearchView();
+            // ⬇️ *** THE CRITICAL FIX *** ⬇️
+            nowPlayingBar.style.display = 'none';
+            // ⬆️ *** END OF CRITICAL FIX *** ⬆️
             internalPlayerOverlay.style.display = 'flex';
             if (isPlaylistCard) {
                 // For a playlist, also open the overlay
