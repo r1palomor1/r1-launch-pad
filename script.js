@@ -1836,14 +1836,16 @@ function togglePlaylistHeader(show) {
 
 youtubeSearchInput.addEventListener('focus', () => {
     youtubeSearchViewOverlay.classList.add('input-focused');
+    
+    // ⬇️ *** CRITICAL FIX: Hide Now Playing Bar when keyboard is active *** ⬇️
+    nowPlayingBar.style.display = 'none';
+    // ⬆️ *** END OF CRITICAL FIX *** ⬆️
+    
     // Show action buttons when input has focus
     const actionButtons = document.querySelector('.search-controls-actions');
     
     if (actionButtons) {
-        // ⬇️ ADD THIS LINE ⬇️
-        actionButtons.style.display = 'flex'; // CRITICAL: Bring the element back into the layout
-        // ⬆️ END ADDED LINE ⬆️
-        
+        actionButtons.style.display = 'flex';
         actionButtons.style.opacity = '1';
         actionButtons.style.pointerEvents = 'all';
     }
@@ -1853,18 +1855,29 @@ youtubeSearchInput.addEventListener('blur', () => {
     youtubeSearchViewOverlay.classList.remove('input-focused');
     const actionButtons = document.querySelector('.search-controls-actions');
     
+    // ⬇️ *** CRITICAL FIX: Resync the Now Playing UI when keyboard is dismissed *** ⬇️
+    // Check if a player instance exists before attempting to read its state
+    if (player && player.getPlayerState) {
+        const state = player.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+            updateNowPlayingUI('playing');
+        } else if (state === YT.PlayerState.PAUSED) {
+            updateNowPlayingUI('paused');
+        }
+    }
+    // ⬆️ *** END OF CRITICAL FIX *** ⬆️
+    
     // Step 1: Hide actions immediately, but with a transition delay
     if (actionButtons) {
-        actionButtons.style.opacity = '0';
-        actionButtons.style.pointerEvents = 'none';
+        // ... (existing action button hide logic)
         
         // Step 2: Use a timeout that matches or exceeds the CSS transition (0.3s)
         setTimeout(() => {
             // Only hide display if the input is still blurred and opacity is 0
             if (document.activeElement !== youtubeSearchInput && actionButtons.style.opacity === '0') {
-                actionButtons.style.display = 'none'; // CRITICAL: Collapse the element
+                actionButtons.style.display = 'none';
             }
-        }, 350); // 350ms to allow the 0.3s transition to complete
+        }, 350);
     }
 });
 
