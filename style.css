@@ -1060,12 +1060,16 @@ button.rabbit-default:hover {
 
 
 #playerAudioOnlyBtn svg,
-#playerAudioOnlyBtn_playlist svg {
+#playerAudioOnlyBtn_playlist svg,
+#playerBackBtn svg,
+#playerBackBtn_playlist svg {
     fill: var(--icon-color);
 }
 
 #playerAudioOnlyBtn.active svg,
-#playerAudioOnlyBtn_playlist.active svg {
+#playerAudioOnlyBtn_playlist.active svg,
+#playerBackBtn.active svg,
+#playerBackBtn_playlist.active svg {
     fill: var(--primary-color);
 }
 
