@@ -1,4 +1,4 @@
-﻿﻿/*
+﻿﻿﻿﻿/*
  Working app: Favorite icon on YT player. 
     Favorites icon for Songs and Playlists.  Saved to Favorites radio button.
     Auto hide controls in modes and PL overlay.  Use side icon to show.
