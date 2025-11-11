@@ -2006,18 +2006,16 @@ showPlaylistHeaderBtn.addEventListener('click', () => {
 playlistVideoList.addEventListener('scroll', () => {
     const scrollTop = playlistVideoList.scrollTop;
     
-    // Check if scrolling up (flicking up to see more)
-    if (scrollTop > lastPlaylistScrollTop && scrollTop > 5) {
+    // Hide header on ANY scroll (up or down) when scrolled away from top
+    if (scrollTop > 5) {
         if (!isPlaylistHeaderCollapsed) {
             togglePlaylistHeader(false); // Hide header
         }
-    }
-    
-    // Store current scroll position for next event
-    if (scrollTop > 0) {
-        lastPlaylistScrollTop = scrollTop;
-    } else {
-        lastPlaylistScrollTop = 0; // Reset at top
+    } else if (scrollTop === 0) {
+        // Show header when at the very top
+        if (isPlaylistHeaderCollapsed) {
+            togglePlaylistHeader(true);
+        }
     }
 });
 
@@ -2032,18 +2030,16 @@ if (showSearchHeaderBtn) {
 youtubeSearchResultsContainer.addEventListener('scroll', () => {
     const scrollTop = youtubeSearchResultsContainer.scrollTop;
     
-    // Check if scrolling down (flicking down to see more)
-    if (scrollTop > lastSearchScrollTop && scrollTop > 5) {
+    // Hide header on ANY scroll (up or down) when scrolled away from top
+    if (scrollTop > 5) {
         if (!isSearchHeaderCollapsed) {
             toggleSearchHeader(false); // Hide header
         }
-    }
-    
-    // Store current scroll position for next event
-    if (scrollTop > 0) {
-        lastSearchScrollTop = scrollTop;
-    } else {
-        lastSearchScrollTop = 0; // Reset at top
+    } else if (scrollTop === 0) {
+        // Show header when at the very top
+        if (isSearchHeaderCollapsed) {
+            toggleSearchHeader(true);
+        }
     }
 });
 
@@ -2059,18 +2055,16 @@ if (favoritesList) {
     favoritesList.addEventListener('scroll', () => {
         const scrollTop = favoritesList.scrollTop;
         
-        // Check if scrolling down (flicking down to see more)
-        if (scrollTop > lastFavoritesScrollTop && scrollTop > 5) {
+        // Hide header on ANY scroll (up or down) when scrolled away from top
+        if (scrollTop > 5) {
             if (!isFavoritesHeaderCollapsed) {
                 toggleFavoritesHeader(false); // Hide header
             }
-        }
-        
-        // Store current scroll position for next event
-        if (scrollTop > 0) {
-            lastFavoritesScrollTop = scrollTop;
-        } else {
-            lastFavoritesScrollTop = 0; // Reset at top
+        } else if (scrollTop === 0) {
+            // Show header when at the very top
+            if (isFavoritesHeaderCollapsed) {
+                toggleFavoritesHeader(true);
+            }
         }
     });
 }
