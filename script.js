@@ -1,4 +1,4 @@
-﻿﻿﻿﻿/*
+﻿﻿/*
  Working app: Favorite icon on YT player. 
     Favorites icon for Songs and Playlists.  Saved to Favorites radio button.
     Auto hide controls in modes and PL overlay.  Use side icon to show.
@@ -57,7 +57,6 @@ const playerSongControls = document.getElementById('playerSongControls');
 const playerPlayPauseBtn = document.getElementById('playerPlayPauseBtn');
 const playerAudioOnlyBtn = document.getElementById('playerAudioOnlyBtn');
 const playerBackBtn = document.getElementById('playerBackBtn');
-const playerSearchBtn = document.getElementById('playerSearchBtn');
 
 // Player Controls - Playlist Mode
 const playerPlaylistControls = document.getElementById('playerPlaylistControls');
@@ -100,16 +99,23 @@ const isGdInfoBtn = document.getElementById('isGdInfoBtn');
 const youtubeSearchViewOverlay = document.getElementById('youtubeSearchViewOverlay');
 const youtubeSearchInput = document.getElementById('youtubeSearchInput');
 const youtubeSearchCancelBtn = document.getElementById('youtubeSearchCancelBtn');
-const youtubeSearchGoBtn = document.getElementById('youtubeSearchGoBtn');
 const youtubeSearchResultsContainer = document.getElementById('youtubeSearchResultsContainer');
 const youtubeSearchView = document.getElementById('youtubeSearchView');
 const youtubeSearchLoader = document.getElementById('youtubeSearchLoader');
 const clearYoutubeSearchBtn = document.getElementById('clearYoutubeSearchBtn');
-// === NEW: Add button and state for collapsing header ===
-const showSearchHeaderBtn = document.getElementById('showSearchHeaderBtn');
+// === State for collapsing header ===
 let isSearchHeaderCollapsed = false;
 let lastSearchScrollTop = 0;
-// === END OF NEW ===
+// === END ===
+
+// === REDESIGN: Navigation Button References ===
+const playerHomeNavBtn = document.getElementById('playerHomeNavBtn');
+const playerMusicNavBtn = document.getElementById('playerMusicNavBtn');
+const playerPlaylistsNavBtn = document.getElementById('playerPlaylistsNavBtn');
+const playerFavoritesNavBtn = document.getElementById('playerFavoritesNavBtn');
+const playerSearchToggleBtn = document.getElementById('playerSearchToggleBtn');
+// === END REDESIGN ===
+
 const SUN_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.55 4.95l1.414-1.414L7.05 5.636 5.636 7.05 3.55 4.95zm12.728 12.728l1.414-1.414L19.778 18.364l-1.414 1.414-2.086-2.086zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.95 20.45l-1.414-1.414L5.636 17l1.414 1.414-2.086 2.036zM18.364 7.05l1.414-1.414L21.864 7.05l-1.414 1.414-2.086-2.086z"/></svg>`;
 const MOON_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 8 8 .5.5 0 0 1 .5.5v.5a10 10 0 1 1 0-20 .5.5 0 0 1 .5.5V4a8 8 0 0 0-8 8z"/></svg>`;
 
@@ -648,14 +654,8 @@ cardContainer.addEventListener('click', async (e) => {
                 // ✅ Normal single video behavior
                 openPlayerView({ videoId, title: link.description });
             } else {
-                // Generic or channel link → open search
-                
-                // Always default to "Songs" mode when launching from the main page
-                currentSearchMode = 'videos'; 
-                searchModeVideosBtn.checked = true;
-                resetYouTubeSearch(); // Clear any old is.gd code from the input
-
-                openYouTubeSearchView();
+                // Generic or channel link → open player with empty state
+                openPlayerView({ title: link.description || 'YouTube' });
             }
             // --- END OF NEW LOGIC ---
         } else {
@@ -1339,7 +1339,7 @@ function startUIHideTimer() {
 (function wireUiHideTimerResets() {
     const ids = [
         // Songs mode
-        'playerBackBtn','playerSearchBtn','playerPlayPauseBtn','playerAudioOnlyBtn',
+        'playerBackBtn','playerPlayPauseBtn','playerAudioOnlyBtn',
 
         // Playlist mode
         'playerBackBtn_playlist','playerSearchBtn_playlist',
@@ -1366,6 +1366,80 @@ function resetYouTubeSearch() {
     youtubeNextPageUrl = null; // Also reset pagination
 }
 
+// === REDESIGN: Media Discovery Function ===
+/**
+ * Opens the search overlay with the specified mode
+ * @param {string} mode - 'videos', 'playlists', or 'is.gd'
+ */
+function openMediaDiscovery(mode) {
+    const isAlreadyOpen = youtubeSearchViewOverlay.style.display === 'flex';
+    const isSameMode = currentSearchMode === mode;
+    
+    // If clicking the same icon when overlay is open, toggle header visibility
+    if (isAlreadyOpen && isSameMode) {
+        // Toggle header visibility
+        if (isSearchHeaderCollapsed) {
+            toggleSearchHeader(true); // Show header
+        } else {
+            toggleSearchHeader(false); // Hide header
+        }
+        return;
+    }
+    
+    // Set the current search mode
+    currentSearchMode = mode;
+    
+    // Check the corresponding radio button and set placeholder
+    if (mode === 'videos') {
+        searchModeVideosBtn.checked = true;
+        youtubeSearchInput.placeholder = 'Search Videos...';
+    } else if (mode === 'playlists') {
+        searchModePlaylistsBtn.checked = true;
+        youtubeSearchInput.placeholder = 'Search Playlists...';
+    } else if (mode === 'is.gd') {
+        searchModeIsGdBtn.checked = true;
+        youtubeSearchInput.placeholder = 'Enter is.gd Code';
+    }
+    
+    // Show the search overlay
+    youtubeSearchViewOverlay.style.display = 'flex';
+    
+    // Clear results container first
+    youtubeSearchResultsContainer.innerHTML = '';
+    
+    // Restore cached results based on mode (independent for each mode)
+    const hasCachedResults = (mode === 'videos' && videosResults.html) || 
+                             (mode === 'playlists' && playlistsResults.html);
+    
+    if (mode === 'videos' && videosResults.html) {
+        youtubeSearchResultsContainer.innerHTML = videosResults.html;
+        youtubeSearchInput.value = videosResults.searchTerm;
+        youtubeNextPageUrl = videosResults.nextPageUrl;
+    } else if (mode === 'playlists' && playlistsResults.html) {
+        youtubeSearchResultsContainer.innerHTML = playlistsResults.html;
+        youtubeSearchInput.value = playlistsResults.searchTerm;
+        playlistNextPageToken = playlistsResults.nextPageToken;
+    } else if (mode === 'is.gd') {
+        renderSavedPlaylists();
+    } else {
+        // No cached results for this mode - clear input
+        youtubeSearchInput.value = '';
+    }
+    
+    // Header visibility: Hide if we have cached results, show if empty
+    if (hasCachedResults || mode === 'is.gd') {
+        toggleSearchHeader(false); // Hide header - user can click icon again to show
+    } else {
+        toggleSearchHeader(true); // Show header for new searches
+    }
+    
+    // Focus the search input only if header is visible
+    if (!isSearchHeaderCollapsed) {
+        setTimeout(() => youtubeSearchInput.focus(), 100);
+    }
+}
+// === END REDESIGN ===
+
 function openYouTubeSearchView() {
     // Stage 5: Restore cached results from memory on overlay open
     youtubeSearchViewOverlay.style.display = 'flex';
@@ -1376,13 +1450,11 @@ function openYouTubeSearchView() {
 
     if (currentSearchMode === 'is.gd') { // Note: using 'is.gd' for consistency
         youtubeSearchInput.placeholder = 'Enter is.gd code...';
-        youtubeSearchGoBtn.textContent = 'Load';
         renderSavedPlaylists();
         // ⬇️ SET FOCUS ⬇️
         setFocusOnCurrentlyPlaying('is.gd');
     } else if (currentSearchMode === 'videos') {
         youtubeSearchInput.placeholder = 'Search YouTube...';
-        youtubeSearchGoBtn.textContent = 'Search';
         // Stage 5: Restore videos cache
         if (videosResults.html) {
             youtubeSearchResultsContainer.innerHTML = videosResults.html;
@@ -1396,7 +1468,6 @@ function openYouTubeSearchView() {
         setFocusOnCurrentlyPlaying('videos');
     } else if (currentSearchMode === 'playlists') {
         youtubeSearchInput.placeholder = 'Search Playlists...';
-        youtubeSearchGoBtn.textContent = 'Search';
         // Stage 5: Restore playlists cache
         if (playlistsResults.html) {
             youtubeSearchResultsContainer.innerHTML = playlistsResults.html;
@@ -1580,10 +1651,9 @@ function renderYouTubeResults(results, mode) {
         // ⬇️ *** NEW LOGIC: Check if item is already saved (favorited) *** ⬇️
         const idToCheck = item.playlist_id || item.link;
         const isSaved = savedPlaylists.some(p => p.id === idToCheck);
-        const favoriteClass = isSaved ? ' is-favorite' : '';
 
         const favoriteButtonHtml = `
-            <button class="add-favorite-btn${favoriteClass}" title="${isSaved ? 'Remove from Saved' : 'Save as Favorite'}" data-item-id="${idToCheck}" data-item-title="${item.title}" data-is-playlist="${!!item.playlist_id}">
+            <button class="add-favorite-btn" title="${isSaved ? 'Remove from Saved' : 'Save as Favorite'}" data-item-id="${idToCheck}" data-item-title="${item.title}" data-is-playlist="${!!item.playlist_id}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>
             </button>`;
         // ⬆️ *** END NEW LOGIC *** ⬆️
@@ -1610,6 +1680,12 @@ function renderYouTubeResults(results, mode) {
                 </div>
                 ${favoriteButtonHtml}`; // Add heart button
         }
+        
+        // Apply is-favorite class after innerHTML is set (like landing page does)
+        if (isSaved) {
+            itemCard.querySelector('.add-favorite-btn')?.classList.add('is-favorite');
+        }
+        
         fragment.appendChild(itemCard);
         
         // Focus the first card only on initial load (not pagination)
@@ -1796,9 +1872,11 @@ function toggleSearchHeader(show) {
     if (show) {
         // Show the header
         youtubeSearchView.classList.remove('header-collapsed');
-        showSearchHeaderBtn.style.display = 'none';
-        showSearchHeaderBtn.classList.remove('pulsating');
         isSearchHeaderCollapsed = false;
+        // Hide search toggle button when header is visible
+        if (playerSearchToggleBtn) {
+            playerSearchToggleBtn.style.display = 'none';
+        }
         // After showing, reset scroll top to prevent immediate re-hide
         lastSearchScrollTop = 0; 
         youtubeSearchView.scrollTop = 0; // Scroll to top
@@ -1806,9 +1884,11 @@ function toggleSearchHeader(show) {
         // Hide the header
         if (isSearchHeaderCollapsed) return; // Already hidden
         youtubeSearchView.classList.add('header-collapsed');
-        showSearchHeaderBtn.style.display = 'block';
-        showSearchHeaderBtn.classList.add('pulsating');
         isSearchHeaderCollapsed = true;
+        // Show search toggle button when header is hidden
+        if (playerSearchToggleBtn) {
+            playerSearchToggleBtn.style.display = 'block';
+        }
     }
 }
 // === END OF NEW FUNCTION ===
@@ -1882,33 +1962,10 @@ youtubeSearchInput.addEventListener('blur', () => {
     }
 });
 
-// === NEW: Listener for the expand icon ===
-showSearchHeaderBtn.addEventListener('click', () => {
-    toggleSearchHeader(true); // Force-show the header
-    youtubeSearchInput.focus(); // Focus the input for the user
-});
-
-// === NEW: Scroll listener to hide the header AND handle pagination ===
+// === NEW: Scroll listener for pagination only (header hiding removed) ===
 youtubeSearchView.addEventListener('scroll', () => {
-    // This listener handles BOTH header hiding and infinite scroll
+    // This listener handles infinite scroll pagination only
     const scrollTop = youtubeSearchView.scrollTop;
-    
-    // --- Logic for Hiding Header ---
-    // Check if scrolling up (flicking up to see more)
-    // We add a 5px buffer to prevent accidental hides
-    if (scrollTop > lastSearchScrollTop && scrollTop > 5) {
-        if (!isSearchHeaderCollapsed) {
-            toggleSearchHeader(false); // Hide header
-        }
-    }
-    
-    // Store current scroll position for next event
-    // Only update if not at the very top
-    if (scrollTop > 0) {
-        lastSearchScrollTop = scrollTop;
-    } else {
-        lastSearchScrollTop = 0; // Reset at top
-    }
 
     // --- Logic for Infinite Scroll Pagination ---
     if (isFetchingYoutubeResults) return; // Universal guard
@@ -2033,43 +2090,43 @@ async function handleAddFromQuery(description, url) {
             const hasProtocol = description.startsWith('http://') || description.startsWith('https://');
             const looksLikeDomain = description.includes('.');
             return hasProtocol ? description : (looksLikeDomain ? `https://${description}` : `https://www.${description}.com`);
-            // R1 Hardware Events
-    window.addEventListener('sideButtonSinglePress', (event) => {
-        if (internalPlayerOverlay.style.display === 'flex') {
-            event.preventDefault();
-            togglePlayback();
-        } else if (favoriteLinkIds.size > 0) {
-            event.preventDefault();
-            openFavoritesDialog();
-        }
-    });
-
-    window.addEventListener('sideButtonDoublePress', (event) => {
-        event.preventDefault();
-        goHome();
-    });
-
-    async function init() {
-        await loadLinksFromR1();
-        renderLinks();
-        await applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
-        
-        // Initialize volume controls
-        currentVolume = await loadVolumeFromStorage(); // <-- ADD AWAIT
-        lastVolume = currentVolume;
-        updateVolumeControls(currentVolume);
-        updateMuteButtonIcon(false);
-    }
-
-    document.addEventListener('DOMContentLoaded', init);
-
-})();
+        })();
         const finalDescription = description.split('.')[0].replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\b\w/g, l => l.toUpperCase());
         prefillData = { description: finalDescription, url: finalUrl, category: 'Other' };
     }
     prefillData.url = normalizeUrl(prefillData.url);
     await showAddForm(prefillData);
 }
+
+// R1 Hardware Events
+window.addEventListener('sideButtonSinglePress', (event) => {
+    if (internalPlayerOverlay.style.display === 'flex') {
+        event.preventDefault();
+        togglePlayback();
+    } else if (favoriteLinkIds.size > 0) {
+        event.preventDefault();
+        openFavoritesDialog();
+    }
+});
+
+window.addEventListener('sideButtonDoublePress', (event) => {
+    event.preventDefault();
+    goHome();
+});
+
+async function init() {
+    await loadLinksFromR1();
+    renderLinks();
+    await applyTheme({ name: currentThemeName, mode: currentLuminanceMode }, true);
+    
+    // Initialize volume controls
+    currentVolume = await loadVolumeFromStorage(); // <-- ADD AWAIT
+    lastVolume = currentVolume;
+    updateVolumeControls(currentVolume);
+    updateMuteButtonIcon(false);
+}
+
+document.addEventListener('DOMContentLoaded', init);
 
 async function addNewLink(linkData) {
     const normalizedUrl = normalizeUrl(linkData.url);
@@ -2310,12 +2367,8 @@ function openFavoritesDialog() {
                 } else if (videoId) {
                     openPlayerView({ videoId, title: name });
                 } else {
-                    // Always default to "Songs" mode
-                    currentSearchMode = 'videos'; 
-                    searchModeVideosBtn.checked = true;
-                    resetYouTubeSearch(); // Clear any old is.gd code
-                    
-                    openYouTubeSearchView();
+                    // Generic or channel link → open player with empty state
+                    openPlayerView({ title: name || 'YouTube' });
                 }
                 // --- END OF NEW LOGIC ---
             } else {
@@ -2905,7 +2958,12 @@ logo.addEventListener('click', goHome);
     setupThemeDialogListeners();
     await applyTheme({ name: currentThemeName }, true, true);
     updateModeToggleUI();
-deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
+
+    deletePromptOverlay.addEventListener('click', e => e.stopPropagation());
+    favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
+    genericPromptOverlay.addEventListener('click', e => e.stopPropagation());
+})();
+
 function returnToSearchFromPlayer(focusInput = false) {
     internalPlayerOverlay.style.display = 'none';
     hideTapHint();
@@ -2922,11 +2980,9 @@ function returnToSearchFromPlayer(focusInput = false) {
         // Set the placeholders and content without focusing search input
         if (currentSearchMode === 'isGd' || currentSearchMode === 'is.gd') {
             youtubeSearchInput.placeholder = 'Enter is.gd code...';
-            youtubeSearchGoBtn.textContent = 'Load';
             renderSavedPlaylists(); // ⬅️ THIS WILL REFRESH THE FAVORITES LIST
         } else {
             youtubeSearchInput.placeholder = 'Search YouTube...';
-            youtubeSearchGoBtn.textContent = 'Search';
             
             // ⬇️ NEW: Re-render search results to sync favorite status ⬇️
             const query = youtubeSearchInput.value.trim();
@@ -2953,9 +3009,7 @@ function returnToSearchFromPlayer(focusInput = false) {
     nowPlayingTitle.textContent = playerVideoTitle.textContent;
     updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
 }
-    favoritesPromptOverlay.addEventListener('click', e => e.stopPropagation());
-    genericPromptOverlay.addEventListener('click', e => e.stopPropagation());
-    
+
 playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
 
     // Use a more specific listener on the container for result clicks
@@ -2973,33 +3027,33 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
 
         if (index !== -1) {
         // Item is saved, remove it
+        favoriteBtn.classList.remove('is-favorite');
+        favoriteBtn.title = 'Save as Favorite';
         savedPlaylists.splice(index, 1);
-        favoriteBtn.classList.remove('is-favorite'); // <--- ADD THIS LINE
-        await sayOnRabbit(`Removed ${itemTitle}`);
     } else {
-        // Item is not saved, add it
-            let itemData;
-            let thumb = e.target.closest('.youtube-result-card')?.querySelector('.link-favicon')?.src || GENERIC_FAVICON_SRC;
-            
-            if (isPlaylist) {
-                // For a new playlist, we need to fetch the metadata (thumb)
-                const metadata = await fetchPlaylistMetadata(itemId);
-                itemData = { id: itemId, title: itemTitle, thumb: metadata?.thumb || thumb };
-            } else {
-                // For a video, we use the thumb already in the card
-                itemData = { id: itemId, title: itemTitle, thumb: thumb };
-            }
-
-            savedPlaylists.push(itemData);
-            favoriteBtn.classList.add('is-favorite');
-            favoriteBtn.title = 'Remove from Saved';
-            hasEverAddedPlaylist = true;
-            localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
-            await sayOnRabbit(`Saved ${itemTitle}`);
-        }
+        // Item is not saved, add it - UPDATE UI FIRST for instant feedback
+        favoriteBtn.classList.add('is-favorite');
+        favoriteBtn.title = 'Remove from Saved';
         
-        await savePlaylistsToStorage();
-        triggerHaptic();
+        let itemData;
+        let thumb = e.target.closest('.youtube-result-card')?.querySelector('.link-favicon')?.src || GENERIC_FAVICON_SRC;
+        
+        if (isPlaylist) {
+            // For a new playlist, we need to fetch the metadata (thumb)
+            const metadata = await fetchPlaylistMetadata(itemId);
+            itemData = { id: itemId, title: itemTitle, thumb: metadata?.thumb || thumb };
+        } else {
+            // For a video, we use the thumb already in the card
+            itemData = { id: itemId, title: itemTitle, thumb: thumb };
+        }
+
+        savedPlaylists.push(itemData);
+        hasEverAddedPlaylist = true;
+        localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
+    }
+    
+    await savePlaylistsToStorage();
+    triggerHaptic();
         // If we are currently in the is.gd view, re-render to show the change
         if (currentSearchMode === 'is.gd') {
             renderSavedPlaylists();
@@ -3100,12 +3154,12 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
     const triggerYoutubeSearch = () => handleYouTubeSearch(youtubeSearchInput.value);
     youtubeSearchCancelBtn.addEventListener('click', closeYouTubeSearchView);
     
-    // --- ⬇️ STAGE 3: SEARCH BUTTON WITH CACHE DETECTION ⬇️ ---
-    youtubeSearchGoBtn.addEventListener('click', async () => {
+    // --- ⬇️ SHARED SEARCH TRIGGER FUNCTION ⬇️ ---
+    const performSearch = async () => {
         const query = youtubeSearchInput.value.trim();
         if (!query) return; // Do nothing if input is empty
     
-        // Stage 3: Check if search term is new or repeated
+        // Check if search term is new or repeated
         let isNewSearch = false;
         if (currentSearchMode === 'videos') {
             isNewSearch = query !== videosResults.searchTerm;
@@ -3121,10 +3175,12 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
             }
         }
 
-        // === Show "Searching..." and blur input ===
+        // Show "Searching..." and blur input
         youtubeSearchResultsContainer.innerHTML = '<p style="text-align: center; color: var(--icon-color); padding: 20px;">Searching...</p>';
         youtubeSearchInput.blur(); // Remove focus from search bar
-        // === END OF NEW CODE ===
+        
+        // Hide the header after search is initiated
+        toggleSearchHeader(false);
     
         if (currentSearchMode === 'videos') {
             triggerYoutubeSearch();
@@ -3139,25 +3195,31 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
     
             if (!resolvedUrl) {
                 youtubeSearchResultsContainer.innerHTML = '<p>Failed to resolve link. Check the code and try again.</p>';
+                toggleSearchHeader(true); // Show input again on error
                 return;
             }
             
             const host = getHostname(resolvedUrl);
             if (!host.includes('youtube.com') && !host.includes('youtu.be')) {
                 youtubeSearchResultsContainer.innerHTML = "<p>This link does not lead to YouTube.</p>";
+                toggleSearchHeader(true); // Show input again on error
                 return;
             }
 
             const playlistId = getYoutubePlaylistId(resolvedUrl);
             if (!playlistId) {
                 youtubeSearchResultsContainer.innerHTML = "<p>This link is not a valid playlist. Please use 'Songs' mode for single videos.</p>";
+                toggleSearchHeader(true); // Show input again on error
                 return;
             }
             
             // Check if already saved
             if (savedPlaylists.some(p => p.id === playlistId)) {
                 youtubeSearchResultsContainer.innerHTML = '<p>This playlist is already in your library.</p>';
-                setTimeout(renderSavedPlaylists, 2000); // Show existing list
+                setTimeout(() => {
+                    renderSavedPlaylists();
+                    toggleSearchHeader(true); // Show input again
+                }, 2000);
                 youtubeSearchInput.value = '';
                 return;
             }
@@ -3170,41 +3232,30 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
                 const playlistData = { id: playlistId, title: metadata.title, thumb: metadata.thumb, url: resolvedUrl };
                 savedPlaylists.push(playlistData);
                 hasEverAddedPlaylist = true;
-                // --- THIS IS THE FIX ---
-                // Set the simple, reliable localStorage flag.
                 localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
-                // --- END OF FIX ---
                 await savePlaylistsToStorage();
                 renderSavedPlaylists();
                 youtubeSearchInput.value = '';
+                toggleSearchHeader(true); // Show input again after adding
             } else {
                 youtubeSearchResultsContainer.innerHTML = '<p>Failed to fetch playlist info. Try again.</p>';
+                toggleSearchHeader(true); // Show input again on error
             }
         }
-    });
-    // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+    };
+    // --- ⬆️ END OF SHARED FUNCTION ⬆️ ---
     
+    // Enter key triggers search
     youtubeSearchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            // Prevent form submission if it's in a form
             e.preventDefault();
-            // --- ⬇️ MODIFIED: Trigger the new Go button logic ⬇️ ---
-            youtubeSearchGoBtn.click();
-            // --- ⬆️ END OF MODIFIED CODE ⬆️ ---
+            performSearch();
         }
     });
 
 youtubeSearchInput.addEventListener('input', () => {
         clearYoutubeSearchBtn.style.display = youtubeSearchInput.value.length > 0 ? 'flex' : 'none';
 });
-
-// === NEW: Keep buttons visible during click (prevent blur from hiding them) ===
-const actionButtons = document.querySelector('.search-controls-actions');
-if (actionButtons) {
-    actionButtons.addEventListener('mousedown', (e) => {
-        e.preventDefault(); // Prevent blur event from firing
-    });
-}
 
 clearYoutubeSearchBtn.addEventListener('click', () => {
         youtubeSearchInput.value = '';
@@ -3239,7 +3290,6 @@ searchModeVideosBtn.addEventListener('click', () => {
 
     toggleSearchHeader(true);
     youtubeSearchInput.placeholder = 'Search YouTube...';
-    youtubeSearchGoBtn.textContent = 'Search';
     youtubeSearchView.scrollTop = 0;
     setFocusOnCurrentlyPlaying('videos'); // ⬇️ ADD THIS ⬇️
 });
@@ -3269,7 +3319,6 @@ searchModePlaylistsBtn.addEventListener('click', () => {
 
     toggleSearchHeader(true);
     youtubeSearchInput.placeholder = 'Search Playlists...';
-    youtubeSearchGoBtn.textContent = 'Search';
     youtubeSearchView.scrollTop = 0;
     setFocusOnCurrentlyPlaying('playlists'); // ⬇️ ADD THIS ⬇️
 });
@@ -3292,9 +3341,14 @@ searchModeIsGdBtn.addEventListener('click', () => {
     // Stage 2: Always render saved playlists for is.gd (uses localStorage)
     youtubeSearchResultsContainer.innerHTML = '';
     youtubeSearchInput.value = '';
+    
+    // Show the search view if it's not already visible
+    if (youtubeSearchViewOverlay.style.display !== 'flex') {
+        openYouTubeSearchView();
+    }
+    
     toggleSearchHeader(true);
     youtubeSearchInput.placeholder = 'Enter is.gd code...';
-    youtubeSearchGoBtn.textContent = 'Load';
     youtubeSearchView.scrollTop = 0;
     renderSavedPlaylists();
     setFocusOnCurrentlyPlaying('is.gd'); // ⬇️ ADD THIS ⬇️
@@ -3340,8 +3394,6 @@ const message = "1. This section now holds your saved Favorites — songs or pla
     showAlert(message);
 });
 // --- ⬆️ END OF ADDED/MODIFIED CODE ⬆️ ---
-
-playerSearchBtn.addEventListener('click', () => returnToSearchFromPlayer(true));
 
 // Event Listeners for playlist controls
 playerBackBtn_playlist.addEventListener('click', () => returnToSearchFromPlayer(false));
@@ -3573,7 +3625,6 @@ playerFavoriteBtn.addEventListener('click', async (e) => {
         // ⬇️ *** THE CRITICAL FIX: Reset fill color to the dim default *** ⬇️
         favoriteBtn.querySelector('svg').style.fill = 'var(--icon-color)';
         // ⬆️ *** END OF CRITICAL FIX *** ⬆️
-        await sayOnRabbit(`Removed ${itemTitle}`);
     } else {
         // Item is not saved, add it
         let itemData;
@@ -3598,7 +3649,6 @@ playerFavoriteBtn.addEventListener('click', async (e) => {
         // ⬆️ *** END OF ADDED LINE *** ⬆️
         hasEverAddedPlaylist = true;
         localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
-        await sayOnRabbit(`Saved ${itemTitle}`);
     }
     
     await savePlaylistsToStorage();
@@ -3689,10 +3739,9 @@ document.querySelector('.playlist-video-count-wrapper').addEventListener('click'
         }
     });
 
+    // Initialize the page after all async operations complete
     renderLinks();
-})();
 
-// ⬇️ *** ADD THIS NEW FUNCTION *** ⬇️
 function clearAllSearchCardFocus() {
     // Clears focus from any card in the overlay, regardless of mode
     document.querySelectorAll('#youtubeSearchResultsContainer .youtube-result-card').forEach(c => {
@@ -4069,3 +4118,51 @@ window.addEventListener('beforeunload', () => {
     // ⬆️ END OF ADDED CODE ⬆️
 });
 // --- ⬆️ END OF STAGE 6 ⬆️ ---
+
+// === REDESIGN: Navigation Button Event Listeners ===
+// Home Button - Two-step navigation
+if (playerHomeNavBtn) {
+    playerHomeNavBtn.addEventListener('click', () => {
+        const overlayVisible = youtubeSearchViewOverlay.style.display === 'flex';
+        const playerVisible = internalPlayerOverlay.style.display === 'flex';
+        
+        if (overlayVisible) {
+            // Step 1: Close search overlay
+            closeYouTubeSearchView();
+        } else if (playerVisible) {
+            // Step 2: Close player and go back to main landing page
+            internalPlayerOverlay.style.display = 'none';
+            goHome();
+        }
+    });
+}
+
+// Music Button - Opens Videos mode
+if (playerMusicNavBtn) {
+    playerMusicNavBtn.addEventListener('click', () => {
+        openMediaDiscovery('videos');
+    });
+}
+
+// Playlists Button - Opens Playlists mode
+if (playerPlaylistsNavBtn) {
+    playerPlaylistsNavBtn.addEventListener('click', () => {
+        openMediaDiscovery('playlists');
+    });
+}
+
+// Favorites Button - Opens Saved Content mode
+if (playerFavoritesNavBtn) {
+    playerFavoritesNavBtn.addEventListener('click', () => {
+        openMediaDiscovery('is.gd');
+    });
+}
+
+// Search Toggle Button - Shows search header when hidden
+if (playerSearchToggleBtn) {
+    playerSearchToggleBtn.addEventListener('click', () => {
+        toggleSearchHeader(true);
+        setTimeout(() => youtubeSearchInput.focus(), 100);
+    });
+}
+// === END REDESIGN ===

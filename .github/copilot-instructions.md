@@ -48,6 +48,10 @@ Code generated should integrate functionality fully within the app itself, avoid
 
 This ensures that the final app remains stable and unaffected even if local development machines are offline or GitHub repo contents change after deployment.
 
+**Communication Protocol:**
+
+When implementing fixes or updates, provide only high-level bullet-point summaries describing what will be fixed (e.g., 'Fixed login button not responding'). Do not include code snippets, file names, line numbers, or implementation details unless explicitly requested. The user approves the concept, not the code.
+
 Development Context
 This project focuses on creating an application using the "creations-sdk" with integrated firmware and community-wiki support. Consistency with SDK instructions and firmware constraints is critical.
 

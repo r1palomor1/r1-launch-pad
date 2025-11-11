@@ -128,8 +128,34 @@
     <div id="internalPlayerOverlay" style="display: none;">
         <div class="player-header">
             <p id="playerVideoTitle"></p>
+            
+            <!-- Navigation Icons Row -->
+            <div class="media-hub-nav">
+                <button id="playerHomeNavBtn" class="dialog-icon-btn" title="Home">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
+                </button>
+                
+                <button id="playerMusicNavBtn" class="dialog-icon-btn" title="Music/Videos">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                </button>
+                
+                <button id="playerPlaylistsNavBtn" class="dialog-icon-btn" title="Playlists">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 10h11v2H3zm0-4h11v2H3zm0 8h7v2H3zm13-1v8l6-4z"></path></svg>
+                </button>
+                
+                <button id="playerFavoritesNavBtn" class="dialog-icon-btn" title="Favorites">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>
+                </button>
+                
+                <button id="playerSearchToggleBtn" class="dialog-icon-btn" title="Search" style="display: none;">
+                    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                        <path d="M15.7 14.3l-4.2-4.2c-0.2-0.2-0.5-0.3-0.8-0.3 0.8-1 1.3-2.4 1.3-3.8 0-3.3-2.7-6-6-6s-6 2.7-6 6 2.7 6 6 6c1.4 0 2.8-0.5 3.8-1.4 0 0.3 0 0.6 0.3 0.8l4.2 4.2c0.2 0.2 0.5 0.3 0.7 0.3s0.5-0.1 0.7-0.3c0.4-0.3 0.4-0.9 0-1.3zM6 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
-        <button id="playerHomeIcon" title="Go Home">
+        
+        <button id="playerHomeIcon" title="Go Home" style="display: none;">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
         </button>
         
@@ -137,9 +163,6 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>
         </button>
 
-        <button id="playerPlaylistBtn" class="dialog-icon-btn" title="View Playlist">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3 10h11v2H3zm0-4h11v2H3zm0 8h7v2H3zm13-1v8l6-4z"></path></svg>
-        </button>
         <div class="player-container">
             <div id="youtubePlayer"></div>
             </div>
@@ -163,9 +186,9 @@
                         </div>
                     </div>
                 </div>
-                <button id="playerSearchBtn" class="dialog-icon-btn" title="Search">
-                    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                        <path d="M15.7 14.3l-4.2-4.2c-0.2-0.2-0.5-0.3-0.8-0.3 0.8-1 1.3-2.4 1.3-3.8 0-3.3-2.7-6-6-6s-6 2.7-6 6 2.7 6 6 6c1.4 0 2.8-0.5 3.8-1.4 0 0.3 0 0.6 0.3 0.8l4.2 4.2c0.2 0.2 0.5 0.3 0.7 0.3s0.5-0.1 0.7-0.3c0.4-0.3 0.4-0.9 0-1.3zM6 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path>
+                <button id="playerPlaylistBtn" class="dialog-icon-btn" title="View Queue">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 10h11v2H3v-2zm0-4h11v2H3V6zm0 8h7v2H3v-2zm13.01-3.87l-3.75-2.51v5.01l3.75-2.5zm4.99-1.13v8l-8-4 8-4z"/>
                     </svg>
                 </button>
             </div>
@@ -280,19 +303,12 @@ L14.586,16l-4.243-4.243l1.414-1.414L16,14.586l4.243-4.243L21.657,11.757z"/>
     <div id="youtubeSearchViewOverlay" class="custom-prompt-overlay" style="display: none;">
     <div id="youtubeSearchView" class="youtube-search-view">
         
-        <button id="showSearchHeaderBtn" title="Show Search Bar">
-            <svg fill="currentColor" width="24" height="24" viewBox="0 0 24 24" id="sign-out-double-arrow-left-2" data-name="Line Color" xmlns="http://www.w3.org/2000/svg" class="icon line-color">
-                <polyline id="secondary" points="6 15 3 12 6 9" style="fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></polyline>
-                <polyline id="secondary-2" data-name="secondary" points="11 15 8 12 11 9" style="fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></polyline>
-                <line id="secondary-3" data-name="secondary" x1="8" y1="12" x2="17" y2="12" style="fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></line>
-                <path id="primary" d="M17,20h3a1,1,0,0,0,1-1V5a1,1,0,0,0-1-1H17" style="fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></path>
-            </svg>
-        </button>
         <div class="search-input-wrapper">
             <input type="text" id="youtubeSearchInput" placeholder="Search YouTube..." autocomplete="off" inputmode="search">
             <button id="clearYoutubeSearchBtn" title="Clear search" style="display: none;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"></path></svg>
             </button>
+            <button id="youtubeSearchCancelBtn" class="secondary">Cancel</button>
         </div>
 
         <div class="search-controls-row">
@@ -313,11 +329,6 @@ L14.586,16l-4.243-4.243l1.414-1.414L16,14.586l4.243-4.243L21.657,11.757z"/>
          </svg>
      </label>
 </div>
-
-    <div class="search-controls-actions">
-        <button id="youtubeSearchCancelBtn" class="secondary">Cancel</button>
-        <button id="youtubeSearchGoBtn">Search</button>
-    </div>
 </div>
 
         <div id="youtubeSearchResultsContainer" class="scrollable-list-dialog"></div>

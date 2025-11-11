@@ -21,7 +21,7 @@
     --actions-landing-container-size: 32px; /* Landing page button containers */
     --actions-player-container-size: 38px;  /* Player page button containers */
     
-    --favorite-color: #e74c3c; /* ⬅️ NEW: Use Red for Saved/Favorite */
+    --favorite-color: #f1c40f; /* Yellow for Saved/Favorite */
 
     /* Dynamic Sizing Variables */
     --font-size-base: clamp(14px, 4.2vw, 16px);
@@ -192,7 +192,7 @@ input[type="text"] {
     border-radius: 8px;
     background-color: var(--item-bg);
     color: var(--font-color);
-    font-size: max(16px, 1em);
+    font-size: 0.9rem;
     min-width: 0;
 }
 
@@ -787,7 +787,7 @@ button.rabbit-default:hover {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    z-index: 1000;
+    z-index: 1002;
     padding: max(10px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
     transition: padding-top 0.2s ease-in-out;
 }
@@ -1002,16 +1002,43 @@ button.rabbit-default:hover {
 .player-header {
     flex: 0 0 auto;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    transition: opacity 0.5s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease; /* Ensure transition includes height/padding */
+    transition: opacity 0.5s ease, height 0.35s ease, padding 0.35s ease, visibility 0.35s ease;
     opacity: 1;
-    position: relative; /* Add this line */
-    /* Add back some default padding for alignment */
+    position: relative;
     padding-top: max(5px, env(safe-area-inset-top));
     padding-bottom: 5px;
-    /* min-height: 40px; REMOVED THIS LINE */
+}
+
+/* Navigation Icons Row */
+.media-hub-nav {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.media-hub-nav button {
+    width: var(--actions-player-container-size);
+    height: var(--actions-player-container-size);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Search toggle button - visual separation */
+#playerSearchToggleBtn {
+    margin-left: 12px;
+}
+
+.media-hub-nav svg {
+    width: var(--actions-player-icon-size);
+    height: var(--actions-player-icon-size);
 }
 
 #playerVideoTitle {
@@ -1131,43 +1158,25 @@ button.rabbit-default:hover {
     overflow-y: auto; /* REVERTED: Allow this container to scroll again */
 }
 
-/* === NEW STYLES FOR COLLAPSIBLE HEADER ICON === */
-#showSearchHeaderBtn {
-    position: absolute;
-    top: 0px; /* Match the panel's padding */
-    right: 4px; /* ⬅️ CHANGED to right */
-    left: auto; /* ⬅️ ADDED: Ensure no left positioning conflict */
-    z-index: 5; /* Sit on top of results, but below headers if they are visible */
-    
-    background: transparent;
-    border: none;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    color: var(--icon-color);
-    opacity: 0.7;
-    
-    display: none; /* Hidden by default */
-    cursor: pointer;
-    transition: opacity 0.3s ease;
-}
-
-#showSearchHeaderBtn:hover {
-    opacity: 1;
-    color: var(--primary-color);
-}
-
-#showSearchHeaderBtn.pulsating {
-    animation: simplePulse 1.6s ease-in-out infinite;
-}
-/* === END OF NEW STYLES === */
 
 .youtube-search-view .search-section {
     margin-bottom: 0;
 }
 
 #youtubeSearchCancelBtn {
-    padding: 4px 10px;
+    padding: 8px 16px;
+    background: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    margin-left: 8px;
+}
+
+#youtubeSearchCancelBtn:hover {
+    background: var(--button-hover-bg);
 }
 
 #youtubeSearchResultsContainer {
@@ -1195,6 +1204,7 @@ button.rabbit-default:hover {
     width: 20px; /* ⬅️ CRITICAL FIX: Match the size of the Delete button container */
     height: 20px; /* ⬅️ CRITICAL FIX: Match the size of the Delete button container */
     background: transparent;
+    border: none;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1213,14 +1223,15 @@ button.rabbit-default:hover {
 }
 
 .add-favorite-btn.is-favorite {
-    color: var(--favorite-color); /* ⬅️ Now uses the Red color defined in :root */
-    opacity: 1;
+    color: var(--favorite-color) !important; /* Force red color for favorited items */
+    opacity: 1 !important;
 }
 
 .add-favorite-btn svg {
     width: 14px; /* ⬅️ Adjusted size to fit the 20x20 area cleanly */
     height: 14px;
     fill: currentColor;
+    pointer-events: none; /* Ensure clicks go to the button, not SVG */
 }
 /* ⬆️ *** END OF CORRECTED RULE *** ⬆️ */
 
@@ -1280,7 +1291,7 @@ button.rabbit-default:hover {
 
 /* Main container for the radio options */
 .search-mode-selector {
-    display: flex;
+    display: none; /* Hidden - icons replace this functionality */
     justify-content: center;
     gap: 10px;
     margin: 0;
@@ -1348,30 +1359,6 @@ button.rabbit-default:hover {
     gap: 20px;
     margin: 4px 0;
     padding-bottom: 4px; /* Add some space below */
-}
-
-.search-controls-actions {
-    display: flex; /* <-- Original value, will be overridden */
-    justify-content: center;
-    gap: 65px;
-    width: 100%;
-    
-    /* ⬇️ MODIFIED DEFAULT STATE TO HIDE AND COLLAPSE SPACE ⬇️ */
-    opacity: 0;
-    pointer-events: none;
-    /* This line is the critical fix for the gap */
-    display: none; 
-    /* ⬆️ END MODIFIED STATE ⬆️ */
-    
-    transition: opacity 0.3s ease; /* Transition will still be active but only on opacity */
-}
-
-/* Show action buttons when the search input is focused, guaranteeing the display: flex rule wins */
-.youtube-search-view .search-input-wrapper input:focus + #clearYoutubeSearchBtn ~ .search-controls-row .search-controls-actions,
-.youtube-search-view .search-input-wrapper #youtubeSearchInput:focus ~ .search-controls-row .search-controls-actions {
-    opacity: 1;
-    pointer-events: all;
-    display: flex;
 }
 
 /* === NEW: Styles for collapsing headers === */
