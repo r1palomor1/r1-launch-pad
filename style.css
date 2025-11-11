@@ -120,7 +120,7 @@ header {
 
 .search-input-wrapper input {
     width: 100%;
-    padding-right: 30px;
+    padding-right: 35px;
 }
 
 #clearSearchBtn, #clearThemeInputBtn {
@@ -1555,10 +1555,14 @@ button.rabbit-default:hover {
 
 .playlist-controls-row {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     width: 100%;
-    gap: 4px;
+    gap: 12px;
+}
+
+.playlist-controls-row:first-child {
+    gap: 16px;
 }
 
 /* Apply same styling as .player-navigation to playlist controls */
@@ -1728,117 +1732,6 @@ button.rabbit-default:hover {
         transform: scale(1.15);
     }
 }
-
-/* ⬇️ ADD THESE NEW STYLES ⬇️ */
-#playerHomeIcon {
-    position: absolute;
-    top: max(2px, env(safe-area-inset-top)); /* Align top edge like header padding */
-    left: max(5px, env(safe-area-inset-left)); /* Align left edge */
-    /* transform: translateY(-50%); Remove vertical transform */
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
-    width: var(--actions-player-container-size);
-    height: var(--actions-player-container-size);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1100;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-#playerHomeIcon svg {
-    width: var(--actions-player-icon-size);
-    height: var(--actions-player-icon-size);
-    fill: var(--icon-color); /* Use subtle color */
-    opacity: 0.6; /* Make it semi-transparent */
-}
-
-#playerHomeIcon:hover svg {
-    fill: var(--primary-color); /* Highlight on hover */
-    opacity: 1;
-}
-/* ⬆️ END OF ADDED STYLES ⬆️ */
-
-/* ⬇️ *** ADD NEW STYLES FOR FAVORITE BUTTON *** ⬇️ */
-#playerFavoriteBtn {
-    position: absolute;
-    top: max(2px, env(safe-area-inset-top)); /* Align top edge */
-    right: max(47px, calc(47px + env(safe-area-inset-right))); /* ⬅️ POSITIONED LEFT OF PLAYLIST BUTTON */
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
-    width: var(--actions-player-container-size);
-    height: var(--actions-player-container-size);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1100;
-    opacity: 0; /* Hidden by default */
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-#playerFavoriteBtn svg {
-    width: 14px; /* ⬅️ Changed to 14px to match card icon size */
-    height: 14px; /* ⬅️ Changed to 14px to match card icon size */
-    fill: var(--icon-color); /* Use subtle color */
-    opacity: 0.6; /* Make it semi-transparent */
-    transition: fill 0.2s ease;
-}
-
-#playerFavoriteBtn:hover svg {
-    fill: var(--primary-color); /* Highlight on hover */
-    opacity: 1;
-}
-
-/* Style when the video is already saved/favorited */
-#playerFavoriteBtn.is-favorite svg {
-    fill: var(--primary-color); /* ⬅️ CHANGED to use the app's theme color */
-    opacity: 1;
-}
-/* ⬆️ *** END OF NEW STYLES *** ⬆️ */
-
-
-/* ⬇️ *** ADD THESE NEW STYLES *** ⬇️ */
-#playerPlaylistBtn {
-    position: absolute;
-    top: max(2px, env(safe-area-inset-top)); /* Align top edge */
-    right: max(5px, env(safe-area-inset-right)); /* Align right edge */
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
-    width: var(--actions-player-container-size);
-    height: var(--actions-player-container-size);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1100;
-    opacity: 0; /* Hidden by default */
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-
-#playerPlaylistBtn svg {
-    width: var(--actions-player-icon-size);
-    height: var(--actions-player-icon-size);
-    fill: var(--icon-color); /* Use subtle color */
-    opacity: 0.6; /* Make it semi-transparent */
-}
-
-#playerPlaylistBtn:hover svg {
-    fill: var(--primary-color); /* Highlight on hover */
-    opacity: 1;
-}
-/* ⬆️ *** END OF ADDED STYLES *** ⬆️ */
 
 /* New styles for the icon counter */
 .playlist-video-count-wrapper {

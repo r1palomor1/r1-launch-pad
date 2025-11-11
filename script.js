@@ -57,19 +57,16 @@ const playerContainer = document.querySelector('.player-container');
 const playerSongControls = document.getElementById('playerSongControls');
 const playerPlayPauseBtn = document.getElementById('playerPlayPauseBtn');
 const playerAudioOnlyBtn = document.getElementById('playerAudioOnlyBtn');
-const playerBackBtn = document.getElementById('playerBackBtn');
 
 // Player Controls - Playlist Mode
 const playerPlaylistControls = document.getElementById('playerPlaylistControls');
 const playerPlayPauseBtn_playlist = document.getElementById('playerPlayPauseBtn_playlist');
 const playerAudioOnlyBtn_playlist = document.getElementById('playerAudioOnlyBtn_playlist');
-const playerBackBtn_playlist = document.getElementById('playerBackBtn_playlist');
-const playerSearchBtn_playlist = document.getElementById('playerSearchBtn_playlist');
 const playerPrevBtn = document.getElementById('playerPrevBtn');
 const playerNextBtn = document.getElementById('playerNextBtn');
 const playerPlaylistBtn = document.getElementById('playerPlaylistBtn');
 const playerFavoriteBtn = document.getElementById('playerFavoriteBtn');
-const playerHomeIcon = document.getElementById('playerHomeIcon');
+const playerFavoriteBtn_playlist = document.getElementById('playerFavoriteBtn_playlist');
 const playlistOverlay = document.getElementById('playlistOverlay');
 const playlistTitle = document.getElementById('playlistTitle');
 const playlistVideoList = document.getElementById('playlistVideoList');
@@ -1146,28 +1143,8 @@ function hidePlayerUI() {
         controls.style.pointerEvents = 'none';
     }
 
-    // --- ⬇️ ADDED: Show Home Icon ⬇️ ---
-    if (playerHomeIcon) {
-        playerHomeIcon.style.opacity = '1';
-        playerHomeIcon.style.pointerEvents = 'auto';
-    }
-    // --- ⬆️ END OF ADDED CODE ⬆️ ---
-
     // ⬇️ *** MODIFIED: Show floating icons when main UI is hidden *** ⬇️
-    // Show Playlist button only if in playlist mode
-    if (playerPlaylistBtn && isManualPlaylist) {
-        playerPlaylistBtn.style.opacity = '1';
-        playerPlaylistBtn.style.pointerEvents = 'auto';
-    }
-    
-    // Show Favorite button (always visible when UI collapsed)
-    if (playerFavoriteBtn) { 
-        playerFavoriteBtn.style.opacity = '1';
-        playerFavoriteBtn.style.pointerEvents = 'auto';
-        // Check if the currently playing video is already saved and reflect status
-        const isCurrentlySaved = savedPlaylists.some(p => p.id === currentlyPlayingCardId);
-        playerFavoriteBtn.classList.toggle('is-favorite', isCurrentlySaved); // ⬅️ ADDED THIS
-    }
+    // Favorite button is now always visible in Song mode bottom controls
     // ⬆️ *** END OF MODIFIED CODE *** ⬆️
     
     // Show tap hint after UI fades
@@ -1196,22 +1173,8 @@ function showPlayerUI() {
         controls.style.pointerEvents = 'auto';
     }
 
-    // --- ⬇️ ADDED: Hide Home Icon ⬇️ ---
-    if (playerHomeIcon) {
-        playerHomeIcon.style.opacity = '0';
-        playerHomeIcon.style.pointerEvents = 'none';
-    }
-    // --- ⬆️ END OF ADDED CODE ⬆️ ---
-
     // ⬇️ *** MODIFIED: Always hide floating icons when main UI is visible *** ⬇️
-    if (playerPlaylistBtn) {
-        playerPlaylistBtn.style.opacity = '0';
-        playerPlaylistBtn.style.pointerEvents = 'none';
-    }
-    if (playerFavoriteBtn) { // ⬅️ ADDED THIS
-        playerFavoriteBtn.style.opacity = '0';
-        playerFavoriteBtn.style.pointerEvents = 'none';
-    }
+    // Favorite button is now in Song mode bottom controls, no need to hide
     // ⬆️ *** END OF MODIFIED CODE *** ⬆️
     
     // Hide tap hint when UI shows again
@@ -1340,15 +1303,14 @@ function startUIHideTimer() {
 (function wireUiHideTimerResets() {
     const ids = [
         // Songs mode
-        'playerBackBtn','playerPlayPauseBtn','playerAudioOnlyBtn',
+        'playerPlayPauseBtn','playerAudioOnlyBtn',
 
         // Playlist mode
-        'playerBackBtn_playlist','playerSearchBtn_playlist',
         'playerPlayPauseBtn_playlist','playerAudioOnlyBtn_playlist',
-        'playerPrevBtn','playerNextBtn','playerPlaylistBtn',
+        'playerPrevBtn','playerNextBtn',
        
         // Shared/overlay bits
-        'playerHomeIcon','stopPlayingBtn'
+        'playerPlaylistBtn','stopPlayingBtn'
     ];
 
     ids.forEach(id => {
@@ -3011,8 +2973,6 @@ function returnToSearchFromPlayer(focusInput = false) {
     updateNowPlayingUI(player.getPlayerState() === YT.PlayerState.PLAYING ? 'playing' : 'paused');
 }
 
-playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
-
     // Use a more specific listener on the container for result clicks
     youtubeSearchResultsContainer.addEventListener('click', async (e) => {
     
@@ -3131,6 +3091,15 @@ playerBackBtn.addEventListener('click', () => returnToSearchFromPlayer(false));
         // 2. Update global focus tracking variables
         currentlyPlayingCardId = cardId;
         currentlyPlayingCardMode = currentSearchMode;
+
+        // 3. Update favorite button status for both modes
+        const isSaved = savedPlaylists.some(p => p.id === cardId);
+        [playerFavoriteBtn, playerFavoriteBtn_playlist].forEach(btn => {
+            if (btn) {
+                btn.classList.toggle('is-favorite', isSaved);
+                btn.querySelector('svg').style.fill = isSaved ? 'var(--primary-color)' : 'var(--icon-color)';
+            }
+        });
 
         hideYouTubeSearchView();
         
@@ -3396,9 +3365,6 @@ const message = "1. This section now holds your saved Favorites — songs or pla
 });
 // --- ⬆️ END OF ADDED/MODIFIED CODE ⬆️ ---
 
-// Event Listeners for playlist controls
-playerBackBtn_playlist.addEventListener('click', () => returnToSearchFromPlayer(false));
-
 // --- Playlist Button (replaces Shuffle and Play All) ---
 playerPlaylistBtn.addEventListener('click', () => {
     if (!player || !isManualPlaylist) return;
@@ -3492,8 +3458,6 @@ playerAudioOnlyBtn_playlist.addEventListener('click', () => {
 });
 
 playerNextBtn.addEventListener('click', playNextVideoInList); // Use our new function
-
-playerSearchBtn_playlist.addEventListener('click', () => returnToSearchFromPlayer(true));
 
     playerPlayPauseBtn.addEventListener('click', togglePlayback);
 
@@ -3591,16 +3555,6 @@ stopPlayingBtn.addEventListener('click', (e) => {
     }
 });
 
-// --- ⬇️ ADD THIS NEW LISTENER ⬇️ ---
-playerHomeIcon.addEventListener('click', () => {
-    // We REMOVED player.stopVideo() and updateNowPlayingUI('stopped')
-    internalPlayerOverlay.style.display = 'none'; // Hide player overlay
-    hideTapHint(); // Ensure hint is hidden
-    goHome(); // Navigate home (goHome will call updateNowPlayingUI based on the current state)
-    triggerHaptic();
-});
-// --- ⬆️ END OF ADDED CODE ⬆️ ---
-
 // --- ⬇️ ADD NEW LISTENER FOR PLAYER FAVORITE BUTTON ⬇️ ---
 playerFavoriteBtn.addEventListener('click', async (e) => {
     // ⬇️ *** THE CRITICAL FIX: Stop the click from bubbling up *** ⬇️
@@ -3654,7 +3608,63 @@ playerFavoriteBtn.addEventListener('click', async (e) => {
     
     await savePlaylistsToStorage();
     triggerHaptic();
-    });
+});
+// --- ⬆️ END OF NEW LISTENER ⬆️ ---
+
+// Duplicate favorite button listener for playlist mode
+playerFavoriteBtn_playlist.addEventListener('click', async (e) => {
+    // ⬇️ *** THE CRITICAL FIX: Stop the click from bubbling up *** ⬇️
+    e.stopPropagation(); 
+    // ⬆️ *** END OF CRITICAL FIX *** ⬆️
+    
+    if (!currentlyPlayingCardId) {
+        await showAlert("Cannot save: No video or playlist is currently loaded.");
+        return;
+    }
+    
+    const itemId = currentlyPlayingCardId;
+    const itemTitle = playerVideoTitle.textContent.replace(/^Playing: /, '');
+    const isPlaylist = isManualPlaylist;
+
+    const favoriteBtn = playerFavoriteBtn_playlist;
+    const index = savedPlaylists.findIndex(p => p.id === itemId);
+    
+    if (index !== -1) {
+        // Item is saved, remove it
+        savedPlaylists.splice(index, 1);
+        favoriteBtn.classList.remove('is-favorite');
+        // ⬇️ *** THE CRITICAL FIX: Reset fill color to the dim default *** ⬇️
+        favoriteBtn.querySelector('svg').style.fill = 'var(--icon-color)';
+        // ⬆️ *** END OF CRITICAL FIX *** ⬆️
+    } else {
+        // Item is not saved, add it
+        let itemData;
+        let thumb = GENERIC_FAVICON_SRC;
+
+        if (isPlaylist) {
+            // Fetch metadata to get a thumbnail for the saved list
+            const metadata = await fetchPlaylistMetadata(itemId);
+            thumb = metadata?.thumb || GENERIC_FAVICON_SRC;
+            itemData = { id: itemId, title: itemTitle, thumb: thumb, url: `https://www.youtube.com/playlist?list=${itemId}` };
+        } else {
+            // For a single video, we must construct the thumbnail URL from the ID
+            const videoId = getYoutubeVideoId(itemId) || itemId;
+            thumb = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+            itemData = { id: itemId, title: itemTitle, thumb: thumb, url: `https://www.youtube.com/watch?v=${videoId}` };
+        }
+
+        savedPlaylists.push(itemData);
+        favoriteBtn.classList.add('is-favorite');
+        // ⬇️ *** ADD THIS LINE for immediate visual update on add *** ⬇️
+        favoriteBtn.querySelector('svg').style.fill = 'var(--primary-color)';
+        // ⬆️ *** END OF ADDED LINE *** ⬆️
+        hasEverAddedPlaylist = true;
+        localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
+    }
+    
+    await savePlaylistsToStorage();
+    triggerHaptic();
+});
 // --- ⬆️ END OF NEW LISTENER ⬆️ ---
 
 // ⬇️ *** ADD THIS NEW LISTENER FOR THE COUNTER *** ⬇️

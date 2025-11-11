@@ -127,8 +127,6 @@
     <!-- Internal YouTube Player View -->
     <div id="internalPlayerOverlay" style="display: none;">
         <div class="player-header">
-            <p id="playerVideoTitle"></p>
-            
             <!-- Navigation Icons Row -->
             <div class="media-hub-nav">
                 <button id="playerHomeNavBtn" class="dialog-icon-btn" title="Home">
@@ -153,26 +151,15 @@
                     </svg>
                 </button>
             </div>
+            
+            <p id="playerVideoTitle"></p>
         </div>
         
-        <button id="playerHomeIcon" title="Go Home" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
-        </button>
-        
-        <button id="playerFavoriteBtn" class="dialog-icon-btn" title="Save/Unsave Video">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>
-        </button>
-
         <div class="player-container">
             <div id="youtubePlayer"></div>
             </div>
         <div class="player-controls">
             <div id="playerSongControls" class="player-navigation">
-                <button id="playerBackBtn" class="dialog-icon-btn" title="Back">
-                    <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                        <path d="M3.5 8l5.5-5.5v3h5v5h-5v3L3.5 8z"/>
-                    </svg>
-                </button>
                 <div class="player-main-controls">
                     <button id="playerPlayPauseBtn" class="dialog-icon-btn"></button>
                     <button id="playerAudioOnlyBtn" class="dialog-icon-btn"></button>
@@ -185,12 +172,10 @@
                             <div class="volume-level-display">50</div>
                         </div>
                     </div>
+                    <button id="playerFavoriteBtn" class="dialog-icon-btn" title="Save/Unsave Video">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>
+                    </button>
                 </div>
-                <button id="playerPlaylistBtn" class="dialog-icon-btn" title="View Queue">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 10h11v2H3v-2zm0-4h11v2H3V6zm0 8h7v2H3v-2zm13.01-3.87l-3.75-2.51v5.01l3.75-2.5zm4.99-1.13v8l-8-4 8-4z"/>
-                    </svg>
-                </button>
             </div>
 
             <div id="playerPlaylistControls" class="player-navigation-playlist" style="display: none;">
@@ -199,17 +184,13 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18 6v12l-8.5-6L18 6zM6 6v12h2V6H6z"></path></svg>
                     </button>
                     
+                    <button id="playerPlayPauseBtn_playlist" class="dialog-icon-btn"></button>
+                    
                     <button id="playerNextBtn" class="dialog-icon-btn" title="Next">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"></path></svg>
                     </button>
                 </div>
                 <div class="playlist-controls-row">
-                    <button id="playerBackBtn_playlist" class="dialog-icon-btn" title="Back">
-                        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                            <path d="M3.5 8l5.5-5.5v3h5v5h-5v3L3.5 8z"/>
-                        </svg>
-                    </button>
-                    <button id="playerPlayPauseBtn_playlist" class="dialog-icon-btn"></button>
                     <button id="playerAudioOnlyBtn_playlist" class="dialog-icon-btn"></button>
                     <div class="volume-icon-container">
                         <button id="playerMuteBtn_playlist" class="dialog-icon-btn" title="Volume">
@@ -220,10 +201,13 @@
                             <div class="volume-level-display">50</div>
                         </div>
                     </div>
-                    <button id="playerSearchBtn_playlist" class="dialog-icon-btn" title="Search">
-                        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                            <path d="M15.7 14.3l-4.2-4.2c-0.2-0.2-0.5-0.3-0.8-0.3 0.8-1 1.3-2.4 1.3-3.8 0-3.3-2.7-6-6-6s-6 2.7-6 6 2.7 6 6 6c1.4 0 2.8-0.5 3.8-1.4 0 0.3 0 0.6 0.3 0.8l4.2 4.2c0.2 0.2 0.5 0.3 0.7 0.3s0.5-0.1 0.7-0.3c0.4-0.3 0.4-0.9 0-1.3zM6 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path>
+                    <button id="playerPlaylistBtn" class="dialog-icon-btn" title="View Queue">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 10h11v2H3v-2zm0-4h11v2H3V6zm0 8h7v2H3v-2zm13.01-3.87l-3.75-2.51v5.01l3.75-2.5zm4.99-1.13v8l-8-4 8-4z"/>
                         </svg>
+                    </button>
+                    <button id="playerFavoriteBtn_playlist" class="dialog-icon-btn" title="Save/Unsave Video">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>
                     </button>
                 </div>
             </div>
@@ -304,10 +288,12 @@ L14.586,16l-4.243-4.243l1.414-1.414L16,14.586l4.243-4.243L21.657,11.757z"/>
     <div id="youtubeSearchView" class="youtube-search-view">
         
         <div class="search-input-wrapper">
-            <input type="text" id="youtubeSearchInput" placeholder="Search YouTube..." autocomplete="off" inputmode="search">
-            <button id="clearYoutubeSearchBtn" title="Clear search" style="display: none;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"></path></svg>
-            </button>
+            <div style="position: relative; flex: 1;">
+                <input type="text" id="youtubeSearchInput" placeholder="Search YouTube..." autocomplete="off" inputmode="search">
+                <button id="clearYoutubeSearchBtn" title="Clear search" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"></path></svg>
+                </button>
+            </div>
             <button id="youtubeSearchCancelBtn" class="secondary">Cancel</button>
         </div>
 
