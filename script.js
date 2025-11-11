@@ -2027,8 +2027,8 @@ if (showSearchHeaderBtn) {
 }
 
 // === NEW: Scroll listener to hide the SEARCH header ===
-youtubeSearchResultsContainer.addEventListener('scroll', () => {
-    const scrollTop = youtubeSearchResultsContainer.scrollTop;
+youtubeSearchView.addEventListener('scroll', () => {
+    const scrollTop = youtubeSearchView.scrollTop;
     
     // Hide header on ANY scroll (up or down) when scrolled away from top
     if (scrollTop > 5) {
