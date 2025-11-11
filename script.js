@@ -1387,6 +1387,7 @@ function openMediaDiscovery(mode) {
         youtubeSearchInput.value = playlistsResults.searchTerm;
         playlistNextPageToken = playlistsResults.nextPageToken;
     } else if (mode === 'is.gd') {
+        youtubeSearchInput.value = '';
         renderSavedPlaylists();
     } else {
         // No cached results for this mode - clear input
@@ -1417,6 +1418,7 @@ function openYouTubeSearchView() {
 
     if (currentSearchMode === 'is.gd') { // Note: using 'is.gd' for consistency
         youtubeSearchInput.placeholder = 'Enter is.gd code...';
+        youtubeSearchInput.value = '';
         renderSavedPlaylists();
         // ⬇️ SET FOCUS ⬇️
         setFocusOnCurrentlyPlaying('is.gd');
@@ -2397,6 +2399,8 @@ function openFavoritesDialog() {
         }
     }
     renderFavoritesList();
+    // Clear the youtube search input since Favorites mode doesn't use it
+    youtubeSearchInput.value = '';
     favoritesPromptOverlay.style.display = 'flex';
     favoritesList.focus();
     const closeDialog = () => {
