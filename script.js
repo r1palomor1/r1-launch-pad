@@ -2011,8 +2011,8 @@ playlistVideoList.addEventListener('scroll', () => {
         if (!isPlaylistHeaderCollapsed) {
             togglePlaylistHeader(false); // Hide header
         }
-    } else if (scrollTop === 0) {
-        // Show header when at the very top
+    } else if (scrollTop <= 5) {
+        // Show header when near the top (within 5px)
         if (isPlaylistHeaderCollapsed) {
             togglePlaylistHeader(true);
         }
@@ -2035,8 +2035,8 @@ youtubeSearchResultsContainer.addEventListener('scroll', () => {
         if (!isSearchHeaderCollapsed) {
             toggleSearchHeader(false); // Hide header
         }
-    } else if (scrollTop === 0) {
-        // Show header when at the very top
+    } else if (scrollTop <= 5) {
+        // Show header when near the top (within 5px)
         if (isSearchHeaderCollapsed) {
             toggleSearchHeader(true);
         }
@@ -2060,8 +2060,8 @@ if (favoritesList) {
             if (!isFavoritesHeaderCollapsed) {
                 toggleFavoritesHeader(false); // Hide header
             }
-        } else if (scrollTop === 0) {
-            // Show header when at the very top
+        } else if (scrollTop <= 5) {
+            // Show header when near the top (within 5px)
             if (isFavoritesHeaderCollapsed) {
                 toggleFavoritesHeader(true);
             }
