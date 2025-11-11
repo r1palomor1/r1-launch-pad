@@ -1378,6 +1378,15 @@ button.rabbit-default:hover {
     padding: 0;
     margin: 0;
 }
+
+/* === NEW: Header collapse styles for Favorites list === */
+.favorites-list.header-collapsed {
+    /* Hide the header and collapse space */
+    display: none;
+    height: 0;
+    padding: 0;
+    margin: 0;
+}
 /* === END OF NEW STYLES === */
 
 @media (max-width: 320px) {
@@ -1820,6 +1829,29 @@ button.rabbit-default:hover {
     animation: simplePulse 1.6s ease-in-out infinite;
 }
 /* === END OF NEW STYLES === */
+
+/* === NEW: Generic header restore button for all scrollable modes === */
+.show-header-restore-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    color: var(--icon-color);
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.show-header-restore-btn:hover {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.show-header-restore-btn.pulsating {
+    animation: simplePulse 1.6s ease-in-out infinite;
+}
+/* === END OF GENERIC STYLES === */
 
 .playlist-header {
     padding: 6px 0 4px 0;

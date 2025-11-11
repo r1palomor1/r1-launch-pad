@@ -101,9 +101,13 @@ const youtubeSearchResultsContainer = document.getElementById('youtubeSearchResu
 const youtubeSearchView = document.getElementById('youtubeSearchView');
 const youtubeSearchLoader = document.getElementById('youtubeSearchLoader');
 const clearYoutubeSearchBtn = document.getElementById('clearYoutubeSearchBtn');
+const showSearchHeaderBtn = document.getElementById('showSearchHeaderBtn');
+const showFavoritesHeaderBtn = document.getElementById('showFavoritesHeaderBtn');
 // === State for collapsing header ===
 let isSearchHeaderCollapsed = false;
 let lastSearchScrollTop = 0;
+let isFavoritesHeaderCollapsed = false;
+let lastFavoritesScrollTop = 0;
 // === END ===
 
 // === REDESIGN: Navigation Button References ===
@@ -1878,6 +1882,50 @@ function togglePlaylistHeader(show) {
 }
 // === END OF NEW FUNCTION ===
 
+// === NEW: Toggle function for SEARCH header visibility ===
+function toggleSearchHeader(show) {
+    if (show) {
+        // Show the header
+        youtubeSearchView.classList.remove('header-collapsed');
+        showSearchHeaderBtn.style.display = 'none';
+        showSearchHeaderBtn.classList.remove('pulsating');
+        isSearchHeaderCollapsed = false;
+        // After showing, reset scroll top to prevent immediate re-hide
+        lastSearchScrollTop = 0;
+        youtubeSearchResultsContainer.scrollTop = 0; // Scroll to top
+    } else {
+        // Hide the header
+        if (isSearchHeaderCollapsed) return; // Already hidden
+        youtubeSearchView.classList.add('header-collapsed');
+        showSearchHeaderBtn.style.display = 'block';
+        showSearchHeaderBtn.classList.add('pulsating');
+        isSearchHeaderCollapsed = true;
+    }
+}
+// === END OF NEW FUNCTION ===
+
+// === NEW: Toggle function for FAVORITES header visibility ===
+function toggleFavoritesHeader(show) {
+    if (show) {
+        // Show the header
+        favoritesList.classList.remove('header-collapsed');
+        showFavoritesHeaderBtn.style.display = 'none';
+        showFavoritesHeaderBtn.classList.remove('pulsating');
+        isFavoritesHeaderCollapsed = false;
+        // After showing, reset scroll top to prevent immediate re-hide
+        lastFavoritesScrollTop = 0;
+        favoritesList.scrollTop = 0; // Scroll to top
+    } else {
+        // Hide the header
+        if (isFavoritesHeaderCollapsed) return; // Already hidden
+        favoritesList.classList.add('header-collapsed');
+        showFavoritesHeaderBtn.style.display = 'block';
+        showFavoritesHeaderBtn.classList.add('pulsating');
+        isFavoritesHeaderCollapsed = true;
+    }
+}
+// === END OF NEW FUNCTION ===
+
 youtubeSearchInput.addEventListener('focus', () => {
     youtubeSearchViewOverlay.classList.add('input-focused');
     
@@ -1970,6 +2018,61 @@ playlistVideoList.addEventListener('scroll', () => {
         lastPlaylistScrollTop = 0; // Reset at top
     }
 });
+
+// === NEW: Listener for the SEARCH header expand icon ===
+if (showSearchHeaderBtn) {
+    showSearchHeaderBtn.addEventListener('click', () => {
+        toggleSearchHeader(true); // Force-show the header
+    });
+}
+
+// === NEW: Scroll listener to hide the SEARCH header ===
+youtubeSearchResultsContainer.addEventListener('scroll', () => {
+    const scrollTop = youtubeSearchResultsContainer.scrollTop;
+    
+    // Check if scrolling down (flicking down to see more)
+    if (scrollTop > lastSearchScrollTop && scrollTop > 5) {
+        if (!isSearchHeaderCollapsed) {
+            toggleSearchHeader(false); // Hide header
+        }
+    }
+    
+    // Store current scroll position for next event
+    if (scrollTop > 0) {
+        lastSearchScrollTop = scrollTop;
+    } else {
+        lastSearchScrollTop = 0; // Reset at top
+    }
+});
+
+// === NEW: Listener for the FAVORITES header expand icon ===
+if (showFavoritesHeaderBtn) {
+    showFavoritesHeaderBtn.addEventListener('click', () => {
+        toggleFavoritesHeader(true); // Force-show the header
+    });
+}
+
+// === NEW: Scroll listener to hide the FAVORITES header ===
+if (favoritesList) {
+    favoritesList.addEventListener('scroll', () => {
+        const scrollTop = favoritesList.scrollTop;
+        
+        // Check if scrolling down (flicking down to see more)
+        if (scrollTop > lastFavoritesScrollTop && scrollTop > 5) {
+            if (!isFavoritesHeaderCollapsed) {
+                toggleFavoritesHeader(false); // Hide header
+            }
+        }
+        
+        // Store current scroll position for next event
+        if (scrollTop > 0) {
+            lastFavoritesScrollTop = scrollTop;
+        } else {
+            lastFavoritesScrollTop = 0; // Reset at top
+        }
+    });
+}
+// === END OF NEW LISTENERS ===
 
 function createFormHTML(linkData = {}, isForEditing = false) {
     const { description = '', url = 'https://', category = 'Other' } = linkData;
