@@ -108,6 +108,9 @@ let isSearchHeaderCollapsed = false;
 let lastSearchScrollTop = 0;
 let isFavoritesHeaderCollapsed = false;
 let lastFavoritesScrollTop = 0;
+let skipSearchScrollListener = false; // Flag to skip scroll listener during programmatic restore
+let skipFavoritesScrollListener = false; // Flag to skip scroll listener during programmatic restore
+let skipPlaylistScrollListener = false; // Flag to skip scroll listener during programmatic restore
 // === END ===
 
 // === REDESIGN: Navigation Button References ===
@@ -1866,6 +1869,7 @@ function toggleSearchHeader(show) {
 function togglePlaylistHeader(show) {
     if (show) {
         // Show the header
+        skipPlaylistScrollListener = true; // Disable scroll listener during restore
         playlistVideoList.classList.remove('playlist-header-collapsed');
         showPlaylistHeaderBtn.style.display = 'none';
         showPlaylistHeaderBtn.classList.remove('pulsating');
@@ -1873,6 +1877,8 @@ function togglePlaylistHeader(show) {
         // After showing, reset scroll top to prevent immediate re-hide
         lastPlaylistScrollTop = 0;
         playlistVideoList.scrollTop = 0; // Scroll to top
+        // Re-enable scroll listener after a brief delay
+        setTimeout(() => { skipPlaylistScrollListener = false; }, 100);
     } else {
         // Hide the header
         if (isPlaylistHeaderCollapsed) return; // Already hidden
@@ -1888,13 +1894,16 @@ function togglePlaylistHeader(show) {
 function toggleSearchHeader(show) {
     if (show) {
         // Show the header
+        skipSearchScrollListener = true; // Disable scroll listener during restore
         youtubeSearchView.classList.remove('header-collapsed');
         showSearchHeaderBtn.style.display = 'none';
         showSearchHeaderBtn.classList.remove('pulsating');
         isSearchHeaderCollapsed = false;
         // After showing, reset scroll top to prevent immediate re-hide
         lastSearchScrollTop = 0;
-        youtubeSearchResultsContainer.scrollTop = 0; // Scroll to top
+        youtubeSearchView.scrollTop = 0; // Scroll to top
+        // Re-enable scroll listener after a brief delay
+        setTimeout(() => { skipSearchScrollListener = false; }, 100);
     } else {
         // Hide the header
         if (isSearchHeaderCollapsed) return; // Already hidden
@@ -1910,6 +1919,7 @@ function toggleSearchHeader(show) {
 function toggleFavoritesHeader(show) {
     if (show) {
         // Show the header
+        skipFavoritesScrollListener = true; // Disable scroll listener during restore
         favoritesList.classList.remove('header-collapsed');
         showFavoritesHeaderBtn.style.display = 'none';
         showFavoritesHeaderBtn.classList.remove('pulsating');
@@ -1917,6 +1927,8 @@ function toggleFavoritesHeader(show) {
         // After showing, reset scroll top to prevent immediate re-hide
         lastFavoritesScrollTop = 0;
         favoritesList.scrollTop = 0; // Scroll to top
+        // Re-enable scroll listener after a brief delay
+        setTimeout(() => { skipFavoritesScrollListener = false; }, 100);
     } else {
         // Hide the header
         if (isFavoritesHeaderCollapsed) return; // Already hidden
@@ -2004,6 +2016,8 @@ showPlaylistHeaderBtn.addEventListener('click', () => {
 
 // === NEW: Scroll listener to hide the PLAYLIST header ===
 playlistVideoList.addEventListener('scroll', () => {
+    if (skipPlaylistScrollListener) return; // Skip if programmatically restoring
+    
     const scrollTop = playlistVideoList.scrollTop;
     
     // Hide header on ANY scroll (up or down) when scrolled away from top
@@ -2028,6 +2042,8 @@ if (showSearchHeaderBtn) {
 
 // === NEW: Scroll listener to hide the SEARCH header ===
 youtubeSearchView.addEventListener('scroll', () => {
+    if (skipSearchScrollListener) return; // Skip if programmatically restoring
+    
     const scrollTop = youtubeSearchView.scrollTop;
     
     // Hide header on ANY scroll (up or down) when scrolled away from top
@@ -2053,6 +2069,8 @@ if (showFavoritesHeaderBtn) {
 // === NEW: Scroll listener to hide the FAVORITES header ===
 if (favoritesList) {
     favoritesList.addEventListener('scroll', () => {
+        if (skipFavoritesScrollListener) return; // Skip if programmatically restoring
+        
         const scrollTop = favoritesList.scrollTop;
         
         // Hide header on ANY scroll (up or down) when scrolled away from top
