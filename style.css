@@ -1119,13 +1119,13 @@ button.rabbit-default:hover {
 }
 
 .player-navigation {
-    display: flex;
-    justify-content: space-between;
+    /* FIX: Change from space-between to center to center the controls */
+    justify-content: center;
     align-items: center;
     width: 100%;
     gap: 4px; /* Reduced gap */
 }
-/* ... */
+/* This is no longer strictly necessary but kept for explicit control */
 .player-main-controls {
     display: flex;
     align-items: center;
