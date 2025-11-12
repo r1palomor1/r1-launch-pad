@@ -1756,7 +1756,7 @@ button.rabbit-default:hover {
 
 .tap-hint-dark .hint-text {
     /* Slightly darker hint text so it's less bright against the dark bar */
-    color: #8a8a8a !important;
+    color: #707070 !important;
     opacity: 0.70 !important;
 }
 
