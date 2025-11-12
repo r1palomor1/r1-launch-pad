@@ -1221,6 +1221,8 @@ function showTapHint() {
     if (!hintIcon) return;
 
     // Fade in the whole hint bar (which contains the text)
+    // Ensure the hint bar uses the dark appearance so it isn't visually jarring
+    hintElement.classList.add('tap-hint-dark');
     hintElement.style.opacity = '1'; 
     hintElement.style.gap = '8px'; // Set the gap
 
@@ -1259,6 +1261,8 @@ function hideTapHint() {
             hintIcon.style.width = '0px';
             hintIcon.style.animationPlayState = 'paused';
         }
+        // Remove forced dark appearance when hidden
+        hintElement.classList.remove('tap-hint-dark');
     }
     clearTimeout(tapHintTimeout);
 }
