@@ -1377,21 +1377,34 @@ function openMediaDiscovery(mode) {
         }
         return;
     }
-    
-    // Set the current search mode
+
+    // ⬇️ *** FIX: Handle active state for navigation buttons (using dimmer class) *** ⬇️
+    // 1. Remove ALL active classes (both .active and .nav-active-dimmer) from navigation buttons
+    [playerHomeNavBtn, playerMusicNavBtn, playerPlaylistsNavBtn, playerFavoritesNavBtn].forEach(btn => {
+        if (btn) {
+            btn.classList.remove('active');
+            btn.classList.remove('nav-active-dimmer');
+        }
+    });
+
+    // 2. Set the current search mode
     currentSearchMode = mode;
-    
-    // Check the corresponding radio button and set placeholder
+
+    // 3. Add the dimmer class to the newly selected button and set placeholder
     if (mode === 'videos') {
+        playerMusicNavBtn.classList.add('nav-active-dimmer');
         searchModeVideosBtn.checked = true;
         youtubeSearchInput.placeholder = 'Search Videos...';
     } else if (mode === 'playlists') {
+        playerPlaylistsNavBtn.classList.add('nav-active-dimmer');
         searchModePlaylistsBtn.checked = true;
         youtubeSearchInput.placeholder = 'Search Playlists...';
     } else if (mode === 'is.gd') {
+        playerFavoritesNavBtn.classList.add('nav-active-dimmer');
         searchModeIsGdBtn.checked = true;
         youtubeSearchInput.placeholder = 'Enter is.gd Code';
     }
+    // ⬆️ *** END FIX *** ⬆️
     
     // Show the search overlay
     youtubeSearchViewOverlay.style.display = 'flex';

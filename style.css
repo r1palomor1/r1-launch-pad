@@ -2175,9 +2175,16 @@ button.rabbit-default:hover {
 /* ⬆️ END OF ADDED STYLES ⬆️ */
 
 /* === Active Icon Highlights (Theme-Aware) === */
+/* FIX: Standardize active state for all player control buttons */
 .dialog-icon-btn.active svg,
 #playerAudioOnlyBtn.active svg,
-#playerAudioOnlyBtn_playlist.active svg {
+#playerAudioOnlyBtn_playlist.active svg,
+/* NEW: Add Play/Pause, Prev/Next, and Playlist Queue buttons to active list */
+#playerPlayPauseBtn.active svg,
+#playerPlayPauseBtn_playlist.active svg,
+#playerPrevBtn.active svg,
+#playerNextBtn.active svg,
+#playerPlaylistBtn.active svg {
     fill: var(--primary-color);
     opacity: 1;
     transition: fill 0.3s ease, opacity 0.3s ease;
