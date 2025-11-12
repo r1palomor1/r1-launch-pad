@@ -1046,9 +1046,15 @@ button.rabbit-default:hover {
     font-weight: bold;
     color: var(--primary-color);
     margin: 0;
-    white-space: nowrap;
+    /* FIX: Allow title to wrap onto multiple lines */
+    white-space: normal; 
     overflow: hidden;
-    text-overflow: ellipsis;
+    /* Maintain ellipsis and line clamp (up to 2 lines) */
+    text-overflow: ellipsis; 
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .player-container {
