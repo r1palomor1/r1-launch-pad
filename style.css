@@ -1720,6 +1720,11 @@ button.rabbit-default:hover {
     align-items: center;
     justify-content: center;
     gap: 0px; /* Default gap to 0 */
+    
+    /* FIX: Force background color to dark theme's primary color */
+    background-color: var(--bg-color); 
+    /* Set a fallback font color for the bar */
+    color: #e0e0e0; 
 }
 
 #tapHint img {
@@ -1735,8 +1740,9 @@ button.rabbit-default:hover {
 
 .hint-text {
     font-size: var(--font-size-small);
-    color: var(--icon-color); /* Dimmed color */
-    opacity: 0.5; /* Further dim it */
+    /* FIX: Force dim text color to dark theme's icon color */
+    color: #7a7a7a; 
+    opacity: 0.8; /* Make it slightly less transparent for visibility against the video */
 }
 
 @keyframes tapPulse {
