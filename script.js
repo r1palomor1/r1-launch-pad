@@ -1,5 +1,6 @@
 ﻿﻿/*
- Working app: Polish navigation bar collapse/uncollapse with scroll.
+ Working app: Polish Favorite icon in video cards and navigation/control rows.
+    Polish navigation bar collapse/uncollapse with scroll.
     Redesign YT player page to intergrate YT Search with 4 icons at top.
     Favorites icon for Songs and Playlists.  Saved to Favorites radio button.
     Auto hide controls in modes and PL overlay.  Use side icon to show.
