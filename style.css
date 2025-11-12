@@ -1740,19 +1740,23 @@ button.rabbit-default:hover {
 
 .hint-text {
     font-size: var(--font-size-small);
-    /* FIX: Force dim text color to dark theme's icon color */
-    color: #7a7a7a; 
-    opacity: 0.8; /* Make it slightly less transparent for visibility against the video */
+    /* FIX: Set default color slightly darker */
+    color: #616161; 
+    /* FIX: Lower opacity to 0.5 (was 0.8) to make it dimmer */
+    opacity: 0.5;
 }
 
 /* Force dark appearance for the tap hint bar regardless of app theme */
 .tap-hint-dark {
-    background-color: #000000 !important;
-    color: #e0e0e0 !important;
+    background-color: var(--bg-color); 
+    color: #e0e0e0; 
 }
 
 .tap-hint-dark .hint-text {
-    color: #bdbdbd !important;
+    /* FIX: Set a darker gray color for the text (was #bdbdbd) */
+    color: #616161 !important; 
+    /* FIX: Ensure the reduced opacity (0.5) is used */
+    opacity: 0.5 !important; 
 }
 
 @keyframes tapPulse {
