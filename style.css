@@ -1756,8 +1756,8 @@ button.rabbit-default:hover {
 
 .tap-hint-dark .hint-text {
     /* Slightly darker hint text so it's less bright against the dark bar */
-    color: #9e9e9e !important;
-    opacity: 0.85 !important;
+    color: #8f8f8f !important;
+    opacity: 0.70 !important;
 }
 
 @keyframes tapPulse {
