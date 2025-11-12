@@ -271,25 +271,39 @@ function showGenericPrompt({ message, buttons }) {
             }
             button.onclick = () => {
                 genericPromptOverlay.style.display = 'none';
-                // === FIX: Restore search view visibility when alert closes ===
-                if (youtubeSearchViewOverlay.style.display === 'none') {
-                    youtubeSearchViewOverlay.style.display = 'flex';
+                // === IMPROVEMENT: Only restore the search view if we hid it when showing the alert ===
+                try {
+                    if (typeof searchViewWasVisible !== 'undefined' && searchViewWasVisible && youtubeSearchViewOverlay) {
+                        youtubeSearchViewOverlay.style.display = 'flex';
+                    }
+                } catch (e) {
+                    // If something goes wrong, don't block resolution
+                    console.error('Error restoring search view visibility:', e);
                 }
-                // === END FIX ===
+                // === END IMPROVEMENT ===
                 resolve(btnConfig.value);
             };
             genericPromptActions.appendChild(button);
         });
         genericPromptActions.style.justifyContent = buttons.length === 1 ? 'center' : 'space-between';
         
-        // === FIX: Hide search view and blur input when showing alert to prevent keyboard ===
-        if (youtubeSearchViewOverlay && youtubeSearchViewOverlay.style.display === 'flex') {
-            youtubeSearchViewOverlay.style.display = 'none';
-            if (youtubeSearchInput) {
-                youtubeSearchInput.blur();
+        // === IMPROVEMENT: Hide search view and blur input when showing alert to prevent keyboard
+        // Record whether the search view was visible so we can restore accurately later.
+        let searchViewWasVisible = false;
+        if (youtubeSearchViewOverlay) {
+            try {
+                searchViewWasVisible = youtubeSearchViewOverlay.style.display === 'flex';
+                if (searchViewWasVisible) {
+                    youtubeSearchViewOverlay.style.display = 'none';
+                    if (youtubeSearchInput) {
+                        youtubeSearchInput.blur();
+                    }
+                }
+            } catch (e) {
+                console.error('Error checking/hiding youtubeSearchViewOverlay:', e);
             }
         }
-        // === END FIX ===
+        // === END IMPROVEMENT ===
         
         genericPromptOverlay.style.display = 'flex';
     });
@@ -1629,7 +1643,7 @@ function renderYouTubeResults(results, mode) {
 
         const favoriteButtonHtml = `
             <button class="add-favorite-btn" title="${isSaved ? 'Remove from Saved' : 'Save as Favorite'}" data-item-id="${idToCheck}" data-item-title="${item.title}" data-is-playlist="${!!item.playlist_id}">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             </button>`;
         // ⬆️ *** END NEW LOGIC *** ⬆️
 
@@ -2407,7 +2421,7 @@ function openFavoritesDialog() {
                 li.dataset.id = link.id;
                 li.dataset.url = link.url;
                 li.dataset.name = link.description;
-                li.innerHTML = `<img src="https://www.google.com/s2/favicons?sz=64&domain_url=${getHostname(link.url)}" class="link-favicon" alt="Favicon" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}'; this.style.padding='3px';"><span class="favorite-list-item-description">${link.description}</span><span class="remove-favorite-btn" title="Remove from favorites"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"></path></svg></span>`;
+                li.innerHTML = `<img src="https://www.google.com/s2/favicons?sz=64&domain_url=${getHostname(link.url)}" class="link-favicon" alt="Favicon" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}'; this.style.padding='3px';"><span class="favorite-list-item-description">${link.description}</span><span class="remove-favorite-btn" title="Remove from favorites"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.26l-7.053 3.948 1.575-7.928L.587 8.792l8.027-.952L12 .5l3.386 7.34 8.027.952-5.935 5.488 1.575 7.928z"></path></svg></span>`;
                 fragment.appendChild(li);
             });
             favoritesList.appendChild(fragment);
