@@ -1748,15 +1748,16 @@ button.rabbit-default:hover {
 
 /* Force dark appearance for the tap hint bar regardless of app theme */
 .tap-hint-dark {
-    background-color: var(--bg-color); 
-    color: #e0e0e0; 
+    /* Always use a true dark background in the player overlay so the bar doesn't clash
+       with a light app theme. Use !important to override theme variable changes. */
+    background-color: #000000 !important;
+    color: #e0e0e0 !important;
 }
 
 .tap-hint-dark .hint-text {
-    /* FIX: Set a darker gray color for the text (was #bdbdbd) */
-    color: #616161 !important; 
-    /* FIX: Ensure the reduced opacity (0.5) is used */
-    opacity: 0.5 !important; 
+    /* Slightly darker hint text so it's less bright against the dark bar */
+    color: #9e9e9e !important;
+    opacity: 0.85 !important;
 }
 
 @keyframes tapPulse {
