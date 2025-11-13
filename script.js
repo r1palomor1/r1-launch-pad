@@ -192,6 +192,23 @@ let playlistsResults = {
 // ===== END OF STAGE 1 =====
 const HAS_ADDED_PLAYLIST_KEY = 'launchPadR1HasAddedPlaylist';
 let savedPlaylists = [];
+// === INIT: Ensure player control icons use the theme color by default ===
+try {
+    [playerAudioOnlyBtn, playerAudioOnlyBtn_playlist, playerFavoriteBtn, playerFavoriteBtn_playlist].forEach(btn => {
+        if (!btn) return;
+        const svg = btn.querySelector && btn.querySelector('svg');
+        if (svg) {
+            // Default to theme primary color unless overridden elsewhere
+            svg.style.fill = 'var(--primary-color)';
+        }
+        // If we already have saved playlists loaded, reflect saved state
+        if (typeof savedPlaylists !== 'undefined' && savedPlaylists.length > 0 && btn === playerFavoriteBtn) {
+            const isSaved = savedPlaylists.some(p => p.id === currentlyPlayingCardId);
+            btn.classList.toggle('is-favorite', !!isSaved);
+            if (isSaved && btn.querySelector('svg')) btn.querySelector('svg').style.fill = 'var(--favorite-color)';
+        }
+    });
+} catch (e) { console.error('Icon init error:', e); }
 let hasEverAddedPlaylist = false; 
 const GENERIC_FAVICON_SRC = 'data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'%23888\'%3e%3cpath d=\'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\'/%3e%3c/svg%3e';
 
@@ -3252,7 +3269,7 @@ function returnToSearchFromPlayer(focusInput = false) {
             if (btn) {
                 btn.classList.toggle('is-favorite', isSaved);
                 // FIX: Use --favorite-color for the heart icon when saved
-                btn.querySelector('svg').style.fill = isSaved ? 'var(--favorite-color)' : 'var(--icon-color)';
+                btn.querySelector('svg').style.fill = isSaved ? 'var(--favorite-muted)' : 'var(--icon-color)';
             }
         });
 
@@ -3754,7 +3771,7 @@ playerFavoriteBtn.addEventListener('click', async (e) => {
         savedPlaylists.push(itemData);
         favoriteBtn.classList.add('is-favorite');
         // ⬇️ FIX: Use --favorite-color for immediate visual update on add (saved state) ⬇️
-        favoriteBtn.querySelector('svg').style.fill = 'var(--favorite-color)';
+    favoriteBtn.querySelector('svg').style.fill = 'var(--favorite-muted)';
         // ⬆️ END FIX ⬆️
         hasEverAddedPlaylist = true;
         localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
@@ -3810,7 +3827,7 @@ playerFavoriteBtn_playlist.addEventListener('click', async (e) => {
         savedPlaylists.push(itemData);
         favoriteBtn.classList.add('is-favorite');
         // ⬇️ FIX: Use --favorite-color for immediate visual update on add (saved state) ⬇️
-        favoriteBtn.querySelector('svg').style.fill = 'var(--favorite-color)';
+    favoriteBtn.querySelector('svg').style.fill = 'var(--favorite-muted)';
         // ⬆️ END FIX ⬆️
         hasEverAddedPlaylist = true;
         localStorage.setItem('launchPadR1LegacyHasPlaylists', 'true');
@@ -3930,7 +3947,7 @@ function setFocusOnCurrentlyPlaying(mode) {
                 // Ensure the is-favorite class and SVG fill are synced
                 btn.classList.toggle('is-favorite', isSaved);
                 // FIX: Use --primary-color when unsaved
-                btn.querySelector('svg').style.fill = isSaved ? 'var(--favorite-color)' : 'var(--primary-color)';
+                btn.querySelector('svg').style.fill = isSaved ? 'var(--favorite-muted)' : 'var(--primary-color)';
             }
         });
         // ⬆️ END FIX ⬇️
