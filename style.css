@@ -1049,7 +1049,7 @@ button.rabbit-default:hover {
 
 #playerVideoTitle {
     font-size: 0.9em;
-    font-weight: bold;
+    font-weight: normal;
     color: var(--primary-color);
     margin: 0;
     /* FIX: Allow title to wrap onto multiple lines */
@@ -1061,6 +1061,14 @@ button.rabbit-default:hover {
     -webkit-line-clamp: 2;
     line-clamp: 2;
     -webkit-box-orient: vertical;
+    /* NEW: Apply text shadow outline for visual consistency with Audio Only text */
+    text-shadow: 
+        1px 1px 0 #5e5e5e, 
+        -1px 1px 0 #5e5e5e, 
+        1px -1px 0 #5e5e5e,     
+        -1px -1px 0 #5e5e5e, 
+        1px -1px 0 #5e5e5e, 
+        -1px 1px 0 #5e5e5e; 
 }
 
 .player-container {
@@ -1089,12 +1097,21 @@ button.rabbit-default:hover {
 .player-container.audio-only::after {
     content: 'Audio Only';
     position: absolute;
-    color: var(--icon-color);
+    /* FIX: Use theme accent color for fill/text color */
+    color: var(--primary-color);
     font-size: 1.2em;
     font-weight: bold;
-    opacity: 0.8;
+    opacity: 1; /* Increase opacity for better outline visibility */
     text-align: center;
     pointer-events: none;
+    /* NEW: Apply a 1px white text shadow outline */
+    text-shadow: 
+        1px 1px 0 #5e5e5e, 
+        -1px 1px 0 #5e5e5e, 
+        1px -1px 0 #5e5e5e,     
+        -1px -1px 0 #5e5e5e, 
+        1px -1px 0 #5e5e5e, 
+        -1px 1px 0 #5e5e5e; 
 }
 
 
