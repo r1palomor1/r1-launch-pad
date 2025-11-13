@@ -1746,7 +1746,7 @@ button.rabbit-default:hover {
 .hint-text {
     font-size: var(--font-size-small);
     /* FIX: Set default color slightly darker */
-    color: #616161; 
+    color: #5e5e5e; 
     /* FIX: Lower opacity to 0.5 (was 0.8) to make it dimmer */
     opacity: 0.5;
 }
