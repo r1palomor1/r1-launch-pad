@@ -3710,7 +3710,6 @@ stopPlayingBtn.addEventListener('click', (e) => {
     }
 });
 
-// --- ⬇️ ADD NEW LISTENER FOR PLAYER FAVORITE BUTTON ⬇️ ---
 playerFavoriteBtn.addEventListener('click', async (e) => {
     // ⬇️ *** THE CRITICAL FIX: Stop the click from bubbling up *** ⬇️
     e.stopPropagation(); 
@@ -3732,8 +3731,8 @@ playerFavoriteBtn.addEventListener('click', async (e) => {
         // Item is saved, remove it
         savedPlaylists.splice(index, 1);
         favoriteBtn.classList.remove('is-favorite');
-        // ⬇️ FIX: Reset fill color to the dim default ⬇️
-        favoriteBtn.querySelector('svg').style.fill = 'var(--icon-color)';
+        // ⬇️ FIX: Reset fill color to the theme's primary color (unsaved state) ⬇️
+        favoriteBtn.querySelector('svg').style.fill = 'var(--primary-color)';
         // ⬆️ END FIX ⬆️
     } else {
         // Item is not saved, add it
@@ -3754,7 +3753,7 @@ playerFavoriteBtn.addEventListener('click', async (e) => {
 
         savedPlaylists.push(itemData);
         favoriteBtn.classList.add('is-favorite');
-        // ⬇️ FIX: Use --favorite-color for immediate visual update on add ⬇️
+        // ⬇️ FIX: Use --favorite-color for immediate visual update on add (saved state) ⬇️
         favoriteBtn.querySelector('svg').style.fill = 'var(--favorite-color)';
         // ⬆️ END FIX ⬆️
         hasEverAddedPlaylist = true;
@@ -3788,8 +3787,8 @@ playerFavoriteBtn_playlist.addEventListener('click', async (e) => {
         // Item is saved, remove it
         savedPlaylists.splice(index, 1);
         favoriteBtn.classList.remove('is-favorite');
-        // ⬇️ FIX: Reset fill color to the dim default ⬇️
-        favoriteBtn.querySelector('svg').style.fill = 'var(--icon-color)';
+        // ⬇️ FIX: Reset fill color to the theme's primary color (unsaved state) ⬇️
+        favoriteBtn.querySelector('svg').style.fill = 'var(--primary-color)';
         // ⬆️ END FIX ⬆️
     } else {
         // Item is not saved, add it
@@ -3810,7 +3809,7 @@ playerFavoriteBtn_playlist.addEventListener('click', async (e) => {
 
         savedPlaylists.push(itemData);
         favoriteBtn.classList.add('is-favorite');
-        // ⬇️ FIX: Use --favorite-color for immediate visual update on add ⬇️
+        // ⬇️ FIX: Use --favorite-color for immediate visual update on add (saved state) ⬇️
         favoriteBtn.querySelector('svg').style.fill = 'var(--favorite-color)';
         // ⬆️ END FIX ⬆️
         hasEverAddedPlaylist = true;
@@ -3930,7 +3929,8 @@ function setFocusOnCurrentlyPlaying(mode) {
             if (btn) {
                 // Ensure the is-favorite class and SVG fill are synced
                 btn.classList.toggle('is-favorite', isSaved);
-                btn.querySelector('svg').style.fill = isSaved ? 'var(--favorite-color)' : 'var(--icon-color)';
+                // FIX: Use --primary-color when unsaved
+                btn.querySelector('svg').style.fill = isSaved ? 'var(--favorite-color)' : 'var(--primary-color)';
             }
         });
         // ⬆️ END FIX ⬇️
