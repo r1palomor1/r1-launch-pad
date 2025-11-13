@@ -922,6 +922,8 @@ button.rabbit-default:hover {
     width: 20px;
     height: 20px;
     fill: var(--primary-color);
+    /* FIX: Add stroke color inheritance for outline icons */
+    stroke: var(--primary-color);
 }
 
 .dialog-icon-btn:hover svg {
