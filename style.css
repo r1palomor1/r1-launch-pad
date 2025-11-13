@@ -920,11 +920,13 @@ button.rabbit-default:hover {
 .dialog-icon-btn svg {
     width: 20px;
     height: 20px;
-    fill: var(--icon-color);
+    fill: var(--primary-color);
 }
 
 .dialog-icon-btn:hover svg {
+    /* FIX: Since the default fill is now --primary-color, use a brightness filter for hover */
     fill: var(--primary-color);
+    filter: brightness(1.2);
 }
 
 .custom-prompt-actions button {
@@ -2175,11 +2177,9 @@ button.rabbit-default:hover {
 /* ⬆️ END OF ADDED STYLES ⬆️ */
 
 /* === Active Icon Highlights (Theme-Aware) === */
-/* FIX: Standardize active state for all player control buttons */
-.dialog-icon-btn.active svg,
+/* FIX: Standardize active state for all player control buttons, add bold filter for active state */
 #playerAudioOnlyBtn.active svg,
 #playerAudioOnlyBtn_playlist.active svg,
-/* NEW: Add Play/Pause, Prev/Next, and Playlist Queue buttons to active list */
 #playerPlayPauseBtn.active svg,
 #playerPlayPauseBtn_playlist.active svg,
 #playerPrevBtn.active svg,
@@ -2187,10 +2187,7 @@ button.rabbit-default:hover {
 #playerPlaylistBtn.active svg {
     fill: var(--primary-color);
     opacity: 1;
-    transition: fill 0.3s ease, opacity 0.3s ease;
+    filter: brightness(1.3); /* NEW: Add a high brightness filter for bold/active state */
+    transition: fill 0.3s ease, opacity 0.3s ease, filter 0.3s ease;
 }
 
-/* Optional hover feedback */
-.dialog-icon-btn:hover svg {
-    opacity: 0.8;
-}
