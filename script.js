@@ -1,4 +1,4 @@
-﻿﻿/*
+﻿﻿﻿﻿/*
   Working app: New navigation control icons.  Next attempt to intergrate github repo Toon json simplify
     Polish Favorite icon in video cards and navigation/control rows.
     Polish navigation bar collapse/uncollapse with scroll.
@@ -1588,10 +1588,21 @@ function populatePlaylistOverlay() {
         const videoItem = document.createElement('div');
         videoItem.className = 'card youtube-result-card'; // Use the same class as search results
         
-        // Use the same structure as search results
+        // ⬇️ *** START OF 3-ROW FIX with PLACEHOLDERS *** ⬇️
+        // Use placeholders for fields that aren't being fetched yet.
+        const placeholderArtist = 'Unknown Artist';
+        const placeholderViews = 'N/A views';
+        const placeholderDuration = '(0:00)';
+        const metaLine = `${placeholderViews} • ${placeholderDuration}`;
+
         videoItem.innerHTML = `
             <img src="${video.thumb || GENERIC_FAVICON_SRC}" class="link-favicon" alt="Video thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
-            <div class="link-description">${video.title}</div>`;
+            <div class="link-description">
+                <div class="playlist-row-truncate" title="${video.title}">${video.title}</div>
+                <div class="playlist-row-truncate" title="${placeholderArtist}">${placeholderArtist}</div>
+                <div class="playlist-row-meta">${metaLine}</div>
+            </div>`;
+        // ⬆️ *** END OF 3-ROW FIX with PLACEHOLDERS *** ⬆️
 
         // Apply "now-playing" highlighting
         if (index === currentPlaylistIndex) {
@@ -4181,6 +4192,35 @@ async function loadVolumeFromStorage() {
     
     // Use 40 as the new default, per your suggestion
     return volumeValue ? parseInt(volumeValue) : 40;
+}
+
+/**
+ * Abbreviates numbers to K, M, or B.
+ * @param {number} num - The number to format (e.g., 3400000)
+ * @returns {string} - The formatted string (e.g., "3.4M")
+ */
+function formatNumberToKMB(num) {
+    // Check if views is a string that needs parsing (it often is)
+    let number = num;
+    if (typeof num === 'string') {
+        // Remove commas/dots if present and parse as int/float
+        number = parseFloat(num.replace(/,/g, '').replace(/\./g, ''));
+    }
+
+    if (number === null || number === undefined || typeof number !== 'number' || isNaN(number)) return 'N/A';
+    
+    const absNum = Math.abs(number);
+
+    if (absNum >= 1.0e+9) {
+        return (absNum / 1.0e+9).toFixed(1).replace(/\.0$/, '') + "B";
+    }
+    if (absNum >= 1.0e+6) {
+        return (absNum / 1.0e+6).toFixed(1).replace(/\.0$/, '') + "M";
+    }
+    if (absNum >= 1.0e+3) {
+        return (absNum / 1.0e+3).toFixed(1).replace(/\.0$/, '') + "K";
+    }
+    return String(Math.floor(number));
 }
 
 function onPlayerReady(event) {

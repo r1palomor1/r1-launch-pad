@@ -32,7 +32,7 @@
     --icon-size-medium: clamp(16px, 4.5vw, 18px);
     --icon-size-large: clamp(20px, 5.5vw, 24px);
     --touch-target-size: clamp(34px, 9vw, 38px); /* REPLACED: Reduces min height */
-    --card-padding-y: clamp(8px, 2.2vw, 12px);
+    --card-padding-y: clamp(6px, 1.8vw, 10px);
     --card-padding-x: clamp(10px, 2.8vw, 12px);
 }
 *, *::before, *::after {
@@ -1991,15 +1991,70 @@ button.rabbit-default:hover {
     padding: var(--card-padding-y) var(--card-padding-x);
 }
 
+/* ⬇️ *** ADDED: New rules for 3-row playlist cards *** ⬇️ */
+.playlist-video-list .youtube-result-card .link-description {
+    /* Override existing line-clamp from general .card styling */
+    display: flex; /* Change to flex to stack title, artist, meta vertically */
+    flex-direction: column;
+    overflow: hidden; /* Ensure overflow is hidden for inner truncation */
+    font-weight: normal; /* Reset font weight */
+    line-height: 1.15; /* Tighter line height to save vertical space */
+}
+
+/* Base style for truncating Title and Artist */
+.playlist-row-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    /* ⬇️ *** FIX: Hide standard ellipsis and use pseudo-element for two dots *** ⬇️ */
+    text-overflow: clip; /* Hide the default ellipsis */
+    width: 100%; /* Important for text-overflow to work */
+    position: relative;
+}
+
+.playlist-row-truncate:after {
+    content: '..'; /* Use two dots */
+    position: absolute;
+    right: 0;
+    /* Background color must match the parent card background to hide the end of the text */
+    background: var(--item-bg); 
+    color: var(--font-color); /* Ensure the dots are visible */
+    padding-left: 4px; /* Space between truncated text and dots */
+    /* Ensure the dots are not themselves truncated */
+    display: inline-block;
+    /* ⬇️ *** FIX: Add top and bottom position to center truncation and prevent overflow *** ⬇️ */
+    top: 0;
+    bottom: 0;
+    /* Ensure text is vertically centered within the element's height */
+    display: flex;
+    align-items: center;
+}
+/* ⬆️ *** END OF FIX *** ⬆️ */
+
+/* Style for the metadata row */
+.playlist-row-meta {
+    font-size: 0.8em; /* Smaller text */
+    color: var(--icon-color); /* Greyer text */
+    margin-top: 2px; /* Small separation from Artist row */
+}
+/* ⬆️ *** END OF ADDED RULES *** ⬆️ */
+
 .playlist-video-list .youtube-result-card.now-playing.alt-theme-rabbit {
     border: 2px solid #ff7043; /* Rabbit Me orange */
     box-shadow: 0 0 8px #ff7043;
     /* --- FIX: Re-add vertical padding --- */
     padding-top: var(--card-padding-y);
     padding-bottom: var(--card-padding-y);
-    padding-left: calc(var(--card-padding-x) - 1px); /* Keep inner content aligned */
+    padding-left: calc(var(--card-padding-x) - 1px);
     padding-right: calc(var(--card-padding-x) - 1px);
 }
+/* --- END OF NEW RULES --- */
+
+/* ⬇️ *** ADDED: Tighter sizing for thumbnails inside the playlist overlay *** ⬇️ */
+.playlist-video-list .youtube-result-card .link-favicon {
+    /* Reduce height by 4px compared to the search view thumbnail clamp(36px, 10vw, 40.5px) */
+    height: clamp(32px, 8vw, 36.5px); 
+}
+/* ⬆️ *** END OF ADDED RULES *** ⬆️ */
 .playlist-video-list .youtube-result-card.now-playing.alt-theme-glow {
     border: 2px solid #00ff88; /* Glow Forest Green */
     box-shadow: 0 0 8px #00ff88;
