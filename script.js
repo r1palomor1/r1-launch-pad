@@ -1,4 +1,4 @@
-﻿﻿﻿﻿/*
+﻿﻿﻿/*
   Working app: New navigation control icons.  Next attempt to intergrate github repo Toon json simplify
     Polish Favorite icon in video cards and navigation/control rows.
     Polish navigation bar collapse/uncollapse with scroll.
@@ -1562,49 +1562,63 @@ function closePlaylistOverlay() {
 }
 
 // === NEW: Enrich playlist videos with metadata using PluginMessageHandler (Songs mode pattern) ===
+// Store pending enrichment requests to handle concurrent responses
+let playlistEnrichmentQueue = {};
+
 function enrichPlaylistWithMetadata() {
     if (!currentPlaylist || !currentPlaylist.videos || currentPlaylist.videos.length === 0) {
         return;
     }
 
-    // Request metadata for each video using the exact PluginMessageHandler flow from handleYouTubeSearch
-    currentPlaylist.videos.forEach((video, index) => {
-        // Use a unique callback key for each video to avoid interference
-        const callbackKey = `enrichPlaylist_${video.id}_${index}`;
-        
-        // Store original onPluginMessage
-        const originalCallback = window.onPluginMessage;
-        
-        // Create a temporary callback for this specific video metadata request
-        window.onPluginMessage = async (e) => {
-            try {
-                const data = e.data
-                    ? typeof e.data === "string"
-                        ? JSON.parse(e.data)
-                        : e.data
-                    : null;
+    // Save the original onPluginMessage handler
+    const originalCallback = window.onPluginMessage;
 
-                if (data && Array.isArray(data.video_results) && data.video_results.length > 0) {
-                    const firstResult = data.video_results[0];
-                    // Update the video object with metadata
+    // Create a wrapper that handles both enrichment and normal searches
+    window.onPluginMessage = async (e) => {
+        try {
+            const data = e.data
+                ? typeof e.data === "string"
+                    ? JSON.parse(e.data)
+                    : e.data
+                : null;
+
+            if (!data) return;
+
+            // Check if this response matches any pending enrichment request
+            if (data.video_results && data.video_results.length > 0) {
+                const firstResult = data.video_results[0];
+                const videoId = firstResult.link ? getYoutubeVideoId(firstResult.link) : null;
+
+                // If this is an enrichment request, update the video object
+                if (videoId && playlistEnrichmentQueue[videoId]) {
+                    const video = playlistEnrichmentQueue[videoId];
                     video.artist = firstResult.channel?.name || null;
                     video.views = firstResult.views || null;
                     video.duration = firstResult.length || null;
-                    video.link = firstResult.link || null;
-                    video.thumbnail = firstResult.thumbnail?.static || firstResult.thumbnail || null;
-                    
-                    // Re-render the overlay to show updated data
-                    populatePlaylistOverlay();
-                }
-            } catch (err) {
-                console.error(`Error enriching video ${video.id}:`, err);
-            } finally {
-                // Restore original callback
-                window.onPluginMessage = originalCallback;
-            }
-        };
+                    delete playlistEnrichmentQueue[videoId]; // Clear from queue
 
-        // Post the same message as Songs mode (search by video ID to get full metadata)
+                    // Re-render with updated data
+                    populatePlaylistOverlay();
+                    return; // Don't call original callback for enrichment requests
+                }
+            }
+
+            // Not an enrichment request, call the original handler (for normal searches)
+            if (originalCallback) {
+                originalCallback(e);
+            }
+        } catch (err) {
+            console.error('Error in enrichment wrapper:', err);
+            if (originalCallback) {
+                originalCallback(e);
+            }
+        }
+    };
+
+    // Queue up all video IDs and send requests
+    currentPlaylist.videos.forEach((video) => {
+        playlistEnrichmentQueue[video.id] = video;
+
         if (typeof PluginMessageHandler !== "undefined") {
             const baseParams = { engine: "youtube", search_query: video.id, num: 1 };
             PluginMessageHandler.postMessage(JSON.stringify({
