@@ -1588,21 +1588,34 @@ function populatePlaylistOverlay() {
         const videoItem = document.createElement('div');
         videoItem.className = 'card youtube-result-card'; // Use the same class as search results
         
-        // ⬇️ *** START OF 3-ROW FIX with PLACEHOLDERS *** ⬇️
-        // Use placeholders for fields that aren't being fetched yet.
-        const placeholderArtist = 'Unknown Artist';
-        const placeholderViews = 'N/A views';
-        const placeholderDuration = '(0:00)';
-        const metaLine = `${placeholderViews} • ${placeholderDuration}`;
+        // ⬇️ *** START OF FINAL 3-ROW RENDERING FIX *** ⬇️
+        // Use dynamic data now that the fetch logic is updated.
+        
+        const abbreviatedViews = video.views ? formatNumberToKMB(video.views) : '';
+
+        // Convert duration (seconds) to MM:SS format if available
+        let formattedDuration = '';
+        if (video.duration && typeof video.duration === 'number' && video.duration > 0) {
+            formattedDuration = formatDuration(video.duration);
+        }
+        
+        const artistName = video.artist || '';
+
+        // Build meta line parts dynamically, only including non-empty fields
+        const metaParts = [];
+        if (abbreviatedViews) metaParts.push(`${abbreviatedViews} views`);
+        // Duration is wrapped in parentheses per the design request: (MM:SS)
+        if (formattedDuration) metaParts.push(`(${formattedDuration})`); 
+        const metaLine = metaParts.join(' • ');
 
         videoItem.innerHTML = `
             <img src="${video.thumb || GENERIC_FAVICON_SRC}" class="link-favicon" alt="Video thumbnail" onerror="this.onerror=null; this.src='${GENERIC_FAVICON_SRC}';">
             <div class="link-description">
                 <div class="playlist-row-truncate" title="${video.title}">${video.title}</div>
-                <div class="playlist-row-truncate" title="${placeholderArtist}">${placeholderArtist}</div>
+                <div class="playlist-row-truncate" title="${artistName}">${artistName}</div>
                 <div class="playlist-row-meta">${metaLine}</div>
             </div>`;
-        // ⬆️ *** END OF 3-ROW FIX with PLACEHOLDERS *** ⬆️
+        // ⬆️ *** END OF FINAL 3-ROW RENDERING FIX *** ⬆️
 
         // Apply "now-playing" highlighting
         if (index === currentPlaylistIndex) {
@@ -4207,7 +4220,7 @@ function formatNumberToKMB(num) {
         number = parseFloat(num.replace(/,/g, '').replace(/\./g, ''));
     }
 
-    if (number === null || number === undefined || typeof number !== 'number' || isNaN(number)) return 'N/A';
+    if (number === null || number === undefined || typeof num !== 'number' || isNaN(number)) return 'N/A';
     
     const absNum = Math.abs(number);
 
@@ -4221,6 +4234,18 @@ function formatNumberToKMB(num) {
         return (absNum / 1.0e+3).toFixed(1).replace(/\.0$/, '') + "K";
     }
     return String(Math.floor(number));
+}
+
+/**
+ * Formats duration in seconds to MM:SS string format.
+ * @param {number} totalSeconds - The duration in seconds (e.g., 257)
+ * @returns {string} - The formatted string (e.g., "4:17")
+ */
+function formatDuration(totalSeconds) {
+    if (typeof totalSeconds !== 'number' || totalSeconds < 0) return '0:00';
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 function onPlayerReady(event) {

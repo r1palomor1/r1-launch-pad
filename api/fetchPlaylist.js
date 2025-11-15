@@ -67,17 +67,42 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: 'Playlist not found or is empty' });
         }
 
-        const videos = playlist.videos.map(video => ({
+        const baseVideos = playlist.videos.map(video => ({
             id: video.id,
             title: video.title.text,
-            thumb: video.thumbnails[video.thumbnails.length - 1].url, // Get highest res
+            thumb: video.thumbnails[video.thumbnails.length - 1].url,
         }));
-        
+
+        const videoIds = baseVideos.map(v => v.id);
+        let enrichedVideos = baseVideos;
+
+        try {
+            const metadataUrl = `https://r1-launch-pad.vercel.app/api/fetchvideo?videoIds=${videoIds.join('&videoIds=')}`;
+            const metadataResponse = await fetch(metadataUrl);
+            if (metadataResponse.ok) {
+                const metadataData = await metadataResponse.json();
+                if (metadataData.videos) {
+                    const metadataMap = {};
+                    metadataData.videos.forEach(v => {
+                        metadataMap[v.id] = { artist: v.artist, views: v.views, duration: v.duration };
+                    });
+                    enrichedVideos = baseVideos.map(v => ({
+                        ...v,
+                        artist: metadataMap[v.id]?.artist || null,
+                        views: metadataMap[v.id]?.views || null,
+                        duration: metadataMap[v.id]?.duration || null
+                    }));
+                }
+            }
+        } catch (e) {
+            enrichedVideos = baseVideos.map(v => ({ ...v, artist: null, views: null, duration: null }));
+        }
+
         const playlistTitle = playlist.info?.title || playlist.title?.text || 'YouTube Playlist';
 
         return res.status(200).json({
             title: playlistTitle,
-            videos: videos
+            videos: enrichedVideos
         });
     
     // === LOGIC 2: Search for playlists (New "Playlists" Mode Logic) ===
