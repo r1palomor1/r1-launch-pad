@@ -37,12 +37,12 @@ export default async function handler(req, res) {
         const video = data.video_results[0];
         results.push({
           id: videoId,
-          title: video.title || '',
-          link: video.link || '',
-          thumbnail: video.thumbnail || '',
-          artist: video.source || '',
+          title: video.title || null,
+          link: video.link || null,
+          thumbnail: (video.thumbnail?.static || video.thumbnail) || null,
+          artist: (video.channel?.name || null),
           views: video.views || null,
-          duration: video.duration || null
+          duration: video.length || null
         });
       } else {
         results.push({
