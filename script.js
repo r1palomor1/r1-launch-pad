@@ -1561,6 +1561,61 @@ function closePlaylistOverlay() {
     triggerHaptic();
 }
 
+// === NEW: Enrich playlist videos with metadata using PluginMessageHandler (Songs mode pattern) ===
+function enrichPlaylistWithMetadata() {
+    if (!currentPlaylist || !currentPlaylist.videos || currentPlaylist.videos.length === 0) {
+        return;
+    }
+
+    // Request metadata for each video using the exact PluginMessageHandler flow from handleYouTubeSearch
+    currentPlaylist.videos.forEach((video, index) => {
+        // Use a unique callback key for each video to avoid interference
+        const callbackKey = `enrichPlaylist_${video.id}_${index}`;
+        
+        // Store original onPluginMessage
+        const originalCallback = window.onPluginMessage;
+        
+        // Create a temporary callback for this specific video metadata request
+        window.onPluginMessage = async (e) => {
+            try {
+                const data = e.data
+                    ? typeof e.data === "string"
+                        ? JSON.parse(e.data)
+                        : e.data
+                    : null;
+
+                if (data && Array.isArray(data.video_results) && data.video_results.length > 0) {
+                    const firstResult = data.video_results[0];
+                    // Update the video object with metadata
+                    video.artist = firstResult.channel?.name || null;
+                    video.views = firstResult.views || null;
+                    video.duration = firstResult.length || null;
+                    video.link = firstResult.link || null;
+                    video.thumbnail = firstResult.thumbnail?.static || firstResult.thumbnail || null;
+                    
+                    // Re-render the overlay to show updated data
+                    populatePlaylistOverlay();
+                }
+            } catch (err) {
+                console.error(`Error enriching video ${video.id}:`, err);
+            } finally {
+                // Restore original callback
+                window.onPluginMessage = originalCallback;
+            }
+        };
+
+        // Post the same message as Songs mode (search by video ID to get full metadata)
+        if (typeof PluginMessageHandler !== "undefined") {
+            const baseParams = { engine: "youtube", search_query: video.id, num: 1 };
+            PluginMessageHandler.postMessage(JSON.stringify({
+                message: JSON.stringify({ query_params: baseParams }),
+                useSerpAPI: true
+            }));
+        }
+    });
+}
+// === END: enrichPlaylistWithMetadata ===
+
 function populatePlaylistOverlay() {
     const countElement = document.getElementById('playlistVideoCountText'); // <-- 1. Find new text span
     const emptyMessage = document.getElementById('playlistEmptyMessage');
@@ -1669,6 +1724,9 @@ function populatePlaylistOverlay() {
     });
 
     playlistVideoList.appendChild(fragment);
+    
+    // === NEW: Enrich playlist videos with metadata from R1 engine ===
+    enrichPlaylistWithMetadata();
 }
 
 function renderYouTubeResults(results, mode) {
